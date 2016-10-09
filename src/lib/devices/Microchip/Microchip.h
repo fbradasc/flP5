@@ -238,6 +238,10 @@ protected:
      */
     virtual uint32_t read_deviceid(void);
 
+    /** Prepare the default value of the configuration registers.
+     */
+    virtual void set_config_default(DataBuffer& buf);
+
 /* Protected data: */
     /** The calculated bitmask for clearing upper bits of a word. */
     uint32_t wordmask;
@@ -549,6 +553,33 @@ protected:
     void disable_codeprotect(void);
 };
 
+#define REG_EEADR            0xa9
+#define REG_EEADRH           0xaa
+#define REG_EEDATA           0xa8
+#define REG_EECON2           0xa7
+#define REG_TABLAT           0xf5
+#define REG_TBLPTRU          0xf8
+#define REG_TBLPTRH          0xf7
+#define REG_TBLPTRL          0xf6
+
+#define ASM_NOP              0x0000          /* nop               */
+#define ASM_BCF_EECON1_EEPGD 0x9ea6          /* bcf EECON1, EEPGD */
+#define ASM_BCF_EECON1_CFGS  0x9ca6          /* bcf EECON1, CfGS  */
+#define ASM_BCF_EECON1_FREE  0x98a6          /* bcf EECON1, FREE  */
+#define ASM_BCF_EECON1_WRERR 0x96a6          /* bcf EECON1, WRERR */
+#define ASM_BCF_EECON1_WREN  0x94a6          /* bcf EECON1, WREN  */
+#define ASM_BSF_EECON1_EEPGD 0x8ea6          /* bsf EECON1, EEPGD */
+#define ASM_BSF_EECON1_CFGS  0x8ca6          /* bsf EECON1, CFGS  */
+#define ASM_BSF_EECON1_FREE  0x88a6          /* bsf EECON1, FREE  */
+#define ASM_BSF_EECON1_WRERR 0x86a6          /* bsf EECON1, WRERR */
+#define ASM_BSF_EECON1_WREN  0x84a6          /* bsf EECON1, WREN  */
+#define ASM_BSF_EECON1_WR    0x82a6          /* bsf EECON1, WR    */
+#define ASM_BSF_EECON1_RD    0x80a6          /* bsf EECON1, RD    */
+#define ASM_MOVLW(addr)      0x0e00 | (addr) /* movlw <addr>      */
+#define ASM_MOVWF(addr)      0x6e00 | (addr) /* movwf <addr>      */
+#define ASM_MOVF_EEDATA_W_0  0x50a8          /* movf EEDATA, W, 0 */
+#define ASM_MOVF_EECON1_W_0  0x50a6          /* movf EECON1, W, 0 */
+#define ASM_INCF_TBLPTR      0x2af6          /* incf TBLPTR       */
 
 /** A class which implements the programming algorithm PIC18* devices. The
  * PIC18* devices are different in many ways:
@@ -789,11 +820,45 @@ protected:
 
     virtual uint32_t read_deviceid(void);
 
+    /** Prepare the default value of the configuration registers.
+     */
+    virtual void set_config_default(DataBuffer& buf);
+
 /* Protected Data: */
     /** The bitmasks for each configuration word */
     unsigned int config_masks[7];
+    unsigned int config_deflt[7];
 
     static const Instruction opcodes[];
+};
+
+class Pic18f2xx0 : public Pic18
+{
+public:
+    const static int COMMAND_TABLE_WRITE_START_POSTINC=0x0e; /**< Table Write, start programming, post-inc by 2 */
+    const static unsigned long WRITE_BUFFER_SIZE=32; /* TODO generalize to a pic.conf parameter : 32 is for 18f4550 */
+    const static unsigned long ERASE_BUFFER_SIZE=64; /* TODO idem */
+
+    Pic18f2xx0(char *name);
+    virtual ~Pic18f2xx0();
+
+    virtual void erase(void);
+
+protected:
+    virtual void write_program_memory(DataBuffer& buf, bool verify);
+
+    virtual void write_id_memory(DataBuffer& buf, unsigned long addr, bool verify);
+
+    virtual void write_data_memory(DataBuffer& buf, unsigned long addr, bool verify);
+
+    virtual void write_config_memory(DataBuffer& buf, unsigned long addr, bool verify);
+
+    virtual void read_data_memory(DataBuffer& buf, unsigned long addr, bool verify);
+
+    void load_write_buffer(unsigned int word, bool last);
+
+    virtual void program_wait(void);
+
 };
 
 #endif

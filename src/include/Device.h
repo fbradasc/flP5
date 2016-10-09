@@ -93,6 +93,10 @@ public:
      */
     virtual void read(DataBuffer& buf, bool verify=false) = 0;
 
+    /** Prepare the default value of the configuration registers.
+     */
+    virtual void set_config_default(DataBuffer& buf) = 0;
+
     /** Retrieves the name of the device.
      * \returns A string containing the name of the device.
      */

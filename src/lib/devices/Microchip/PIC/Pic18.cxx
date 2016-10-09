@@ -26,34 +26,6 @@ using namespace std;
 #define PANEL_SHIFT 13
 #define PANELSIZE (1 << PANEL_SHIFT) /* bytes */
 
-#define REG_EEADR            0xa9
-#define REG_EEADRH           0xaa
-#define REG_EEDATA           0xa8
-#define REG_EECON2           0xa7
-#define REG_TABLAT           0xf5
-#define REG_TBLPTRU          0xf8
-#define REG_TBLPTRH          0xf7
-#define REG_TBLPTRL          0xf6
-
-#define ASM_NOP              0x0000          /* nop               */
-#define ASM_BCF_EECON1_EEPGD 0x9ea6          /* bcf EECON1, EEPGD */
-#define ASM_BCF_EECON1_CFGS  0x9ca6          /* bcf EECON1, CfGS  */
-#define ASM_BCF_EECON1_FREE  0x98a6          /* bcf EECON1, FREE  */
-#define ASM_BCF_EECON1_WRERR 0x96a6          /* bcf EECON1, WRERR */
-#define ASM_BCF_EECON1_WREN  0x94a6          /* bcf EECON1, WREN  */
-#define ASM_BSF_EECON1_EEPGD 0x8ea6          /* bsf EECON1, EEPGD */
-#define ASM_BSF_EECON1_CFGS  0x8ca6          /* bsf EECON1, CFGS  */
-#define ASM_BSF_EECON1_FREE  0x88a6          /* bsf EECON1, FREE  */
-#define ASM_BSF_EECON1_WRERR 0x86a6          /* bsf EECON1, WRERR */
-#define ASM_BSF_EECON1_WREN  0x84a6          /* bsf EECON1, WREN  */
-#define ASM_BSF_EECON1_WR    0x82a6          /* bsf EECON1, WR    */
-#define ASM_BSF_EECON1_RD    0x80a6          /* bsf EECON1, RD    */
-#define ASM_MOVLW(addr)      0x0e00 | (addr) /* movlw <addr>      */
-#define ASM_MOVWF(addr)      0x6e00 | (addr) /* movwf <addr>      */
-#define ASM_MOVF_EEDATA_W_0  0x50a8          /* movf EEDATA, W, 0 */
-#define ASM_MOVF_EECON1_W_0  0x50a6          /* movf EECON1, W, 0 */
-#define ASM_INCF_TBLPTR      0x2af6          /* incf TBLPTR       */
-
 const Instruction Pic18::opcodes[] = {
     /* PIC 16-bit "Special" instruction set */
     { "clrc"   , 0xffff, 0x90d8, INSN_CLASS_IMPLICIT },
@@ -185,7 +157,6 @@ const Instruction Pic18::opcodes[] = {
 
 Pic18::Pic18(char *name) : Pic(name)
 {
-char buf[16];
 int i;
 
     this->popcodes = this->opcodes;
@@ -200,6 +171,15 @@ int i;
             )
         ) {
             config_masks[i] = 0xffff;
+        }
+        if (
+            !config->getHex (
+                Preferences::Name("cw_defs_%02d", i),
+                (int &)config_deflt[i],
+                0
+            )
+        ) {
+            config_deflt[i] = 0xffff;
         }
     }
     /* Create the memory map for this device. Note that these are 16-bit word
@@ -842,4 +822,14 @@ unsigned int d1, d2;
     d2 = write_command_read_data(COMMAND_TABLE_READ_POSTINC);
 
     return d1 | d2<<8;
+}
+
+void Pic18::set_config_default(DataBuffer& buf)
+{
+    /* On most PICs 18, the configuration memory is only = 0xffff */
+    int i;
+
+    for (i=0; i<CFG_WORDS_WRDS; i++) {
+         buf[(0x300000 >> 1) + i] = this->config_deflt[i];
+    }
 }

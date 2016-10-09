@@ -53,6 +53,10 @@ Device *Pic::load(char *name)
     ) {
         return new Pic16(name);
     } else if (
+        Util::regexMatch("^PIC18F((2..[05])|(2.21)|(4..[05])|(4.21))", name)
+    ) {
+        return new Pic18f2xx0(name);
+    } else if (
         Util::regexMatch("^PIC18.*", name)
     ) {
         return new Pic18(name);
@@ -617,7 +621,6 @@ uint32_t devid;
     return false;
 }
 
-
 uint32_t Pic::read_deviceid(void)
 {
     fprintf (
@@ -626,4 +629,10 @@ uint32_t Pic::read_deviceid(void)
     );
     /* Fake it out. */
     return (this->deviceid & this->deviceidmask);
+}
+
+void Pic::set_config_default(DataBuffer& buf)
+{
+    /* On most PICs, the configuration memory is only = 0xffff but it is not always the case */
+    /* TODO should be done through the pic.conf configuration */
 }
