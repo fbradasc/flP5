@@ -41,8 +41,9 @@ typedef enum DEV_PARAM {
     LAST_PARAM
 } DevParam;
 
+#define CFG_OPER_FIRST 0
 typedef enum CFG_OPER {
-    CFG_NEW=0,
+    CFG_NEW=CFG_OPER_FIRST,
     CFG_EDIT,
     CFG_COPY,
     CFG_SAVE,
@@ -52,8 +53,22 @@ typedef enum CFG_OPER {
     CFG_NONE
 } CfgOper;
 
+#define PB_OPER_FIRST 0
+typedef enum PB_OPER {
+    PB_READ=PB_OPER_FIRST,
+    PB_ERASE,
+    PB_BLANCK_CHECK,
+    PB_WRITE,
+    PB_VERIFY,
+    PB_TEST,
+    PB_RESET,
+    PB_CALIBRATE,
+    PB_NONE
+} PbOper;
+
+#define CHIP_OPER_FIRST 0
 typedef enum CHIP_OPER {
-    CHIP_READ=0,
+    CHIP_READ=CHIP_OPER_FIRST,
     CHIP_ERASE,
     CHIP_BLANCK_CHECK,
     CHIP_WRITE,
@@ -65,11 +80,13 @@ typedef enum CHIP_OPER {
     CHIP_TEST_RESET,
     CHIP_TEST_RESET_ON,
     CHIP_TEST_RESET_OFF,
+    CHIP_CALIBRATE,
     CHIP_NONE
 } ChipOper;
 
+#define PP_PINS_FIRST 0
 typedef enum PP_PINS {
-    ICSP_CLOCK=0,
+    ICSP_CLOCK=PP_PINS_FIRST,
     ICSP_DATA_IN,
     ICSP_DATA_OUT,
     ICSP_VDD_ON,

@@ -75,6 +75,10 @@ int arg;
         close(this->fd);
         throw runtime_error(strerror(err));
     }
+    fprintf (
+        stderr,
+        "LinuxPPDevIO::LinuxPPDevIO instantiated\n"
+    );
 }
 
 LinuxPPDevIO::~LinuxPPDevIO()
@@ -92,6 +96,11 @@ int arg;
     ioctl(this->fd, PPSETMODE, &arg);
     ioctl(this->fd, PPRELEASE);     /* Ignore errors */
     close(this->fd);
+
+    fprintf (
+        stderr,
+        "LinuxPPDevIO::LinuxPPDevIO deleted\n"
+    );
 }
 
 void LinuxPPDevIO::set_bit_common (

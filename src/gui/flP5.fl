@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0104 
+version 1.0106 
 header_name {.h} 
 code_name {.cxx}
 decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
@@ -2090,8 +2090,13 @@ ch_programmers->do_callback();}
         }
         submenu sm_operations {
           label {&Operations} open
-          xywh {0 0 100 20} deactivate
+          xywh {0 0 100 20}
         } {
+          menuitem {} {
+            label {&Calibrate}
+            callback {processOperation(CHIP_CALIBRATE);}
+            private xywh {10 10 100 20} shortcut 0x80063 divider
+          }
           menuitem {} {
             label {&Read}
             callback {processOperation(CHIP_READ);}
@@ -2105,7 +2110,7 @@ ch_programmers->do_callback();}
           menuitem {} {
             label {&Blank check}
             callback {processOperation(CHIP_BLANCK_CHECK);}
-            private xywh {0 0 100 20} shortcut 0x80063
+            private xywh {0 0 100 20} shortcut 0x80062
           }
           menuitem {} {
             label {&Write}
@@ -2123,13 +2128,13 @@ ch_programmers->do_callback();}
           xywh {0 0 100 20}
         } {
           menuitem {} {
-            label {&About flP5...}
-            callback {make_copyright_window(copyrightText);}
-            xywh {0 0 100 20}
-          }
-          menuitem {} {
             label {&Manual...}
             callback {showManual();}
+            xywh {0 0 100 20} shortcut 0xffbe
+          }
+          menuitem {} {
+            label {&About flP5...}
+            callback {make_copyright_window(copyrightText);}
             xywh {0 0 100 20}
           }
         }
@@ -2219,31 +2224,31 @@ mb_menuBar->redraw();} open
       }
       Fl_Button {pb_operation[0]} {
         callback {processOperation(CHIP_READ);}
-        private tooltip {Load the content of the Device memory into the memory buffer.} image {./pixmaps/read_pic.xpm} deimage {./pixmaps/read_pic-desel.xpm} xywh {0 125 35 35} box FLAT_BOX align 16
+        tooltip {Load the content of the Device memory into the memory buffer.} image {./pixmaps/read_pic.xpm} deimage {./pixmaps/read_pic-desel.xpm} xywh {0 125 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
       Fl_Button {pb_operation[1]} {
         callback {processOperation(CHIP_ERASE);}
-        private tooltip {Erase the content of the Device memory.} image {./pixmaps/erase_pic.xpm} deimage {./pixmaps/erase_pic-desel.xpm} xywh {0 160 35 35} box FLAT_BOX align 16
+        tooltip {Erase the content of the Device memory.} image {./pixmaps/erase_pic.xpm} deimage {./pixmaps/erase_pic-desel.xpm} xywh {0 160 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
       Fl_Button {pb_operation[2]} {
         callback {processOperation(CHIP_BLANCK_CHECK);}
-        private tooltip {Perform a blanck check of the Device memory.} image {./pixmaps/check_pic.xpm} deimage {./pixmaps/check_pic-desel.xpm} xywh {0 195 35 35} box FLAT_BOX align 16
+        tooltip {Perform a blanck check of the Device memory.} image {./pixmaps/check_pic.xpm} deimage {./pixmaps/check_pic-desel.xpm} xywh {0 195 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
       Fl_Button {pb_operation[3]} {
         callback {processOperation(CHIP_WRITE);}
-        private tooltip {Load the content of the memory buffer into the Device memory.} image {./pixmaps/write_pic.xpm} deimage {./pixmaps/write_pic-desel.xpm} xywh {0 230 35 35} box FLAT_BOX align 16
+        tooltip {Load the content of the memory buffer into the Device memory.} image {./pixmaps/write_pic.xpm} deimage {./pixmaps/write_pic-desel.xpm} xywh {0 230 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
       Fl_Button {pb_operation[4]} {
         callback {processOperation(CHIP_VERIFY);}
-        private tooltip {Compare the content of the Device's memory with the content of the memory buffer.} image {./pixmaps/verify_pic.xpm} deimage {./pixmaps/verify_pic-desel.xpm} xywh {0 265 35 35} box FLAT_BOX align 16
+        tooltip {Compare the content of the Device's memory with the content of the memory buffer.} image {./pixmaps/verify_pic.xpm} deimage {./pixmaps/verify_pic-desel.xpm} xywh {0 265 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
@@ -2252,22 +2257,26 @@ mb_menuBar->redraw();} open
       }
       Fl_Button {pb_operation[5]} {
         callback {if (o->value()) {
-    for (int i=0; i<5; i++) {
-        pb_operation[i]->deactivate();
+    for (int i=PB_OPER_FIRST; i<PB_NONE; i++) {
+        if (i != PB_TEST) {
+            pb_operation[i]->deactivate();
+        }
     }
-    pb_operation[6]->activate();
+    pb_operation[PB_RESET]->activate();
     if (!processOperation(CHIP_TEST_ON)) {
         o->value(0);
         o->do_callback();
     }
 } else {
-    for (int i=0; i<5; i++) {
-        pb_operation[i]->activate();
+    for (int i=PB_OPER_FIRST; i<PB_NONE; i++) {
+        if (i != PB_TEST) {
+            pb_operation[i]->activate();
+        }
     }
-    pb_operation[6]->deactivate();
+    pb_operation[PB_RESET]->deactivate();
     processOperation(CHIP_TEST_OFF);
-}}
-        private tooltip {Switch on/off the Vdd line to enter in the On Circuit Test mode.} image {./pixmaps/test_pic.xpm} deimage {./pixmaps/test_pic-desel.xpm} xywh {0 305 35 35} type Toggle box FLAT_BOX down_box PLASTIC_THIN_DOWN_BOX selection_color 3 align 80 when 1
+}} selected
+        tooltip {Switch on/off the Vdd line to enter in the On Circuit Test mode.} image {./pixmaps/test_pic.xpm} deimage {./pixmaps/test_pic-desel.xpm} xywh {0 305 35 35} type Toggle box FLAT_BOX down_box PLASTIC_THIN_DOWN_BOX selection_color 3 align 80 when 1
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
@@ -2276,8 +2285,17 @@ mb_menuBar->redraw();} open
     o->value()
         ? CHIP_TEST_RESET_ON
         : CHIP_TEST_RESET_OFF
-);} selected
+);}
         tooltip {Put the Vpp line to GND to reset the device.} image {./pixmaps/test_pic_reset.xpm} deimage {./pixmaps/test_pic_reset-desel.xpm} xywh {1 340 35 35} box FLAT_BOX align 16 when 1 deactivate
+        code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+        class Fl_RaiseButton
+      }
+      Fl_Box {} {
+        private xywh {0 376 35 3} box THIN_UP_BOX labeltype NO_LABEL
+      }
+      Fl_Button {pb_operation[7]} {
+        callback {processOperation(CHIP_CALIBRATE);}
+        tooltip {Start programmer calibration procedure.} image {./pixmaps/calibrate.xpm} deimage {./pixmaps/calibrate-desel.xpm} xywh {0 380 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
@@ -2554,7 +2572,7 @@ pb_calNext->label("Done @>");} open
     *v = false;
     w_calibration->hide();
 }}
-      tooltip {Cancel current operation.} xywh {5 170 75 25} box ENGRAVED_BOX labelfont 1 align 20
+      tooltip {Cancel current operation.} xywh {5 170 145 25} box ENGRAVED_BOX labelfont 1 align 20
     }
     Fl_Button pb_calSkip {
       label {Skip @>}
@@ -2564,7 +2582,7 @@ pb_calNext->label("Done @>");} open
     *v = true;
     w_calibration->hide();
 }}
-      tooltip {Skip calibration. Perform operation.} xywh {80 170 70 25} box ENGRAVED_BOX labelfont 1 align 24
+      tooltip {Skip calibration. Perform operation.} xywh {80 170 70 25} box ENGRAVED_BOX labelfont 1 align 24 hide
     }
     Fl_Button pb_calPrec {
       label {@<}
@@ -2581,11 +2599,11 @@ pb_calNext->label("Done @>");} open
     }
   }
   code {pb_calCancel->show();
-pb_calSkip->show();
+// pb_calSkip->show();
 pb_calPrec->hide();
-if (force) {
-    pb_calSkip->deactivate();
-}
+// if (force) {
+//     pb_calSkip->deactivate();
+// }
 w_calibration->position (
     flP5->x() + (flP5->w()/2 - w_calibration->w()/2),
     flP5->y() + (flP5->h()/2 - w_calibration->h()/2)
@@ -2633,7 +2651,8 @@ w_report->hide();}
   code {w_report->hide();} {}
 } 
 
-Function {make_copyright_window(char *copyright)} {} {
+Function {make_copyright_window(char *copyright)} {open
+} {
   Fl_Window w_copyright {
     label {flP5 Copyright} open
     xywh {49 621 350 350} type Double modal visible

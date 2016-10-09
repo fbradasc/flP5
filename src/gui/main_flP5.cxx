@@ -50,7 +50,7 @@ Preferences devices(Preferences::USER,"flP5","devices");
 
 char *copyrightText =
 "<HTML><BODY><CENTER>"
-"<B>flP5 1.1.1</B><BR>"
+"<B>flP5 1.1.3</B><BR>"
 "the Fast Light Parallel Port Production PIC Programmer.<BR>"
 "Copyright (C) 2003 by Francesco Bradascio</CENTER><P>"
 "</P>"
@@ -1529,6 +1529,7 @@ char *soper[] = {
     /* CHIP_TEST_RESET     */ "Resetting Device",
     /* CHIP_TEST_RESET_ON  */ "Resetting Device",
     /* CHIP_TEST_RESET_OFF */ "",
+    /* CHIP_CALIBRATE      */ "",
     ""
 };
 
@@ -1539,13 +1540,16 @@ char *soper[] = {
         io
     ) {
         if (oper == CHIP_TEST_RESET) {
-           io->vpp(IO::VPP_TO_GND);
-           io->usleep(100000);     // 0.1" reset time
-           io->vpp(IO::VPP_TO_VDD);
+            io->vpp(IO::VPP_TO_GND);
+            io->usleep(100000);     // 0.1" reset time
+            io->vpp(IO::VPP_TO_VDD);
         } else if (oper == CHIP_TEST_RESET_ON) {
-           io->vpp(IO::VPP_TO_GND);
+            io->vpp(IO::VPP_TO_GND);
         } else if (oper == CHIP_TEST_RESET_OFF) {
-           io->vpp(IO::VPP_TO_VDD);
+            io->vpp(IO::VPP_TO_VDD);
+        } else if (oper == CHIP_TEST_OFF) {
+            io->vpp(IO::VPP_TO_GND);
+            io->vdd(IO::VDD_TO_OFF);
         } else {
             make_regcheck_window();
             if (
@@ -1566,7 +1570,7 @@ char *soper[] = {
                 currentDevice     != lastDevice ||
                 currentProgrammer != lastProgrammer
             );
-            if (oper != CHIP_TEST_OFF) {
+            if (forceCalibration || oper == CHIP_CALIBRATE) {
                proceed = make_calibration_window (
                    forceCalibration,
                    chip->get_name().c_str(),
@@ -1584,11 +1588,12 @@ char *soper[] = {
             lastDevice     = currentDevice;
             lastProgrammer = currentProgrammer;
         
-            io->vdd(IO::VDD_TO_PRG);
-        
+            if (oper != CHIP_CALIBRATE) {
+                io->vdd(IO::VDD_TO_PRG);
+            }
             chip->set_iodevice(io);
             chip->set_progress_cb(progressOperation);
-        
+
             // init progress bar & time remaining calculations
             progressOperation((void*)soper[oper],0,-1);
         
@@ -1786,6 +1791,8 @@ unsigned int a=prodCode, b=regKey;
 
 int main(int argc, char **argv)
 {
+    io = NULL;
+
 #ifndef WIN32
     /* Set UID back to user if running setuid */
     Util::setUser(getuid());
@@ -1807,5 +1814,9 @@ int main(int argc, char **argv)
     }
     Fl::run();
     app.flush();
+
+    if (io != NULL) {
+        delete io;
+    }
     return 0;
 }

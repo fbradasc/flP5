@@ -97,6 +97,11 @@ static char str[20];
     data  (false);
     vdd   (VDD_TO_OFF);
     vdd   (VDD_TO_PRG);
+
+    fprintf (
+        stderr,
+        "DirectPPIO::DirectPPIO instantiated\n"
+    );
 }
 
 DirectPPIO::~DirectPPIO()
@@ -115,21 +120,18 @@ DirectPPIO::~DirectPPIO()
     }
 #else
     /* Set UID to root if running setuid */
-    fprintf(stderr, "User before setting UID to root: real:%d - effective:%d.\n",getuid(),geteuid());
-    if (seteuid(0) < 0) {
-        fprintf(stderr, "Warning: couldn't set root privledges.\n");
-    }
-    fprintf(stderr, "User after setting UID to root: real:%d - effective:%d.\n",getuid(),geteuid());
+    Util::setUser(0);
 
     /* Turn port access off */
     ioperm(this->ioport, this->regs, 0);
 
     /* Set UID back to user if running setuid */
-    if (seteuid(getuid()) < 0) {
-        fprintf(stderr, "Warning: couldn't drop root privledges: %d.\n",getuid());
-    }
-    fprintf(stderr, "User after setting UID to user: real:%d - effective:%d.\n",getuid(),geteuid());
+    Util::setUser(getuid());
 #endif
+    fprintf (
+        stderr,
+        "DirectPPIO::DirectPPIO deleted\n"
+    );
 }
 
 void DirectPPIO::set_bit_common (

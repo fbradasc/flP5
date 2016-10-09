@@ -1,3 +1,21 @@
+flP5 1.1.3:
+  * The parallel port was only registered but never unregistered, if flP5 is
+    started and stopped several times could ends eventually with being unable
+    to use a parport device on Linux.
+
+  * The caibration procedure is now started only when:
+    - the first time an operation is selected after the execution of flP5
+    - a different device or programmer is selected by the combo box
+    - it is explicitly executed by the user
+      The new "calibration" button and Operation's menu option have been added
+      to do this task.
+
+  * Fixed the shortcut invocation for the "Blanck check" operation, it was
+    Alt+c, is now Alt+b
+
+  Thanks to Geoff Horn who signaled the parallel port issue and adviced me on
+  how to make more user friendly the calibration procedure.
+
 flP5 1.1.2:
   * Aligned the PIC programming library to odyssey-0.3
 
