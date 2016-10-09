@@ -1,3 +1,17 @@
+flP5 1.1.4:
+  * Aligned the PIC programming library to odyssey-0.3.1
+    - Added finer-grained signal timing parameters
+    - Fix EEPROM data writing & reading for the pic18f252
+    - Add initial support for the verification of the PIC device ID
+
+  * New disassembly method, ported from GNU gputils tools.
+
+  * Enhanched the way the PIC memory content is displayed.
+    Now the program memory, ID locations, config words and EEPROM area are
+    shown in each own sections, 
+
+  * Added the disassembly for the instructions of the Pic18 family.
+
 flP5 1.1.3:
   * The parallel port was only registered but never unregistered, if flP5 is
     started and stopped several times could ends eventually with being unable

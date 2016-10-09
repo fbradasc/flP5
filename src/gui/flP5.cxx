@@ -22,7 +22,8 @@ static bool load_item=false;
 Fl_Choice *ch_pinNumber[9];
 Fl_Check_Button *tb_pinInvert[9];
 Fl_Box *bx_pinName[9];
-Fl_Input *tx_devParam[13];
+Fl_Input *tx_devParam[LAST_PARAM];
+Fl_Input *tx_propDelay[LAST_PROP_DLY];
 #include "pixmaps/mini_folder.xpm"
 static Fl_Pixmap *mini_folder = new Fl_Pixmap(mini_folder_xpm);
 #include "pixmaps/mini_device.xpm"
@@ -1170,6 +1171,8 @@ static const char *idata_editcopy1[] = {
 };
 static Fl_Pixmap image_editcopy1(idata_editcopy1);
 
+Fl_Group *g_devCfgStoreMGR=(Fl_Group *)0;
+
 static void cb_4(Fl_RaiseButton*, void*) {
   if (deviceConfigCB(CFG_SAVE)) {
     g_devcfg->deactivate();
@@ -1664,6 +1667,8 @@ Fl_Group *g_devmiscellanea=(Fl_Group *)0;
 
 Fl_Check_Button *tb_devExperimental=(Fl_Check_Button *)0;
 
+Fl_Input *tx_devIDWord[2]={(Fl_Input *)0};
+
 Fl_Group *t_progcfg=(Fl_Group *)0;
 
 static void cb_b(Fl_RaiseButton*, void*) {
@@ -1693,6 +1698,8 @@ static void cb_e(Fl_RaiseButton*, void*) {
 g_progCfgNewEditCopy->deactivate();
 programmerConfigCB(CFG_COPY);
 }
+
+Fl_Group *g_pogStoreMGR=(Fl_Group *)0;
 
 static void cb_f(Fl_RaiseButton*, void*) {
   if (programmerConfigCB(CFG_SAVE)) {
@@ -2090,6 +2097,62 @@ Fl_Check_Button *tb_vppOffCond=(Fl_Check_Button *)0;
 
 Fl_Check_Button *tb_saVddVppControl=(Fl_Check_Button *)0;
 
+Fl_Group *t_settings=(Fl_Group *)0;
+
+static void cb_19(Fl_RaiseButton*, void*) {
+  generalSettingsCB(CFG_IMPORT);
+g_settings->deactivate();
+g_settingsNewEditCopy->activate();
+t_settings->redraw();
+}
+
+Fl_Group *g_settingsNewEditCopy=(Fl_Group *)0;
+
+static void cb_1a(Fl_RaiseButton*, void*) {
+  g_settings->activate();
+g_settingsNewEditCopy->deactivate();
+g_settingsStoreMGR->activate();
+generalSettingsCB(CFG_NEW);
+}
+
+static void cb_1b(Fl_RaiseButton*, void*) {
+  g_settings->activate();
+g_settingsNewEditCopy->deactivate();
+g_settingsStoreMGR->activate();
+generalSettingsCB(CFG_EDIT);
+}
+
+static void cb_1c(Fl_RaiseButton*, void*) {
+  g_settings->activate();
+g_settingsNewEditCopy->deactivate();
+g_settingsStoreMGR->activate();
+generalSettingsCB(CFG_COPY);
+}
+
+Fl_Group *g_settingsStoreMGR=(Fl_Group *)0;
+
+static void cb_1d(Fl_RaiseButton*, void*) {
+  if (generalSettingsCB(CFG_SAVE)) {
+    g_settings->deactivate();
+    g_settingsNewEditCopy->activate();
+    g_settingsStoreMGR->deactivate();
+    t_settings->redraw();
+};
+}
+
+static void cb_1e(Fl_RaiseButton*, void*) {
+  if (generalSettingsCB(CFG_DELETE)) {
+    g_settings->deactivate();
+    g_settingsNewEditCopy->activate();
+    g_settingsStoreMGR->deactivate();
+    t_settings->redraw();
+};
+}
+
+Fl_Group *g_settings=(Fl_Group *)0;
+
+Fl_Group *g_prop_delays=(Fl_Group *)0;
+
 static Fl_Menu_Bar *mb_menuBar=(Fl_Menu_Bar *)0;
 
 static void cb_mi_open(Fl_Menu_*, void*) {
@@ -2258,7 +2321,7 @@ Fl_Browser *ls_memdump=(Fl_Browser *)0;
 
 Fl_Pack *p_toolbar=(Fl_Pack *)0;
 
-static void cb_19(Fl_RaiseButton*, void*) {
+static void cb_1f(Fl_RaiseButton*, void*) {
   loadHexFile();
 }
 
@@ -2564,7 +2627,7 @@ static const char *idata_fileopen1[] = {
 };
 static Fl_Pixmap image_fileopen1(idata_fileopen1);
 
-static void cb_1a(Fl_RaiseButton*, void*) {
+static void cb_20(Fl_RaiseButton*, void*) {
   saveHexFile();
 }
 
@@ -4541,11 +4604,15 @@ for (i=0;i<LAST_PIN;i++) {
 for (i=0;i<LAST_PARAM;i++) {
     tx_devParam[i] = 0;
 }
+for (i=0;i<LAST_PROP_DLY;i++) {
+    tx_propDelay[i] = 0;
+}
   { Fl_Double_Window* o = flP5 = new Fl_Double_Window(630, 445, "flP5 - Fast Light Parallel Port Production PIC Programmer");
     w = o;
     { Fl_Tabs* o = new Fl_Tabs(365, 25, 260, 415);
       o->box(FL_UP_BOX);
-      { Fl_Group* o = t_devcfg = new Fl_Group(365, 50, 260, 390, "Device Config.");
+      { Fl_Group* o = t_devcfg = new Fl_Group(365, 50, 260, 390, "Device");
+        o->tooltip("Device Configuration");
         { Fl_Group* o = new Fl_Group(370, 55, 250, 25);
           { Fl_RaiseButton* o = new Fl_RaiseButton(370, 55, 25, 25);
             o->tooltip("Import the device settings from a file.");
@@ -4618,37 +4685,40 @@ for (i=0;i<LAST_PARAM;i++) {
             o->box(FL_THIN_UP_BOX);
             o->labeltype(FL_NO_LABEL);
           }
-          { Fl_RaiseButton* o = new Fl_RaiseButton(475, 55, 25, 25);
-            o->tooltip("Save current device settings.");
-            o->box(FL_FLAT_BOX);
-            o->color(FL_BACKGROUND_COLOR);
-            o->selection_color(FL_BACKGROUND_COLOR);
-            o->image(image_cfgsave);
-            o->deimage(image_cfgsave1);
-            o->labeltype(FL_NORMAL_LABEL);
-            o->labelfont(0);
-            o->labelsize(14);
-            o->labelcolor(FL_BLACK);
-            o->callback((Fl_Callback*)cb_4);
-            o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-            o->when(FL_WHEN_RELEASE);
-            o->hilighted_box(FL_THIN_UP_BOX);
-          }
-          { Fl_RaiseButton* o = new Fl_RaiseButton(595, 55, 25, 25);
-            o->tooltip("Remove/discard current device settings.");
-            o->box(FL_FLAT_BOX);
-            o->color(FL_BACKGROUND_COLOR);
-            o->selection_color(FL_BACKGROUND_COLOR);
-            o->image(image_editdelete);
-            o->deimage(image_editdelete1);
-            o->labeltype(FL_NORMAL_LABEL);
-            o->labelfont(0);
-            o->labelsize(14);
-            o->labelcolor(FL_BLACK);
-            o->callback((Fl_Callback*)cb_5);
-            o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-            o->when(FL_WHEN_RELEASE);
-            o->hilighted_box(FL_THIN_UP_BOX);
+          { Fl_Group* o = g_devCfgStoreMGR = new Fl_Group(475, 55, 145, 25);
+            { Fl_RaiseButton* o = new Fl_RaiseButton(475, 55, 25, 25);
+              o->tooltip("Save current device settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_cfgsave);
+              o->deimage(image_cfgsave1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_4);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            { Fl_RaiseButton* o = new Fl_RaiseButton(595, 55, 25, 25);
+              o->tooltip("Remove/discard current device settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_editdelete);
+              o->deimage(image_editdelete1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_5);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            o->end();
           }
           o->end();
         }
@@ -4884,7 +4954,7 @@ n. To be on the safe side, the maximum value from the datasheet should be used\
             }
             o->end();
           }
-          { Fl_Group* o = new Fl_Group(370, 160, 250, 275, "Config. Words");
+          { Fl_Group* o = new Fl_Group(370, 160, 250, 275, "Cfg. Words");
             o->hide();
             { Fl_Group* o = g_devcfgwords = new Fl_Group(375, 165, 240, 265);
               o->deactivate();
@@ -5136,6 +5206,41 @@ ble when programming the device.");
               { Fl_Check_Button* o = tb_devExperimental = new Fl_Check_Button(375, 165, 240, 20, "Experimental");
                 o->down_box(FL_DOWN_BOX);
               }
+              { Fl_Group* o = new Fl_Group(375, 185, 240, 40);
+                { Fl_Group* o = new Fl_Group(375, 205, 240, 20);
+                o->box(FL_BORDER_BOX);
+                o->color(FL_BACKGROUND2_COLOR);
+                { Fl_Input* o = tx_devIDWord[0] = new Fl_Input(455, 205, 80, 20);
+                o->tooltip("Device ID value");
+                o->labeltype(FL_NO_LABEL);
+                }
+                { Fl_Input* o = tx_devIDWord[1] = new Fl_Input(535, 205, 80, 20);
+                o->tooltip("Device ID mask");
+                o->labeltype(FL_NO_LABEL);
+                }
+                { Fl_Box* o = new Fl_Box(375, 205, 80, 20, "Device ID");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+                }
+                o->end();
+                }
+                { Fl_Group* o = new Fl_Group(375, 185, 240, 20);
+                o->box(FL_BORDER_BOX);
+                o->color((Fl_Color)41);
+                { Fl_Box* o = new Fl_Box(455, 185, 80, 20, "Value");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(535, 185, 80, 20, "Mask");
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                o->end();
+                }
+                o->end();
+              }
               o->end();
             }
             o->end();
@@ -5144,7 +5249,9 @@ ble when programming the device.");
         }
         o->end();
       }
-      { Fl_Group* o = t_progcfg = new Fl_Group(365, 50, 260, 390, "Programmer Config.");
+      { Fl_Group* o = t_progcfg = new Fl_Group(365, 50, 260, 390, "Programmer");
+        o->tooltip("Programmer Configuration");
+        o->align(FL_ALIGN_CENTER);
         o->hide();
         { Fl_Group* o = new Fl_Group(370, 55, 250, 25);
           { Fl_RaiseButton* o = new Fl_RaiseButton(370, 55, 25, 25);
@@ -5218,37 +5325,40 @@ ble when programming the device.");
             o->box(FL_THIN_UP_BOX);
             o->labeltype(FL_NO_LABEL);
           }
-          { Fl_RaiseButton* o = new Fl_RaiseButton(475, 55, 25, 25);
-            o->tooltip("Save current programmer settings.");
-            o->box(FL_FLAT_BOX);
-            o->color(FL_BACKGROUND_COLOR);
-            o->selection_color(FL_BACKGROUND_COLOR);
-            o->image(image_cfgsave);
-            o->deimage(image_cfgsave1);
-            o->labeltype(FL_NORMAL_LABEL);
-            o->labelfont(0);
-            o->labelsize(14);
-            o->labelcolor(FL_BLACK);
-            o->callback((Fl_Callback*)cb_f);
-            o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-            o->when(FL_WHEN_RELEASE);
-            o->hilighted_box(FL_THIN_UP_BOX);
-          }
-          { Fl_RaiseButton* o = new Fl_RaiseButton(595, 55, 25, 25);
-            o->tooltip("Remove/discard current programmer settings.");
-            o->box(FL_FLAT_BOX);
-            o->color(FL_BACKGROUND_COLOR);
-            o->selection_color(FL_BACKGROUND_COLOR);
-            o->image(image_editdelete);
-            o->deimage(image_editdelete1);
-            o->labeltype(FL_NORMAL_LABEL);
-            o->labelfont(0);
-            o->labelsize(14);
-            o->labelcolor(FL_BLACK);
-            o->callback((Fl_Callback*)cb_10);
-            o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-            o->when(FL_WHEN_RELEASE);
-            o->hilighted_box(FL_THIN_UP_BOX);
+          { Fl_Group* o = g_pogStoreMGR = new Fl_Group(475, 55, 145, 25);
+            { Fl_RaiseButton* o = new Fl_RaiseButton(475, 55, 25, 25);
+              o->tooltip("Save current programmer settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_cfgsave);
+              o->deimage(image_cfgsave1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_f);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            { Fl_RaiseButton* o = new Fl_RaiseButton(595, 55, 25, 25);
+              o->tooltip("Remove/discard current programmer settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_editdelete);
+              o->deimage(image_editdelete1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_10);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            o->end();
           }
           o->end();
         }
@@ -5265,12 +5375,12 @@ ble when programming the device.");
             { Fl_Group* o = new Fl_Group(370, 115, 250, 20);
               o->box(FL_BORDER_BOX);
               o->color((Fl_Color)41);
-              { Fl_Box* o = new Fl_Box(370, 115, 165, 20, "Pin Name");
+              { Fl_Box* o = new Fl_Box(370, 115, 170, 20, "Pin Name");
                 o->box(FL_BORDER_FRAME);
                 o->color(FL_FOREGROUND_COLOR);
                 o->labelcolor(FL_BACKGROUND2_COLOR);
               }
-              { Fl_Box* o = new Fl_Box(535, 115, 45, 20, "Invert");
+              { Fl_Box* o = new Fl_Box(540, 115, 40, 20, "Invert");
                 o->color(FL_FOREGROUND_COLOR);
                 o->labelcolor(FL_BACKGROUND2_COLOR);
               }
@@ -5305,7 +5415,7 @@ ble when programming the device.");
                 o->menu(menu_);
                 ch_pinNumber[ICSP_CLOCK]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 135, 165, 20, "ICSP Clock");
+              { Fl_Box* o = new Fl_Box(370, 135, 170, 20, "ICSP Clock");
                 o->tooltip("The pin used to control the clock signal.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5340,7 +5450,7 @@ ble when programming the device.");
                 o->menu(menu_1);
                 ch_pinNumber[ICSP_DATA_IN]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 155, 165, 20, "ICSP Data In");
+              { Fl_Box* o = new Fl_Box(370, 155, 170, 20, "ICSP Data In");
                 o->tooltip("The pin from which to read the data read from the programmed device.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5375,7 +5485,7 @@ ble when programming the device.");
                 o->menu(menu_2);
                 ch_pinNumber[ICSP_DATA_OUT]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 175, 165, 20, "ICSP Data Out");
+              { Fl_Box* o = new Fl_Box(370, 175, 170, 20, "ICSP Data Out");
                 o->tooltip("The pin used to send the command/data to program the device.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5410,7 +5520,7 @@ ble when programming the device.");
                 o->menu(menu_3);
                 ch_pinNumber[ICSP_VDD_ON]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 195, 165, 20, "A) ICSP Vdd On");
+              { Fl_Box* o = new Fl_Box(370, 195, 170, 20, "A) ICSP Vdd On");
                 o->tooltip("The pin which controls the Vdd power on/off.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5445,7 +5555,7 @@ ble when programming the device.");
                 o->menu(menu_4);
                 ch_pinNumber[ICSP_VPP_ON]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 215, 165, 20, "B) ICSP Vpp On");
+              { Fl_Box* o = new Fl_Box(370, 215, 170, 20, "B) ICSP Vpp On");
                 o->tooltip("The pin which controls the Vpp power on/off.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5480,7 +5590,7 @@ ble when programming the device.");
                 o->menu(menu_5);
                 ch_pinNumber[SEL_MIN_VDD]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 235, 165, 20, "C) Selects Minimum Vdd");
+              { Fl_Box* o = new Fl_Box(370, 235, 170, 20, "C) Selects Minimum Vdd");
                 o->tooltip("The pin used to select the minimum value of Vdd.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5515,7 +5625,7 @@ ble when programming the device.");
                 o->menu(menu_6);
                 ch_pinNumber[SEL_PRG_VDD]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 255, 165, 20, "D) Selects Program Vdd");
+              { Fl_Box* o = new Fl_Box(370, 255, 170, 20, "D) Selects Program Vdd");
                 o->tooltip("The pin used to select the programming value of Vdd.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5550,7 +5660,7 @@ ble when programming the device.");
                 o->menu(menu_7);
                 ch_pinNumber[SEL_MAX_VDD]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 275, 165, 20, "E) Selects Maximum Vdd");
+              { Fl_Box* o = new Fl_Box(370, 275, 170, 20, "E) Selects Maximum Vdd");
                 o->tooltip("The pin used to select the maximum value of Vdd.");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5585,7 +5695,7 @@ ble when programming the device.");
                 o->menu(menu_8);
                 ch_pinNumber[SEL_VIHH_VPP]=o;
               }
-              { Fl_Box* o = new Fl_Box(370, 295, 165, 20, "F) Selects VIH/VIL Vpp");
+              { Fl_Box* o = new Fl_Box(370, 295, 170, 20, "F) Selects VIH/VIL Vpp");
                 o->tooltip("The pin used to select the value of Vpp (VIH~=13V; VIL=Vdd).");
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
@@ -5699,6 +5809,305 @@ r must control the ICSP Vdd and the ICSP Vpp independently from each other.");
         }
         o->end();
       }
+      { Fl_Group* o = t_settings = new Fl_Group(365, 50, 260, 390, "Settings");
+        o->hide();
+        { Fl_Group* o = new Fl_Group(370, 55, 250, 25);
+          { Fl_RaiseButton* o = new Fl_RaiseButton(370, 55, 25, 25);
+            o->tooltip("Import the general settings from a file.");
+            o->box(FL_FLAT_BOX);
+            o->color(FL_BACKGROUND_COLOR);
+            o->selection_color(FL_BACKGROUND_COLOR);
+            o->image(image_cfgopen);
+            o->deimage(image_cfgopen1);
+            o->labeltype(FL_NORMAL_LABEL);
+            o->labelfont(0);
+            o->labelsize(14);
+            o->labelcolor(FL_BLACK);
+            o->callback((Fl_Callback*)cb_19);
+            o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+            o->when(FL_WHEN_RELEASE);
+            o->hilighted_box(FL_THIN_UP_BOX);
+          }
+          { Fl_Group* o = g_settingsNewEditCopy = new Fl_Group(395, 55, 80, 25);
+            { Fl_RaiseButton* o = new Fl_RaiseButton(395, 55, 25, 25);
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_filenew);
+              o->deimage(image_filenew1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_1a);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->deactivate();
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            { Fl_RaiseButton* o = new Fl_RaiseButton(420, 55, 25, 25);
+              o->tooltip("Edit the general settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_edit);
+              o->deimage(image_edit1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_1b);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            { Fl_RaiseButton* o = new Fl_RaiseButton(445, 55, 25, 25);
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_editcopy);
+              o->deimage(image_editcopy1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_1c);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->deactivate();
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            o->end();
+          }
+          { Fl_Box* o = new Fl_Box(471, 55, 3, 25, "label");
+            o->box(FL_THIN_UP_BOX);
+            o->labeltype(FL_NO_LABEL);
+          }
+          { Fl_Group* o = g_settingsStoreMGR = new Fl_Group(475, 55, 145, 25);
+            o->deactivate();
+            { Fl_RaiseButton* o = new Fl_RaiseButton(475, 55, 25, 25);
+              o->tooltip("Save the general settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_cfgsave);
+              o->deimage(image_cfgsave1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_1d);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            { Fl_RaiseButton* o = new Fl_RaiseButton(595, 55, 25, 25);
+              o->tooltip("Revert/reset the general settings.");
+              o->box(FL_FLAT_BOX);
+              o->color(FL_BACKGROUND_COLOR);
+              o->selection_color(FL_BACKGROUND_COLOR);
+              o->image(image_editdelete);
+              o->deimage(image_editdelete1);
+              o->labeltype(FL_NORMAL_LABEL);
+              o->labelfont(0);
+              o->labelsize(14);
+              o->labelcolor(FL_BLACK);
+              o->callback((Fl_Callback*)cb_1e);
+              o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+              o->when(FL_WHEN_RELEASE);
+              o->hilighted_box(FL_THIN_UP_BOX);
+            }
+            o->end();
+          }
+          o->end();
+        }
+        { Fl_Group* o = g_settings = new Fl_Group(370, 85, 250, 150);
+          o->deactivate();
+          { Fl_Group* o = g_prop_delays = new Fl_Group(370, 85, 250, 150);
+            o->box(FL_BORDER_FRAME);
+            o->color(FL_FOREGROUND_COLOR);
+            { Fl_Input* o = new Fl_Input(425, 110, 55, 20, "Default:");
+              o->tooltip("Default propagation delay on all signals");
+              tx_propDelay[PD_DEFAULT]=o;
+            }
+            { Fl_Input* o = new Fl_Input(555, 110, 60, 20, "Additional:");
+              o->tooltip("Additional propagation delay on all signals");
+              tx_propDelay[PD_ADDITIONAL]=o;
+            }
+            { Fl_Group* o = new Fl_Group(370, 135, 250, 100);
+              { Fl_Group* o = new Fl_Group(380, 135, 240, 20);
+                o->box(FL_BORDER_BOX);
+                o->color((Fl_Color)41);
+                { Fl_Box* o = new Fl_Box(395, 135, 45, 20, "All");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(440, 135, 45, 20, "Clk");
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(380, 135, 15, 20);
+                o->box(FL_FLAT_BOX);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(485, 135, 45, 20, "Data");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(530, 135, 45, 20, "Vpp");
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(575, 135, 45, 20, "Vdd");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                o->end();
+              }
+              { Fl_Group* o = new Fl_Group(370, 155, 250, 20);
+                o->box(FL_BORDER_BOX);
+                o->color(FL_BACKGROUND2_COLOR);
+                { Fl_Input* o = new Fl_Input(395, 155, 45, 20);
+                o->tooltip("Propagation delay on all read signals");
+                o->type(1);
+                tx_propDelay[PD_RD_ALL]=o;
+                }
+                { Fl_Input* o = new Fl_Input(575, 155, 45, 20);
+                o->tooltip("Propagation delay on Vdd read signals");
+                o->type(1);
+                tx_propDelay[PD_RD_VDD]=o;
+                }
+                { Fl_Box* o = new Fl_Box(370, 155, 25, 20, "R");
+                o->box(FL_BORDER_BOX);
+                o->color(FL_BACKGROUND2_COLOR);
+                o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+                }
+                { Fl_Input* o = new Fl_Input(440, 155, 45, 20);
+                o->tooltip("Propagation delay on clock read signals");
+                o->type(1);
+                tx_propDelay[PD_RD_CLK]=o;
+                }
+                { Fl_Input* o = new Fl_Input(485, 155, 45, 20);
+                o->tooltip("Propagation delay on data read signals");
+                o->type(1);
+                tx_propDelay[PD_RD_DAT]=o;
+                }
+                { Fl_Input* o = new Fl_Input(530, 155, 45, 20);
+                o->tooltip("Propagation delay on Vpp read signals");
+                o->type(1);
+                tx_propDelay[PD_RD_VPP]=o;
+                }
+                o->end();
+              }
+              { Fl_Group* o = new Fl_Group(370, 175, 250, 60);
+                o->box(FL_BORDER_BOX);
+                o->color(FL_BACKGROUND2_COLOR);
+                { Fl_Group* o = new Fl_Group(395, 175, 225, 20);
+                { Fl_Input* o = new Fl_Input(395, 175, 45, 20);
+                o->tooltip("Propagation delay on all write signals");
+                o->type(1);
+                tx_propDelay[PD_WR_ALL]=o;
+                }
+                { Fl_Input* o = new Fl_Input(575, 175, 45, 20);
+                o->tooltip("Propagation delay on Vdd write signals");
+                o->type(1);
+                tx_propDelay[PD_WR_VDD]=o;
+                }
+                { Fl_Input* o = new Fl_Input(440, 175, 45, 20);
+                o->tooltip("Propagation delay on clock write signals");
+                o->type(1);
+                tx_propDelay[PD_WR_CLK]=o;
+                }
+                { Fl_Input* o = new Fl_Input(485, 175, 45, 20);
+                o->tooltip("Propagation delay on data write signals");
+                o->type(1);
+                tx_propDelay[PD_WR_DAT]=o;
+                }
+                { Fl_Input* o = new Fl_Input(530, 175, 45, 20);
+                o->tooltip("Propagation delay on Vpp write signals");
+                o->type(1);
+                tx_propDelay[PD_WR_VPP]=o;
+                }
+                o->end();
+                }
+                { Fl_Box* o = new Fl_Box(370, 175, 25, 60, "w");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+                }
+                { Fl_Group* o = new Fl_Group(395, 195, 225, 20);
+                { Fl_Input* o = new Fl_Input(575, 195, 45, 20);
+                o->tooltip("Propagation delay on Vdd write low to high signals transition");
+                o->type(1);
+                tx_propDelay[PD_LH_WR_VDD]=o;
+                }
+                { Fl_Input* o = new Fl_Input(440, 195, 45, 20);
+                o->tooltip("Propagation delay on clock write low to high signals transition");
+                o->type(1);
+                tx_propDelay[PD_LH_WR_CLK]=o;
+                }
+                { Fl_Input* o = new Fl_Input(485, 195, 45, 20);
+                o->tooltip("Propagation delay on data write low to high signals transition");
+                o->type(1);
+                tx_propDelay[PD_LH_WR_DAT]=o;
+                }
+                { Fl_Input* o = new Fl_Input(530, 195, 45, 20);
+                o->tooltip("Propagation delay on Vpp write low to high signals transition");
+                o->type(1);
+                tx_propDelay[PD_LH_WR_VPP]=o;
+                }
+                { Fl_Box* o = new Fl_Box(395, 195, 45, 20, "L->H");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+                }
+                o->end();
+                }
+                { Fl_Group* o = new Fl_Group(395, 215, 225, 20);
+                { Fl_Input* o = new Fl_Input(575, 215, 45, 20);
+                o->tooltip("Propagation delay on Vdd write high to low signals transition");
+                o->type(1);
+                tx_propDelay[PD_HL_WR_VDD]=o;
+                }
+                { Fl_Input* o = new Fl_Input(440, 215, 45, 20);
+                o->tooltip("Propagation delay on clock write high to low signals transition");
+                o->type(1);
+                tx_propDelay[PD_HL_WR_CLK]=o;
+                }
+                { Fl_Input* o = new Fl_Input(485, 215, 45, 20);
+                o->tooltip("Propagation delay on data write high to low signals transition");
+                o->type(1);
+                tx_propDelay[PD_HL_WR_DAT]=o;
+                }
+                { Fl_Input* o = new Fl_Input(530, 215, 45, 20);
+                o->tooltip("Propagation delay on Vpp write high to low signals transition");
+                o->type(1);
+                tx_propDelay[PD_HL_WR_VPP]=o;
+                }
+                { Fl_Box* o = new Fl_Box(395, 215, 45, 20, "H->L");
+                o->box(FL_BORDER_BOX);
+                o->color(FL_BACKGROUND2_COLOR);
+                o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+                }
+                o->end();
+                }
+                o->end();
+              }
+              o->end();
+            }
+            { Fl_Box* o = new Fl_Box(370, 85, 250, 20, "Propagation delays (nS)");
+              o->box(FL_BORDER_BOX);
+              o->color((Fl_Color)41);
+            }
+            o->end();
+          }
+          o->end();
+        }
+        o->end();
+      }
       o->end();
     }
     { Fl_Group* o = new Fl_Group(-2, -2, 634, 22);
@@ -5768,7 +6177,7 @@ r must control the ICSP Vdd and the ICSP Vpp independently from each other.");
         o->labelfont(0);
         o->labelsize(14);
         o->labelcolor(FL_BLACK);
-        o->callback((Fl_Callback*)cb_19);
+        o->callback((Fl_Callback*)cb_1f);
         o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
         o->when(FL_WHEN_RELEASE);
         o->hilighted_box(FL_THIN_UP_BOX);
@@ -5784,7 +6193,7 @@ r must control the ICSP Vdd and the ICSP Vpp independently from each other.");
         o->labelfont(0);
         o->labelsize(14);
         o->labelcolor(FL_BLACK);
-        o->callback((Fl_Callback*)cb_1a);
+        o->callback((Fl_Callback*)cb_20);
         o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
         o->when(FL_WHEN_RELEASE);
         o->hilighted_box(FL_THIN_UP_BOX);
@@ -6063,7 +6472,10 @@ static void cb_pb_calSkip(Fl_Button*, bool * v) {
 Fl_Button *pb_calPrec=(Fl_Button *)0;
 
 static void cb_pb_calPrec(Fl_Button*, bool * v) {
-  if (wz_calibration->value()==g_warning) {
+  if (!io->production() && wz_calibration->value()==g_vddp) {
+    wz_calibration->value(g_vpp);
+    wz_calibration->value()->do_callback();
+} else if (wz_calibration->value()==g_warning) {
     wz_calibration->value(g_warning);
     *v = false;
     w_calibration->hide();
@@ -6107,23 +6519,25 @@ sprintf(cvddmax,"%4.2lf",vddmax);
         { Fl_Group* o = new Fl_Group(15, 50, 270, 55);
           o->box(FL_PLASTIC_DOWN_BOX);
           o->color((Fl_Color)3);
-          { Fl_Box* o = new Fl_Box(20, 55, 260, 45, "DISCONNECT THE CHIP FROM THE ZIF OR ICSP CONNECTOR");
+          { Fl_Box* o = new Fl_Box(20, 55, 260, 45, "OOOOOOOO");
             o->box(FL_DOWN_BOX);
-            o->labelfont(1);
-            o->labelsize(16);
+            o->labeltype(FL_SHADOW_LABEL);
+            o->labelfont(14);
+            o->labelsize(36);
             o->labelcolor((Fl_Color)36);
-            o->align(130|FL_ALIGN_INSIDE);
+            o->align(FL_ALIGN_WRAP|FL_ALIGN_INSIDE);
+            o->label(devname);
           }
           o->end();
         }
-        { Fl_Box* o = new Fl_Box(15, 105, 270, 25, "Use a DMM to measure Vpp/Vdd for the:");
-          o->align(130|FL_ALIGN_INSIDE);
-        }
-        { Fl_Box* o = new Fl_Box(15, 130, 270, 25, "OOOOOOOO");
+        { Fl_Box* o = new Fl_Box(15, 110, 270, 45, "WARNING: DISCONNECT THE CHIP FROM THE ZIF OR ICSP SOCKET");
+          o->box(FL_PLASTIC_THIN_DOWN_BOX);
+          o->color((Fl_Color)3);
+          o->labeltype(FL_ENGRAVED_LABEL);
           o->labelfont(1);
           o->labelsize(16);
-          o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-          o->label(devname);
+          o->labelcolor((Fl_Color)41);
+          o->align(FL_ALIGN_WRAP|FL_ALIGN_INSIDE);
         }
         { Fl_Box* o = new Fl_Box(150, 40, 135, 10, "flP5 Digital Voltmeter");
           o->labelfont(14);
@@ -6150,26 +6564,26 @@ sprintf(cvddmax,"%4.2lf",vddmax);
             o->box(FL_DOWN_BOX);
             { Fl_Box* o = new Fl_Box(20, 55, 115, 45, "12.75");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_RIGHT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
               o->label(cvppmin);
             }
             { Fl_Box* o = new Fl_Box(165, 55, 115, 45, "13.25");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_RIGHT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
               o->label(cvppmax);
             }
             { Fl_Box* o = new Fl_Box(135, 55, 30, 45, "\367");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_TOP|FL_ALIGN_INSIDE);
             }
             o->end();
           }
@@ -6186,12 +6600,14 @@ sprintf(cvddmax,"%4.2lf",vddmax);
         o->box(FL_PLASTIC_UP_BOX);
         o->color((Fl_Color)3);
         o->callback((Fl_Callback*)cb_g_vddmax);
+        o->align(FL_ALIGN_RIGHT);
         o->hide();
         { Fl_Box* o = new Fl_Box(10, 115, 280, 40, "Vdd Maximum");
           o->labeltype(FL_ENGRAVED_LABEL);
           o->labelfont(1);
           o->labelsize(34);
           o->labelcolor((Fl_Color)41);
+          o->align(FL_ALIGN_WRAP);
         }
         { Fl_Group* o = new Fl_Group(15, 50, 270, 55);
           o->box(FL_PLASTIC_DOWN_BOX);
@@ -6201,10 +6617,10 @@ sprintf(cvddmax,"%4.2lf",vddmax);
             o->box(FL_DOWN_BOX);
             { Fl_Box* o = new Fl_Box(20, 55, 260, 45, "5.25");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_RIGHT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
               o->label(cvddmax);
             }
             o->end();
@@ -6236,26 +6652,26 @@ sprintf(cvddmax,"%4.2lf",vddmax);
             o->box(FL_DOWN_BOX);
             { Fl_Box* o = new Fl_Box(20, 55, 115, 45, "12.75");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_RIGHT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
               o->label(cvddpmin);
             }
             { Fl_Box* o = new Fl_Box(165, 55, 115, 45, "13.25");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_RIGHT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
               o->label(cvddpmax);
             }
             { Fl_Box* o = new Fl_Box(135, 55, 30, 45, "\367");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_TOP|FL_ALIGN_INSIDE);
             }
             o->end();
           }
@@ -6286,10 +6702,10 @@ sprintf(cvddmax,"%4.2lf",vddmax);
             o->box(FL_DOWN_BOX);
             { Fl_Box* o = new Fl_Box(20, 55, 260, 45, "5.25");
               o->labeltype(FL_SHADOW_LABEL);
-              o->labelfont(1);
-              o->labelsize(44);
+              o->labelfont(14);
+              o->labelsize(36);
               o->labelcolor((Fl_Color)36);
-              o->align(FL_ALIGN_TOP_RIGHT|FL_ALIGN_INSIDE);
+              o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
               o->label(cvddmin);
             }
             o->end();
@@ -6314,10 +6730,10 @@ sprintf(cvddmax,"%4.2lf",vddmax);
           { Fl_Box* o = new Fl_Box(20, 55, 260, 45, "FINISH");
             o->box(FL_DOWN_BOX);
             o->labeltype(FL_SHADOW_LABEL);
-            o->labelfont(1);
-            o->labelsize(44);
+            o->labelfont(14);
+            o->labelsize(36);
             o->labelcolor((Fl_Color)36);
-            o->align(137|FL_ALIGN_INSIDE);
+            o->align(129|FL_ALIGN_INSIDE);
           }
           o->end();
         }

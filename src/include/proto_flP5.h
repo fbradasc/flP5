@@ -24,6 +24,30 @@
 #include "Device.h"
 #include "IO.h"
 
+typedef enum PROPAGATION_DELAYS {
+    PD_DEFAULT=0,
+    PD_ADDITIONAL,
+    PD_RD_ALL,
+    PD_RD_CLK,
+    PD_RD_DAT,
+    PD_RD_VPP,
+    PD_RD_VDD,
+    PD_WR_ALL,
+    PD_WR_CLK,
+    PD_WR_DAT,
+    PD_WR_VPP,
+    PD_WR_VDD,
+    PD_LH_WR_CLK,
+    PD_LH_WR_DAT,
+    PD_LH_WR_VPP,
+    PD_LH_WR_VDD,
+    PD_HL_WR_CLK,
+    PD_HL_WR_DAT,
+    PD_HL_WR_VPP,
+    PD_HL_WR_VDD,
+    LAST_PROP_DLY
+} PropagationDelays;
+
 typedef enum DEV_PARAM {
     PAR_WORD_SIZE=0,
     PAR_CODE_SIZE,
@@ -104,6 +128,8 @@ extern bool deviceConfigCB(CfgOper oper);
 extern bool verifyProgrammerConfig(bool verbose);
 extern bool loadProgrammersSettings(const char *fname);
 extern bool programmerConfigCB(CfgOper oper);
+extern bool loadGeneralSettings(const char *fname);
+extern bool generalSettingsCB(CfgOper oper);
 extern void loadPreferences(void);
 extern bool cfgWordsCB(CfgOper oper);
 extern bool showMemoryDumpCB(void *data,const char *line,int progress);

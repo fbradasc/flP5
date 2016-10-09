@@ -25,9 +25,52 @@ using namespace std;
 #include "IO.h"
 #include "Util.h"
 
+const Instruction Pic16::opcodes[] = {
+  { "addlw" , 0x3e00, 0x3e00, INSN_CLASS_LIT8     },
+  { "addwf" , 0x3f00, 0x0700, INSN_CLASS_OPWF7    },
+  { "andlw" , 0x3f00, 0x3900, INSN_CLASS_LIT8     },
+  { "andwf" , 0x3f00, 0x0500, INSN_CLASS_OPWF7    },
+  { "bcf"   , 0x3c00, 0x1000, INSN_CLASS_B7       },
+  { "bsf"   , 0x3c00, 0x1400, INSN_CLASS_B7       },
+  { "btfsc" , 0x3c00, 0x1800, INSN_CLASS_B7       },
+  { "btfss" , 0x3c00, 0x1c00, INSN_CLASS_B7       },
+  { "call"  , 0x3800, 0x2000, INSN_CLASS_LIT11    },
+  { "clrf"  , 0x3f80, 0x0180, INSN_CLASS_OPF7     },
+  { "clrw"  , 0x3fff, 0x0103, INSN_CLASS_IMPLICIT },
+  { "clrwdt", 0x3fff, 0x0064, INSN_CLASS_IMPLICIT },
+  { "comf"  , 0x3f00, 0x0900, INSN_CLASS_OPWF7    },
+  { "decf"  , 0x3f00, 0x0300, INSN_CLASS_OPWF7    },
+  { "decfsz", 0x3f00, 0x0b00, INSN_CLASS_OPWF7    },
+  { "goto"  , 0x3800, 0x2800, INSN_CLASS_LIT11    },
+  { "incf"  , 0x3f00, 0x0a00, INSN_CLASS_OPWF7    },
+  { "incfsz", 0x3f00, 0x0f00, INSN_CLASS_OPWF7    },
+  { "iorlw" , 0x3f00, 0x3800, INSN_CLASS_LIT8     },
+  { "iorwf" , 0x3f00, 0x0400, INSN_CLASS_OPWF7    },
+  { "movf"  , 0x3f00, 0x0800, INSN_CLASS_OPWF7    },
+  { "movlw" , 0x3c00, 0x3000, INSN_CLASS_LIT8     },
+  { "movwf" , 0x3f80, 0x0080, INSN_CLASS_OPF7     },
+  { "nop"   , 0x3f9f, 0x0000, INSN_CLASS_IMPLICIT },
+  { "option", 0x3fff, 0x0062, INSN_CLASS_IMPLICIT },
+  { "retfie", 0x3fff, 0x0009, INSN_CLASS_IMPLICIT },
+  { "retlw" , 0x3c00, 0x3400, INSN_CLASS_LIT8     },
+  { "return", 0x3fff, 0x0008, INSN_CLASS_IMPLICIT },
+  { "rlf"   , 0x3f00, 0x0d00, INSN_CLASS_OPWF7    },
+  { "rrf"   , 0x3f00, 0x0c00, INSN_CLASS_OPWF7    },
+  { "sleep" , 0x3fff, 0x0063, INSN_CLASS_IMPLICIT },
+  { "sublw" , 0x3e00, 0x3c00, INSN_CLASS_LIT8     },
+  { "subwf" , 0x3f00, 0x0200, INSN_CLASS_OPWF7    },
+  { "swapf" , 0x3f00, 0x0e00, INSN_CLASS_OPWF7    },
+  { "tris"  , 0x3ff8, 0x0060, INSN_CLASS_OPF7     },
+  { "xorlw" , 0x3f00, 0x3a00, INSN_CLASS_LIT8     },
+  { "xorwf" , 0x3f00, 0x0600, INSN_CLASS_OPWF7    },
+  { 0       , 0x0000, 0x0000, INSN_CLASS_NULL     }
+};
+
 Pic16::Pic16(char *name) : Pic(name)
 {
 int tmp;
+
+    this->popcodes = this->opcodes;
 
     /* Read configuration word bits */
     config->getHex("cw_mask_00",(int &)config_mask,this->wordmask);
@@ -648,3 +691,20 @@ unsigned int Pic16::get_clearvalue(size_t addr)
     }
     return 0x00ff; // data memory clear value
 }
+
+uint32_t Pic16::read_deviceid(void)
+{
+uint32_t devid;
+
+    /* Enter config memory space. The device ID is at address 0x2006 */
+    this->write_command(COMMAND_LOAD_CONFIG);
+    this->io->shift_bits_out(0x7ffe, 16, 1);    /* Dummy write of all 1's */
+    this->io->usleep(1);
+
+    /* Increment up to 0x2006 */
+    for(int i=0; i < 6; i++) {
+        this->write_command(COMMAND_INC_ADDRESS);
+    }
+    return read_prog_data();
+}
+

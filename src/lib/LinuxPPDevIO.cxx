@@ -103,12 +103,12 @@ int arg;
     );
 }
 
-void LinuxPPDevIO::set_bit_common (
+void LinuxPPDevIO::set_pin_state (
     char *name,
     short reg,
     short bit,
     short invert,
-    bool state 
+    bool state
 ) {
 int parm1, parm2, arg;
 
@@ -158,8 +158,12 @@ int parm1, parm2, arg;
     }
 }
 
-bool LinuxPPDevIO::get_bit_common(char *name,short reg,short bit,short invert)
-{
+bool LinuxPPDevIO::get_pin_state (
+    char *name,
+    short reg,
+    short bit,
+    short invert
+) {
 unsigned int parm, arg;
 
     switch (reg) {

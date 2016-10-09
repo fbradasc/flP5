@@ -77,6 +77,29 @@ static char *cwNames[] = {
     "bd_mask", "bd_on__", "bd_off_"
 };
 
+static char *propDlyNames[] = {
+    "signalDelay.default",
+    "signalDelay.additional",
+    "signalDelay.read",
+    "signalDelay.read.clk",
+    "signalDelay.read.data",
+    "signalDelay.read.vpp",
+    "signalDelay.read.vdd",
+    "signalDelay.write",
+    "signalDelay.write.clk",
+    "signalDelay.write.data",
+    "signalDelay.write.vpp",
+    "signalDelay.write.vdd",
+    "signalDelay.write.clk.high_to_low",
+    "signalDelay.write.data.high_to_low",
+    "signalDelay.write.vpp.high_to_low",
+    "signalDelay.write.vdd.high_to_low",
+    "signalDelay.write.clk.low_to_high",
+    "signalDelay.write.data.low_to_high",
+    "signalDelay.write.vpp.low_to_high",
+    "signalDelay.write.vdd.low_to_high"
+};
+
 static char *paramNames[] = {
     "wordSize" , "codeSize" , "eepromSize",
     "progCount", "progMult" ,
@@ -106,7 +129,7 @@ const char *name;
 int i, v;
 double d[6];
 bool ok = true;
-const char *paramNames[] = {
+const char *voltageNames[] = {
     "Vpp Min" , "Vpp Max" ,
     "Vdd Min" , "Vdd Max" ,
     "Vddp Min", "Vddp Max"
@@ -136,7 +159,7 @@ const char *paramNames[] = {
             ok = false;
             fl_alert (
                 "The %s value must be a positive (>0) float.",
-                paramNames[v]
+                voltageNames[v]
             );
             tx_devParam[i]->color(FL_YELLOW);
         }
@@ -147,7 +170,7 @@ const char *paramNames[] = {
             if (d[(2*v)]>d[(2*v)+1]) {
                 fl_alert (
                     "The %s value must be greater or equal to the %s value.",
-                    paramNames[(2*v)+1],paramNames[(2*v)]
+                    voltageNames[(2*v)+1],voltageNames[(2*v)]
                 );
                 tx_devParam[(2*v)+LAST_PARAM-6]->color(FL_YELLOW);
                 tx_devParam[(2*v)+LAST_PARAM-6+1]->color(FL_YELLOW);
@@ -512,6 +535,9 @@ char path[FL_PATH_MAX];
         }
         ls_devConfigWords->do_callback();
         tb_devExperimental->value(1);
+
+        tx_devIDWord[0]->value("");
+        tx_devIDWord[1]->value("");
     }
     if (oper==CFG_LOAD || oper==CFG_DELETE) {
         if (
@@ -554,6 +580,14 @@ char path[FL_PATH_MAX];
 
             device.get("experimental",v[0],1);
             tb_devExperimental->value(v[0] ? 1 : 0);
+
+            device.get("deviceID",v[0],0);
+            sprintf(buf,"0x%04x",v[0]);
+            tx_devIDWord[0]->value(buf);
+
+            device.get("deviceIDMask",v[0],0);
+            sprintf(buf,"0x%04x",v[0]);
+            tx_devIDWord[1]->value(buf);
 
             strcpy(path,mdata);
             pfname = fl_filename_name((const char *)mdata);
@@ -657,6 +691,29 @@ char path[FL_PATH_MAX];
         Preferences device(devices,buf);
 
         device.set("experimental",tb_devExperimental->value() ? 1 : 0);
+
+        for (i=0; i<2; i++) {
+            //
+            // elimino i caratteri non alfanumerici
+            //
+            strncpy(buf,tx_devIDWord[i]->value(),sizeof(buf)-1);
+            buf[sizeof(buf)-1]='\0';
+            for (j=0;j<strlen(buf);j++) {
+                if (!isxdigit(buf[j]) && buf[j]!='x' && buf[j]!='X') {
+                    buf[0]='\0';
+                    break;
+                }
+            }
+            if (sscanf(buf,"%x",&v[0])!=1 || v[0]>0xffff) {
+                fl_alert (
+                    "Please insert a valid 4 digit hexadecimal number"
+                    " for the Device ID %s.",
+                    (i==0) ? "value" : "mask"
+                );
+            } else {
+                device.set((i==0) ? "deviceID" : "deviceIDMask",v[0]);
+            }
+        }
 
         device.set (
             "memType",
@@ -1157,6 +1214,135 @@ char pins[26];
     return true;
 }
 
+bool loadGeneralSettings(const char *fname)
+{
+const char *pext, *pfname;
+char path[FL_PATH_MAX];
+char application[FL_PATH_MAX];
+char report[1024];
+int i;
+int v[3], v1[3];
+bool loaded = false;
+bool different = false;
+
+    if (fname && strlen(fname)) {
+        pext   = fl_filename_ext(fname);
+        pfname = fl_filename_name(fname);
+        strncpy(path,fname,(pfname-fname));
+        path[(pfname-fname)] = '\0';
+        if (pext) {
+            strncpy(application,pfname,(pext-pfname));
+            application[(pext-pfname)] = '\0';
+        } else {
+            strcpy(application,pfname);
+        }
+        Preferences imports(path,"flP5",application);
+
+        different = false;
+        ls_report->clear();
+
+        for (i=0;i<LAST_PROP_DLY;i++) {
+            imports.get(propDlyNames[i],v[0] ,0);
+                app.get(propDlyNames[i],v1[0],0);
+            if (v[0] != v1[0]) {
+                sprintf (
+                    report,
+                    "@b%s:",
+                    propDlyNames[i]
+                );
+                ls_report->add(report);
+                sprintf(report,"  cur=%d",v1[0]);
+                ls_report->add(report);
+                sprintf(report,"@_  new=%d",v[0]);
+                ls_report->add(report);
+                different = true;
+            }
+        }
+        if (different && show_report_window("General Settings")) {
+            for (i=0;i<LAST_PROP_DLY;i++) {
+                imports.get(propDlyNames[i],v[0],0);
+                    app.set(propDlyNames[i],v[0]);
+            }
+        }
+        loaded = true;
+    }
+    return loaded;
+}
+bool generalSettingsCB(CfgOper oper)
+{
+static int lastOper=-1;
+int i,j;
+int v[3];
+char buf[FL_PATH_MAX];
+
+    if (oper==CFG_DELETE) {
+        if (lastOper==CFG_NEW || lastOper==CFG_EDIT || lastOper==CFG_COPY) {
+            i = fl_ask (
+                "Are you sure you want to revert the current general"
+                " settings ?"
+            );
+        } else {
+            i = fl_ask (
+                "Are you sure you want to reset the current general"
+                " settings ?"
+            );
+        }
+        if (!i) {
+            return false;
+        }
+    }
+    if (oper==CFG_LOAD || oper==CFG_NEW || oper==CFG_DELETE) {
+        for (i=0;i<LAST_PROP_DLY;i++) {
+            tx_propDelay[i]->value("0");
+        }
+        if (
+            oper==CFG_DELETE &&
+            (lastOper!=CFG_NEW && lastOper!=CFG_EDIT && lastOper!=CFG_COPY)
+        ) {
+            for (i=0;i<LAST_PROP_DLY;i++) {
+                app.set(propDlyNames[i],0);
+            }
+        }
+    }
+    if (oper==CFG_LOAD || oper==CFG_DELETE) {
+        for (i=0;i<LAST_PROP_DLY;i++) {
+            app.get(propDlyNames[i],j,0);
+                sprintf(buf,"%d",j);
+                tx_propDelay[i]->value(buf);
+        }
+    } else if (oper==CFG_COPY) {
+        /* for now, do nothing */
+    } else if (oper==CFG_EDIT) {
+        /* do nothing */
+    } else if (
+        oper==CFG_IMPORT &&
+        loadGeneralSettings (
+            fl_file_chooser (
+                "General Settings file selection",
+                "*.prefs",
+                NULL,
+                0
+            )
+        )
+    ) {
+        /* for now, do nothing */
+    } else if (oper==CFG_SAVE) {
+        for (i=0;i<LAST_PROP_DLY;i++) {
+            if (sscanf(tx_propDelay[i]->value(),"%d",&j)) {
+                app.set(propDlyNames[i],j);
+            }
+        }
+    } else if (oper!=CFG_NEW) {
+        t_settings->redraw();
+        return false;
+    }
+    lastOper = oper;
+
+    t_settings->redraw();
+
+    return true;
+}
+
 void loadPreferences(void)
 {
 int groups,vendors,specs,devs;
@@ -1192,6 +1378,12 @@ const char *mdata, *cfgFile;
 #endif
 
     sm_ppAccessMethod[i+1].setonly();
+
+    for (i=0;i<LAST_PROP_DLY;i++) {
+        app.get(propDlyNames[i],j,0);
+            sprintf(buf,"%d",j);
+            tx_propDelay[i]->value(buf);
+    }
 
     available=0;
     if (!(groups = programmers.groups())) {
@@ -1462,12 +1654,12 @@ double rsec, esec, ssec;
         if (percent<=100 && percent != last_percent) {
 #ifdef WIN32
             QueryPerformanceCounter(&now);
-            elaphsed  = (double)(now.QuadPart - start.QuadPart);
-            remaining = (double)(now.QuadPart - last.QuadPart);
+            elaphsed  = fabs( (double)(now.QuadPart - start.QuadPart) );
+            remaining = fabs( (double)(now.QuadPart - last.QuadPart) );
 #else
             gettimeofday(&now, NULL);
-            elaphsed  = (double)(now.tv_usec - start.tv_usec);
-            remaining = (double)(now.tv_usec - last.tv_usec);
+            elaphsed  = fabs( (double)(now.tv_usec - start.tv_usec) );
+            remaining = fabs( (double)(now.tv_usec - last.tv_usec) );
 #endif
             if (percent>last_percent) {
                 remaining /= (double)(percent-last_percent);
@@ -1475,26 +1667,27 @@ double rsec, esec, ssec;
             remaining /= (double)freq;
 
             remaining *= (double)(100 - percent);
-            rmin = (int)( remaining / 60 );
-            rsec = (double)( remaining - (double)( rmin * 60 ) );
+            rmin = abs( (int)( remaining / 60 ) );
+            rsec = fabs( (double)( remaining - (double)( rmin * 60 ) ) );
 
             elaphsed  /= (double)freq;
-            emin = (int)( elaphsed / 60 );
-            esec = (double)( elaphsed - (double)( emin * 60 ) );
+            emin = abs( (int)( elaphsed / 60 ) );
+            esec = fabs( (double)( elaphsed - (double)( emin * 60 ) ) );
 
             estimated = ( elaphsed / ( (percent>0) ? percent : 1 ) ) * 100;
-            smin = (int)( estimated / 60 );
-            ssec = (double)( estimated - (double)( smin * 60 ) );
+            smin = abs( (int)( estimated / 60 ) );
+            ssec = fabs( (double)( estimated - (double)( smin * 60 ) ) );
 
             sprintf (
                 msg,
                 // " Address: 0x%06lx, %3d%% done",
                 // " %s: [%3d%%] %2d'%2d\" /%2d'%2d\" -%2d'%2d\"",
-                " %s: [%3d%%] %2d'%4.1lf\" /%2d'%4.1lf\"",
+                // " %s: [%3d%%] %2d'%4.1lf\" /%2d'%4.1lf\"",
+                " %s: [%3d%%]",
                 oper,
-                percent,
-                rmin, rsec,
-                smin, ssec //,
+                percent //,
+                // rmin, rsec,
+                // smin, ssec //,
                 // rmin, rsec
             );
             p_progress->label(msg);

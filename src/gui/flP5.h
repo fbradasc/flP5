@@ -29,7 +29,8 @@
 extern Fl_Choice *ch_pinNumber[9];
 extern Fl_Check_Button *tb_pinInvert[9];
 extern Fl_Box *bx_pinName[9];
-extern Fl_Input *tx_devParam[13];
+extern Fl_Input *tx_devParam[LAST_PARAM];
+extern Fl_Input *tx_propDelay[LAST_PROP_DLY];
 #include <FL/Fl_RaiseButton.H>
 #include <FL/Fl_Double_Window.H>
 extern Fl_Double_Window *flP5;
@@ -38,6 +39,7 @@ extern Fl_Double_Window *flP5;
 extern Fl_Group *t_devcfg;
 extern Fl_Group *g_devCfgNewEditCopy;
 #include <FL/Fl_Box.H>
+extern Fl_Group *g_devCfgStoreMGR;
 extern Fl_Group *g_devcfg;
 #include <FL/Fl_Input.H>
 extern Fl_Input *tx_devName;
@@ -55,8 +57,10 @@ extern Fl_Hold_Browser *ls_devConfigWords;
 extern Fl_Group *g_devmiscellanea;
 #include <FL/Fl_Check_Button.H>
 extern Fl_Check_Button *tb_devExperimental;
+extern Fl_Input *tx_devIDWord[2];
 extern Fl_Group *t_progcfg;
 extern Fl_Group *g_progCfgNewEditCopy;
+extern Fl_Group *g_pogStoreMGR;
 extern Fl_Group *g_progcfg;
 extern Fl_Input *tx_programmerName;
 extern Fl_Check_Button *tb_vddMinCond[3];
@@ -64,6 +68,11 @@ extern Fl_Check_Button *tb_vddProgCond[3];
 extern Fl_Check_Button *tb_vddMaxCond[3];
 extern Fl_Check_Button *tb_vppOffCond;
 extern Fl_Check_Button *tb_saVddVppControl;
+extern Fl_Group *t_settings;
+extern Fl_Group *g_settingsNewEditCopy;
+extern Fl_Group *g_settingsStoreMGR;
+extern Fl_Group *g_settings;
+extern Fl_Group *g_prop_delays;
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Progress.H>
 extern Fl_Progress *p_progress;

@@ -80,45 +80,49 @@ void Device::dump(DataBuffer& buf)
         return;
     }
 
-int start, len, addr, bytes, data, i;
-bool writable;
+int start, len, addr, bytes, data, i, j, buffer, area;
+bool writable, put_separator;
 int bufwordsize = ((buf.get_wordsize() + 7) & ~7) / 8;
 static char line[256], ascii[9];
 
 IntPairVector::iterator n = memmap.begin();
 
     this->dump_cb(this->dump_cb_data,(const char *)0,-1);
-    for (; n != memmap.end(); n++) {
+    for (area=0; n != memmap.end(); n++, area++) {
         start = n->first;
         len   = n->second;
         addr  = start;
+        put_separator = true;
         while (addr < (unsigned long)start+len) {
             sprintf(line,"%07x)", addr);
             writable=false;
             for (i=0, bytes=0; bytes<8; bytes+=bufwordsize) {
-                if (!buf.isblank(addr)) {
+                if (area>0 || !buf.isblank(addr)) {
                     writable=true;
                 }
-                switch (bufwordsize) {
-                    case 1:
-                        data   = buf[addr] & 0xff;
+                if (addr < (unsigned long)start+len) {
+                    buffer = buf[addr];
+                    for (j=0; j<bufwordsize; j++) {
+                        data = buffer & 0xff;
                         sprintf(line,"%s %02x", line, data);
                         ascii[i++] = (isprint(data)) ? data : '.';
-                    break;
-                    case 2:
-                        /* Print low byte, then high byte */
-                        data   = buf[addr] & 0xff;
-                        sprintf(line,"%s %02x", line, data);
-                        ascii[i++] = (isprint(data)) ? data : '.';
-                        data   = (buf[addr] >> 8) & 0xff;
-                        sprintf(line,"%s %02x", line, data);
-                        ascii[i++] = (isprint(data)) ? data : '.';
-                    break;
+                        buffer >>= 8;
+                    }
+                    addr++;
+                } else {
+                    for (j=0; j<bufwordsize; j++) {
+                        sprintf(line,"%s   ", line);
+                        ascii[i++] = ' ';
+                    }
                 }
-                addr++;
             }
             ascii[i] = '\0';
             if (writable) {
+                if (put_separator) {
+                    this->dump_cb(this->dump_cb_data,"@-",-1);
+                    this->dump_cb(this->dump_cb_data,"@s",-1);
+                    put_separator = false;
+                }
                 sprintf(line,"%s |%s|", line, ascii);
                 this->dump_cb (
                     this->dump_cb_data,

@@ -41,26 +41,113 @@ Preferences *IO::config = NULL;
 
 IO *IO::acquire(Preferences *cfg, char *name, int port)
 {
+IO *io;
+
     IO::config = cfg;
 
 #if defined(linux) && defined(ENABLE_LINUX_PPDEV)
     if (strcasecmp(name, "LinuxPPDev") == 0) {
-        return new LinuxPPDevIO(port);
-    }
+        io = new LinuxPPDevIO(port);
+    } else
 #endif
     if (strcasecmp(name, "DirectPP") == 0) {
-        return new DirectPPIO(port);
+        io = new DirectPPIO(port);
+    } else {
+        throw runtime_error("Unknown IO driver selected");
     }
-    throw runtime_error("Unknown IO driver selected");
+    io->off();
+
+    return io;
 }
 
 IO::IO(int port)
 {
+long default_delay, additional_delay;
+struct signal_delays tmp_delays;
+
     production_   = false;
-    tdly_stretch_ = 0;
-    tset_stretch_ = 0;
-    thld_stretch_ = 0;
-    gen_stretch_  = 0;
+
+    /* Read the signal delay values */
+    config->get("signalDelay.default",    (int &)default_delay,    0);
+    config->get("signalDelay.additional", (int &)additional_delay, 0);
+
+    read_signal_delay (
+        "clk", this->clk_delays_, default_delay, additional_delay
+    );
+    read_signal_delay (
+        "data", this->data_delays_, default_delay, additional_delay
+    );
+    read_signal_delay (
+        "vdd", this->vdd_delays_, default_delay, additional_delay
+    );
+    read_signal_delay (
+        "vpp", this->vpp_delays_, default_delay, additional_delay
+    );
+}
+
+void IO::read_signal_delay (
+    const char *name,
+    struct signal_delays &delays,
+    nanotime_t default_delay,
+    nanotime_t additional_delay
+) {
+long value;
+
+    /* Get the input delay */
+    if ( !config->get (
+            Preferences::Name("signalDelay.read.%s",name),
+            (int &)delays.read,
+            (int)default_delay
+         )
+    ) {
+        config->get("signalDelay.read",(int &)delays.read,default_delay);
+    }
+    /* Get the output delays */
+    if ( !config->get (
+            Preferences::Name("signalDelay.write.%s",name),
+            (int &)value,
+            (int)default_delay
+         )
+    ) {
+        config->get("signalDelay.write",(int &)value,default_delay);
+    }
+    config->get (
+        Preferences::Name("signalDelay.write.%s.high_to_low",name),
+        (int &)delays.high_to_low,
+        (int)value
+    );
+    config->get (
+        Preferences::Name("signalDelay.write.%s.low_to_high",name),
+        (int &)delays.low_to_high,
+        (int)value
+    );
+    delays.read        += additional_delay;
+    delays.high_to_low += additional_delay;
+    delays.low_to_high += additional_delay;
+}
+
+void IO::pre_read_delay(struct signal_delays &delays)
+{
+microtime_t us;
+
+    /* Convert nanoseconds to microseconds, rounding up */
+    us = (delays.read + 999) / 1000;
+    this->usleep(us);
+}
+
+void IO::post_set_delay(struct signal_delays &delays, bool prev, bool current)
+{
+microtime_t us;
+
+    /* Convert nanoseconds to microseconds, rounding up */
+    if((prev == false) && (current == true)) {
+        us = (delays.low_to_high + 999) / 1000;
+    } else if((prev == true) && (current == false)) {
+        us = (delays.high_to_low + 999) / 1000;
+    } else {
+        return;
+    }
+    this->usleep(us);
 }
 
 IO::~IO()
@@ -71,10 +158,8 @@ IO::~IO()
 #  pragma optimize( "", off )
 #endif
 
-void IO::usleep(unsigned long us)
+void IO::usleep(microtime_t us)
 {
-    us += this->gen_stretch_;
-
     if (us <= 0) {
         return;
     }
@@ -98,6 +183,7 @@ struct timeval now, later;
         select(0, NULL, NULL, NULL, &later);
         return;
     }
+    /* Busy-wait for SPEED */
     gettimeofday(&later, NULL);
     later.tv_sec += us / 1000000;
     later.tv_usec += us % 1000000;
@@ -119,27 +205,42 @@ struct timeval now, later;
 #endif
 }
 
-void IO::shift_bits_out(uint32_t bits, int numbits, int tset, int thold)
-{
+void IO::shift_bits_out (
+    uint32_t bits,
+    int numbits,
+    microtime_t tset,
+    microtime_t thold
+) {
+bool hold_clock = false;
+
+    if (numbits<0) {
+        hold_clock  = true;
+        numbits    *= -1;
+    }
     while (numbits > 0) {
         this->clock(true);
         this->data(bits & 0x01);
 
         /* Delay for data setup time */
-        this->usleep(tset + this->tset_stretch_);
+        this->usleep(tset);
 
         /* Falling edge */
         this->clock(false);
 
+        /* if hld_clock==true, keep the clock high after the last data bit */
+        if (numbits>1 || !hold_clock) {
+           /* Falling edge */
+           this->clock(false);
+        }
         /* Delay for data hold time */
-        this->usleep(thold + this->thld_stretch_);
+        this->usleep(thold);
 
         bits >>= 1;
         numbits--;
     }
 }
 
-uint32_t IO::shift_bits_in(int numbits, int tdly)
+uint32_t IO::shift_bits_in(int numbits, microtime_t tdly, microtime_t tlow)
 {
 uint32_t data, mask;
 
@@ -148,15 +249,24 @@ uint32_t data, mask;
     this->data(true);
     while (numbits > 0) {
         this->clock(true);
-        this->usleep(tdly + this->tdly_stretch_);
+        this->usleep(tdly);
         if (this->data()) {
             data |= mask;
         }
         this->clock(false);
-        this->usleep(tdly + this->tdly_stretch_);
+        this->usleep(tlow);
         mask <<= 1;
         numbits--;
     }
     this->data(false);
     return data;
+}
+
+void IO::off(void)
+{
+    vpp   (VPP_TO_VDD);
+    clock (false);
+    data  (false);
+    vdd   (VDD_TO_OFF);
+    // vdd   (VDD_TO_PRG);
 }

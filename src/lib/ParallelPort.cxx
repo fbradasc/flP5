@@ -61,19 +61,21 @@ int value=0;                                                                  \
     SETPINDATA(name,prefix,value);                                            \
 }
 
-#define SET_BIT_COMMON(name,prefix) this->set_bit_common (                    \
+#define SET_PIN_STATE(function,name,prefix) this->set_pin_state (             \
         name,                                                                 \
         this->prefix##Reg,                                                    \
         this->prefix##Bit,                                                    \
         this->prefix##Invert,                                                 \
-        state                                                                 \
-    )
+        state,                                                                \
+        &this->function##_delays_                                             \
+    );                                                                        \
 
-#define GET_BIT_COMMON(name,prefix) this->get_bit_common (                    \
+#define GET_PIN_STATE(function,name,prefix) this->get_pin_state (             \
         name,                                                                 \
         this->prefix##Reg,                                                    \
         this->prefix##Bit,                                                    \
-        this->prefix##Invert                                                  \
+        this->prefix##Invert,                                                 \
+        &this->function##_delays_                                             \
     )
 
 /* Mapping of parallel port pin #'s to I/O register offset. */
@@ -137,17 +139,17 @@ ParallelPort::~ParallelPort()
 
 void ParallelPort::clock(bool state)
 {
-    SET_BIT_COMMON("icspClock", icspClock);
+    SET_PIN_STATE(clk, "icspClock", icspClock);
 }   
     
 void ParallelPort::data(bool state)
 {
-    SET_BIT_COMMON("icspDataOut", icspDataOut);
+    SET_PIN_STATE(data, "icspDataOut", icspDataOut);
 }  
 
 bool ParallelPort::data(void)
 {
-    return GET_BIT_COMMON("icspDataIn", icspDataIn);
+    return GET_PIN_STATE(data, "icspDataIn", icspDataIn);
 }
 
 void ParallelPort::vpp(VppMode mode)
@@ -157,26 +159,26 @@ bool state;
     switch (mode) {
         case VPP_TO_VIH:
             if (this->vppOffCond) {
-                state = true; SET_BIT_COMMON("icspVppOn", icspVppOn);
+                state = true; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
             }
             if (this->selVihhVppBit>=0) {
-                state = true; SET_BIT_COMMON("selVihhVpp", selVihhVpp);
+                state = true; SET_PIN_STATE(vpp, "selVihhVpp", selVihhVpp);
             }
             if (!this->vppOffCond) {
-                state = true; SET_BIT_COMMON("icspVppOn", icspVppOn);
+                state = true; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
             }
         break;
         case VPP_TO_GND:
             if (this->vppOffCond && this->selVihhVppBit>=0) {
-                state = false; SET_BIT_COMMON("selVihhVpp", selVihhVpp);
+                state = false; SET_PIN_STATE(vpp, "selVihhVpp", selVihhVpp);
             }
-            state = false; SET_BIT_COMMON("icspVppOn", icspVppOn);
+            state = false; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
         break;
         case VPP_TO_VDD:
             if (this->selVihhVppBit>=0) {
-                state = false; SET_BIT_COMMON("selVihhVpp", selVihhVpp);
+                state = false; SET_PIN_STATE(vpp, "selVihhVpp", selVihhVpp);
             }
-            state = true; SET_BIT_COMMON("icspVppOn", icspVppOn);
+            state = true; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
         break;
     }
 }
@@ -186,9 +188,9 @@ void ParallelPort::vdd(VddMode mode)
 bool state;
 
     if (mode==VDD_TO_OFF) {
-        state = false; SET_BIT_COMMON("icspVddOn", icspVddOn);
+        state = false; SET_PIN_STATE(vdd, "icspVddOn", icspVddOn);
     } else if (mode==VDD_TO_ON) {
-        state = true; SET_BIT_COMMON("icspVddOn", icspVddOn);
+        state = true; SET_PIN_STATE(vdd, "icspVddOn", icspVddOn);
     } else if (this->production()) {
         switch (mode) {
             case VDD_TO_ON:
@@ -198,45 +200,78 @@ bool state;
             case VDD_TO_MIN:
                 if (this->selMaxVddBit>=0) {
                     state = (vddMinCond & 4);
-                    SET_BIT_COMMON("selMaxVdd", selMaxVdd);
+                    SET_PIN_STATE(vdd, "selMaxVdd", selMaxVdd);
                 }
                 if (this->selProgVddBit>=0) {
                     state = (vddMinCond & 2);
-                    SET_BIT_COMMON("selProgVdd", selProgVdd);
+                    SET_PIN_STATE(vdd, "selProgVdd", selProgVdd);
                 }
                 if (this->selMinVddBit>=0) {
                     state = (vddMinCond & 1);
-                    SET_BIT_COMMON("selMinVdd", selMinVdd);
+                    SET_PIN_STATE(vdd, "selMinVdd", selMinVdd);
                 }
             break;
             case VDD_TO_PRG:
                 if (this->selMaxVddBit>=0) {
                     state = (vddProgCond & 4);
-                    SET_BIT_COMMON("selMaxVdd", selMaxVdd);
+                    SET_PIN_STATE(vdd, "selMaxVdd", selMaxVdd);
                 }
                 if (this->selMinVddBit>=0) {
                     state = (vddProgCond & 1);
-                    SET_BIT_COMMON("selMinVdd", selMinVdd);
+                    SET_PIN_STATE(vdd, "selMinVdd", selMinVdd);
                 }
                 if (this->selProgVddBit>=0) {
                     state = (vddProgCond & 2);
-                    SET_BIT_COMMON("selProgVdd", selProgVdd);
+                    SET_PIN_STATE(vdd, "selProgVdd", selProgVdd);
                 }
             break;
             case VDD_TO_MAX:
                 if (this->selMinVddBit>=0) {
                     state = (vddMaxCond & 1);
-                    SET_BIT_COMMON("selMinVdd", selMinVdd);
+                    SET_PIN_STATE(vdd, "selMinVdd", selMinVdd);
                 }
                 if (this->selProgVddBit>=0) {
                     state = (vddMaxCond & 2);
-                    SET_BIT_COMMON("selProgVdd", selProgVdd);
+                    SET_PIN_STATE(vdd, "selProgVdd", selProgVdd);
                 }
                 if (this->selMaxVddBit>=0) {
                     state = (vddMaxCond & 4);
-                    SET_BIT_COMMON("selMaxVdd", selMaxVdd);
+                    SET_PIN_STATE(vdd, "selMaxVdd", selMaxVdd);
                 }
             break;
         }
     }
+}
+
+void ParallelPort::set_pin_state (
+    char *name,
+    short reg,
+    short bit,
+    short invert,
+    bool state,
+    struct signal_delays *delays
+) {
+bool old_state;
+
+    if (delays) {
+        old_state = this->get_pin_state(name, reg, bit, invert);
+    }
+    this->set_pin_state(name, reg, bit, invert, state);
+
+    if (delays) {
+        this->post_set_delay(*delays, old_state, state);
+    }
+}
+
+bool ParallelPort::get_pin_state (
+    char *name,
+    short reg,
+    short bit,
+    short invert,
+    struct signal_delays *delays
+) {
+    if (delays) {
+        this->pre_read_delay(*delays);
+    }
+    return this->get_pin_state(name, reg, bit, invert);
 }

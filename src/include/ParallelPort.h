@@ -70,6 +70,39 @@ protected:
     int vddMaxCond;       /** Pins to activate to select Vdd Max value  */
     int vppOffCond;       /** True if the selVihhVpp pin has to be off before
                            *  setting off the icspVppOn pin */
+
+    virtual void set_pin_state (
+        char *name,
+        short reg,
+        short bit,
+        short invert,
+        bool state
+    ) = 0;
+
+    virtual bool get_pin_state (
+        char *name,
+        short reg,
+        short bit,
+        short invert
+    ) = 0;
+
+    void set_pin_state (
+        char *name,
+        short reg,
+        short bit,
+        short invert,
+        bool state,
+        struct signal_delays *delays
+    );
+
+    bool get_pin_state (
+        char *name,
+        short reg,
+        short bit,
+        short invert,
+        struct signal_delays *delays
+    );
+
 };
 
 #endif

@@ -31,26 +31,6 @@ typedef unsigned long uint32_t;
 
 #define BITS_AND_CLK(numbits,hold_clock) ((numbits) * ((hold_clock) ? -1 : 1))
 
-/** A time value represented in microseconds */
-typedef unsigned long microtime_t;
-
-/** A time value represented in nanoseconds */
-typedef unsigned long nanotime_t;
-
-
-/** This contains the various signal propagation delays added by the
- * programming hardware and cable. */
-struct signal_delays {
-    /** The propagation delay when setting the signal from high to low */
-    nanotime_t high_to_low;
-
-    /** The propagation delay when setting the signal from low to high */
-    nanotime_t low_to_high;
-
-    /** The propagation delay for reads of the signal */
-    nanotime_t read;
-};
-
 /**
  * A base class for lowlevel access methods to the PIC programmer.
  */
@@ -139,64 +119,66 @@ public:
     /** Waits for a specified number of microseconds to pass.
      * \param us The number of microseconds to delay for.
      */
-    virtual void usleep(microtime_t us);
+    virtual void usleep(unsigned long us);
+
+    /** Additional delay to add to Tdly. This will stretch out the length
+     * of the clock signal by this many microseconds.
+     */
+    void          set_tdly_stretch(unsigned long s) { tdly_stretch_ = s;    }
+    unsigned long get_tdly_stretch()                { return tdly_stretch_; }
+
+    /** Additional delay to add to Tset. This will increase the data setup
+     * time by this many microseconds.
+     */
+    void          set_tset_stretch(unsigned long s) { tset_stretch_ = s;    }
+    unsigned long get_tset_stretch()                { return tset_stretch_; }
+
+    /** Additional delay to add to Thld. This will increase the data hold
+     * time by this many microseconds.
+     */
+    void          set_thld_stretch(unsigned long s) { thld_stretch_ = s;    }
+    unsigned long get_thld_stretch()                { return thld_stretch_; }
+
+    /** General additional delay. This extra time will be added to every
+     * delay that occurs. Use this to slow down the entire programming
+     * operation.
+     */
+    void          set_gen_stretch(unsigned long s) { gen_stretch_ = s;    }
+    unsigned long get_gen_stretch()                { return gen_stretch_; }
 
     /**
      * Sends a stream of up to 32 bits on the data signal, clocked by the
      * clock signal. The bits are sent LSB first and it is assumed that
      * the device will latch the data on the falling edge of the clock.
      *
-     *           __________               ____________             
-     *          /          \             /            \            
-     * clock   /            \___________/              \___________
-     *
-     *             <-tset->  <-thold->        <-tset->  <-thold->
-     *        ...  ___________________......  ___________________..
-     *  data     \/                   ......\/                   ..
-     *        .../\___________________....../\___________________..
-     *
-     *           ^ shift_out is entered here    and returns here ^
-     *
      * \param bits The data bits to send out, starting at the LSB.
      * \param numbits The number of bits to send out.
-     * \param tset Setup time for the data before the clock's falling edge.
-     * \param thold The data hold time after the clock's falling edge.
+     *                The last clock signal state depend on the sign of numbits:
+     *                numbits > 0 -> last clock signal must be hold low.
+     *                numbits < 0 -> last clock signal must be hold high.
+     * \param tset Setup time for the data before the clock's falling
+     *        edge (in microseconds).
+     * \param thold The data hold time after the clock's falling
+     *        edge (in microseconds).
      */
     virtual void shift_bits_out (
         uint32_t bits,
         int numbits,
-        microtime_t tset  = 1,
-        microtime_t thold = 1
+        int tset=0,
+        int thold=0
     );
 
     /**
      * Reads a stream of up to 32 bits from the data signal, clocked by
      * us controlling the clock signal. The bits are received LSB first
-     * and are read no earlier than tdly after the rising edge of the clock.
-     *
-     *          _________           _________
-     *         /         \         /         \
-     * clock  /           \_______/           \_______
-     *
-     *          <-tdly->  <-tlow->  <-tdly->  <-tlow->
-     *        ........  _.................  _.........
-     *  data  ....... \/ ................ \/ .........
-     *        ......../\_................./\_.........
-     *
-     *                  ^data must be stable and is read
-     *        ^ shift_in entered here   returns here ^
+     * and are read tdly microseconds after the rising edge of the clock.
      *
      * \param numbits The number of bits to read in and return.
-     * \param tdly The delay time from the clock's rising edge to data
-     *             valid (from the device).
-     * \param tlow The minimum clock low time
+     * \param tdly The delay time (microseconds) from the clock's rising
+     *        edge to data valid (from the device).
      * \returns The bits which were read.
      */
-    virtual uint32_t shift_bits_in (
-        int numbits,
-        microtime_t tdly = 1,
-        microtime_t tlow = 1
-    );
+    virtual uint32_t shift_bits_in(int numbits, int tdly=0);
 
     virtual void set_pin_state (
         char *name,
@@ -232,48 +214,26 @@ protected:
      */
     static Preferences *config;
 
-    /** Reads the signal propagation delays from the configuration file.
-     * \param name The name of the signal
-     * \param delays The signal_delay structure to fill in
-     * \param default_delay The default delay time to use if an entry in the
-     *     config file is not found.
-     * \param additional_delay Additional delay that will be added to the
-     *     delay that is read from the config file.
+    /** Additional delay to add to Tdly. This will stretch out the length
+     * of the clock signal by this many microseconds.
      */
-    void read_signal_delay (
-        const char *name,
-        struct signal_delays &delays,
-        nanotime_t default_delay,
-        nanotime_t additional_delay
-    );
+    unsigned long tdly_stretch_;
 
-    /** Executes any delays required before reading the value of a signal.
-     * \param delays Pointer to the delay information for the signal
+    /** Additional delay to add to Tset. This will increase the data setup
+     * time by this many microseconds.
      */
-    void pre_read_delay(struct signal_delays &delays);
+    unsigned long tset_stretch_;
 
-    /** Executes any delays required after changing the state of a signal.
-     * \param delays Pointer to the delay information for the signal
-     * \param prev The previous state of the signal
-     * \param current The current state of the signal
+    /** Additional delay to add to Thld. This will increase the data hold
+     * time by this many microseconds.
      */
-    void post_set_delay (
-        struct signal_delays &delays,
-        bool prev,
-        bool current
-    );
+    unsigned long thld_stretch_;
 
-    /** The propagation delays on the clock signal */
-    struct signal_delays clk_delays_;
-
-    /** The propagation delays on the data read and write signals */
-    struct signal_delays data_delays_;
-
-    /** The propagation delays on the Pwr signal */
-    struct signal_delays vdd_delays_;
-
-    /** The propagation delays on the Vpp signal */
-    struct signal_delays vpp_delays_;
+    /** General additional delay. This extra time will be added to every
+     * delay that occurs. Use this to slow down the entire programming
+     * operation.
+     */
+    unsigned long gen_stretch_;
 };
 
 

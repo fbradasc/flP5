@@ -37,6 +37,9 @@ typedef pair<int, int> IntPair;         /**< A pair of integers */
 #define PIC_HAS_OSCAL      0x00000008   /**< PIC has an OSCAL value that must
                                              be saved and restored on a chip
                                              erase */
+#define PIC_HAS_DEVICEID   0x00000010   /**< PIC has a device ID that can be
+                                             read by the programming software */
+
 
 /** A Device implementation which implements a base class for Microchip's
  * devices. */
@@ -61,6 +64,65 @@ public:
     /** Destructor */
     ~Microchip();
 };
+
+enum Instruction_Class {
+      INSN_CLASS_NULL = 0 ,
+      INSN_CLASS_LIT1     , // bit 0 contains a 1 bit literal
+      INSN_CLASS_LIT4S    , // Bits 7:4 contain a 4 bit literal, bits 3:0 are unused
+      INSN_CLASS_LIT6     , // bits 5:0 contain an 6 bit literal
+      INSN_CLASS_LIT8     , // bits 7:0 contain an 8 bit literal
+      INSN_CLASS_LIT8C12  , // bits 7:0 contain an 8 bit literal, 12 bit CALL
+      INSN_CLASS_LIT8C16  , // bits 7:0 contain an 8 bit literal, 16 bit CALL
+      INSN_CLASS_LIT9     , // bits 8:0 contain a 9 bit literal
+      INSN_CLASS_LIT11    , // bits 10:0 contain an 11 bit literal
+      INSN_CLASS_LIT13    , // bits 12:0 contain an 11 bit literal
+      INSN_CLASS_LITFSR   , // bits 5:0 contain an 6 bit literal for fsr 7:6
+      INSN_CLASS_IMPLICIT , // instruction has no variable bits at all
+      INSN_CLASS_OPF5     , // bits 4:0 contain a register address
+      INSN_CLASS_OPWF5    , // as above, but bit 5 has a destination flag
+      INSN_CLASS_B5       , // as for OPF5, but bits 7:5 have bit number
+      INSN_CLASS_OPF7     , // bits 6:0 contain a register address
+      INSN_CLASS_OPWF7    , // as above, but bit 7 has destination flag
+      INSN_CLASS_B7       , // as for OPF7, but bits 9:7 have bit number
+      INSN_CLASS_OPF8     , // bits 7:0 contain a register address
+      INSN_CLASS_OPFA8    , // bits 7:0 contain a register address & bit has access flag
+      INSN_CLASS_OPWF8    , // as above, but bit 8 has dest flag
+      INSN_CLASS_OPWFA8   , // as above, but bit 9 has dest flag & bit 8 has access flag
+      INSN_CLASS_B8       , // like OPF7, but bits 9:11 have bit number
+      INSN_CLASS_BA8      , // like OPF7, but bits 9:11 have bit number & bit 8 has access flag
+      INSN_CLASS_LIT20    , // 20bit lit, bits 7:0 in first word bits 19:8 in second
+      INSN_CLASS_CALL20   , // Like LIT20, but bit 8 has fast push flag
+      INSN_CLASS_RBRA8    , // Bits 7:0 contain a relative branch address
+      INSN_CLASS_RBRA11   , // Bits 10:0 contain a relative branch address
+      INSN_CLASS_FLIT12   , // LFSR, 12bit lit loaded into 1 of 4 FSRs
+      INSN_CLASS_FF       , // two 12bit file addresses
+      INSN_CLASS_FP       , // Bits 7:0 contain a register address, bits 12:8 contains a peripheral address
+      INSN_CLASS_PF       , // Bits 7:0 contain a register address, bits 12:8 contains a peripheral address
+      INSN_CLASS_SF       , // 7 bit offset added to FSR2, fetched memory placed at 12 bit address
+      INSN_CLASS_SS       , // two 7 bit offsets, memory moved using FSR2
+      INSN_CLASS_TBL      , // a table read or write instruction
+      INSN_CLASS_TBL2     , // a table read or write instruction. 
+                            // Bits 7:0 contains a register address; Bit 8 is unused;
+                            // Bit 9, table byte select. (0:lower ; 1:upper)
+      INSN_CLASS_TBL3     , // a table read or write instruction. 
+                            // Bits 7:0 contains a register address; 
+                            // Bit 8, 1 if increment pointer, 0 otherwise;
+                            // Bit 9, table byte select. (0:lower ; 1:upper)
+      INSN_CLASS_FUNC     , // instruction is an assembler function
+      INSN_CLASS_LIT3_BANK, // SX: bits 3:0 contain a 3 bit literal, shifted 5 bits
+      INSN_CLASS_LIT3_PAGE, // SX: bits 3:0 contain a 3 bit literal, shifted 9 bits
+      INSN_CLASS_LIT4       // SX: bits 3:0 contain a 4 bit literal
+};
+
+class Instruction
+{
+public:
+    const char *name;
+    const long int mask;
+    const long int opcode;
+    const enum Instruction_Class type;
+};
+
 /** A Device implementation which implements a base class for Microchip's PIC
  * microcontrollers. These microcontrollers are programmed serially and have
  * a word size of 12, 14, or 16 bits. They come in memory configurations of
@@ -114,7 +176,11 @@ public:
     /** Destructor */
     ~Pic();
 
+    virtual bool check(void);
+
 protected:
+    int mem2asm(int org, DataBuffer& buf, char *buffer, size_t sizeof_buffer);
+
     /** Perform a single program cycle for program memory. The following steps
      * are performed:
      *   - The data is written to the PIC with write_prog_data().
@@ -164,6 +230,14 @@ protected:
      */
     virtual uint32_t read_prog_data(void);
 
+    /** Read the device ID from the device. 
+     * \pre The device has just been put into program mode.
+     * \post The device is in an undetermined state. Programming may not
+     *       be possible unless program mode is exited and re-entered.
+     * \returns The value of the device ID word.
+     */
+    virtual uint32_t read_deviceid(void);
+
 /* Protected data: */
     /** The calculated bitmask for clearing upper bits of a word. */
     uint32_t wordmask;
@@ -198,16 +272,12 @@ protected:
      * erasable device. */
     unsigned int erase_time;
 
-    static char *byte_op_names12[];
-    static char *bit_op_names12[];
-    static char *lit_op_names12[];
 
-    static char *byte_op_names14[];
-    static char *bit_op_names14[];
-    static char *lit_op_names14[];
+    /** Expected device ID value and mask for which bits to care about.
+     * These are only valid if the PIC_HAS_DEVICEID flag is set. */
+    uint32_t deviceid, deviceidmask;
 
-    void mem2asm12(int insn, char *buffer);
-    void mem2asm14(int insn, char *buffer);
+    const Instruction *popcodes;
 };
 
 
@@ -384,6 +454,8 @@ protected:
      */
     uint32_t read_ee_data(void);
 
+    virtual uint32_t read_deviceid(void);
+
 /* Protected data: */
     /** Bitmask for valid bits in the configuration word. */
     unsigned int config_mask;
@@ -396,6 +468,8 @@ protected:
 
     /** Data protection bits. */
     unsigned int cpd_mask, cpd_on, cpd_off;
+
+    static const Instruction opcodes[];
 };
 
 
@@ -513,7 +587,17 @@ public:
     virtual void program(DataBuffer& buf);
     virtual void read(DataBuffer& buf, bool verify=false);
 
+    /** Gets the native clearvalue depending on the memory address
+     * \returns The clearvalue.
+     */
+    virtual unsigned int get_clearvalue(size_t addr);
+
 protected:
+    void range_erase(int memstart, int memlen);
+    virtual void chip_erase(void);
+    virtual void panel_erase(int panel);
+    virtual void block_erase(int len, int address);
+
     /** Writes data to the program memory. The entire code space is written
      * to take advantage of multi-panel writes.
      * \param buf The DataBuffer from which to retrieve the data to write.
@@ -659,7 +743,7 @@ protected:
      *        buffer is written.
      * \post The \c progress_count is incremented by the number of words written
      *       to the write buffer. On success this is 4.
-     * \post If \c last is true, a call to program_wait() or the equivalent
+     * \post If \c last is true, a call to program_delay() or the equivalent
      *       must be made so the write is properly timed.
      */
     virtual void load_write_buffer (
@@ -670,10 +754,13 @@ protected:
     );
 
     /** Does a custom NOP/program wait. This will output
-     * COMMAND_CORE_INSTRUCTION, hold clk high for the programming time,
-     * and then finish up by clocking out a nop instruction (16 0's).
+     * COMMAND_CORE_INSTRUCTION, holding clk high for the programming time,
+     * if hold_clock_high is true, and then finish up by clocking out a nop
+     * instruction (16 0's).
+     * \param hold_clock_high Wether the clock must be held high diring the
+     *                        programming time.
      */
-    virtual void program_wait(void);
+    virtual void program_delay(bool hold_clock_high=true);
 
     /** Sets the value of the PIC's internal TBLPTR register. This register
      * contains the address of the current read/write operation.
@@ -700,9 +787,13 @@ protected:
      */
     virtual unsigned int write_command_read_data(unsigned int command);
 
+    virtual uint32_t read_deviceid(void);
+
 /* Protected Data: */
     /** The bitmasks for each configuration word */
     unsigned int config_masks[7];
+
+    static const Instruction opcodes[];
 };
 
 #endif

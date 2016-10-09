@@ -68,7 +68,10 @@ decl {Fl_Check_Button *tb_pinInvert[9];} {public
 decl {Fl_Box *bx_pinName[9];} {public
 } 
 
-decl {Fl_Input *tx_devParam[13];} {public
+decl {Fl_Input *tx_devParam[LAST_PARAM];} {public
+} 
+
+decl {Fl_Input *tx_propDelay[LAST_PROP_DLY];} {public
 } 
 
 decl {\#include <FL/Fl_RaiseButton.H>} {public
@@ -98,17 +101,20 @@ for (i=0;i<LAST_PIN;i++) {
 }
 for (i=0;i<LAST_PARAM;i++) {
     tx_devParam[i] = 0;
+}
+for (i=0;i<LAST_PROP_DLY;i++) {
+    tx_propDelay[i] = 0;
 }} {}
   Fl_Window flP5 {
     label {flP5 - Fast Light Parallel Port Production PIC Programmer} open
-    xywh {106 29 630 445} type Double visible
+    xywh {336 88 630 445} type Double visible
   } {
-    Fl_Tabs {} {
+    Fl_Tabs {} {open
       private xywh {365 25 260 415} box UP_BOX
     } {
       Fl_Group t_devcfg {
-        label {Device Config.} open
-        xywh {365 50 260 390}
+        label Device open
+        tooltip {Device Configuration} xywh {365 50 260 390}
       } {
         Fl_Group {} {open
           private xywh {370 55 250 25}
@@ -167,8 +173,11 @@ deviceConfigCB(CFG_COPY);}
             label label
             private xywh {471 55 3 25} box THIN_UP_BOX labeltype NO_LABEL
           }
-          Fl_Button {} {
-            callback {if (deviceConfigCB(CFG_SAVE)) {
+          Fl_Group g_devCfgStoreMGR {open
+            xywh {475 55 145 25}
+          } {
+            Fl_Button {} {
+              callback {if (deviceConfigCB(CFG_SAVE)) {
     g_devcfg->deactivate();
     g_devgencfg->deactivate();
     g_devcfgwords->deactivate();
@@ -177,12 +186,12 @@ deviceConfigCB(CFG_COPY);}
     t_devcfg->redraw();
     ch_devices->do_callback();
 }}
-            private tooltip {Save current device settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
-            code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-            class Fl_RaiseButton
-          }
-          Fl_Button {} {
-            callback {if (deviceConfigCB(CFG_DELETE)) {
+              private tooltip {Save current device settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+            Fl_Button {} {
+              callback {if (deviceConfigCB(CFG_DELETE)) {
     g_devcfg->deactivate();
     g_devgencfg->deactivate();
     g_devcfgwords->deactivate();
@@ -190,9 +199,10 @@ deviceConfigCB(CFG_COPY);}
     g_devCfgNewEditCopy->activate();
     t_devcfg->redraw();
 }}
-            private tooltip {Remove/discard current device settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
-            code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-            class Fl_RaiseButton
+              private tooltip {Remove/discard current device settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
           }
         }
         Fl_Group g_devcfg {open
@@ -434,13 +444,13 @@ deviceConfigCB(CFG_COPY);}
             }
           }
           Fl_Group {} {
-            label {Config. Words} open
+            label {Cfg. Words} open
             private xywh {370 160 250 275} hide
           } {
             Fl_Group g_devcfgwords {open
               xywh {375 165 240 265} deactivate
             } {
-              Fl_Group g_devConfigWordsEdit {open
+              Fl_Group g_devConfigWordsEdit {
                 xywh {375 165 240 125}
               } {
                 Fl_Group {} {open
@@ -458,7 +468,7 @@ deviceConfigCB(CFG_COPY);}
                       private xywh {560 165 55 20} color 0 labelcolor 7
                     }
                   }
-                  Fl_Group {} {open
+                  Fl_Group {} {
                     private xywh {375 185 240 20} box BORDER_BOX color 7
                   } {
                     Fl_Input {tx_devCfgWord[0]} {
@@ -545,7 +555,7 @@ deviceConfigCB(CFG_COPY);}
                   }
                 }
               }
-              Fl_Group g_devConfigWordsToolBar {open
+              Fl_Group g_devConfigWordsToolBar {
                 xywh {590 295 25 135}
               } {
                 Fl_Button {} {
@@ -625,13 +635,43 @@ cfgWordsCB(CFG_NEW);}
                 label Experimental
                 xywh {375 165 240 20} down_box DOWN_BOX
               }
+              Fl_Group {} {open
+                xywh {375 185 240 40}
+              } {
+                Fl_Group {} {open
+                  private xywh {375 205 240 20} box BORDER_BOX color 7
+                } {
+                  Fl_Input {tx_devIDWord[0]} {
+                    tooltip {Device ID value} xywh {455 205 80 20} labeltype NO_LABEL
+                  }
+                  Fl_Input {tx_devIDWord[1]} {
+                    tooltip {Device ID mask} xywh {535 205 80 20} labeltype NO_LABEL
+                  }
+                  Fl_Box {} {
+                    label {Device ID}
+                    private xywh {375 205 80 20} box BORDER_FRAME color 0 align 20
+                  }
+                }
+                Fl_Group {} {open
+                  private xywh {375 185 240 20} box BORDER_BOX color 41
+                } {
+                  Fl_Box {} {
+                    label Value
+                    private xywh {455 185 80 20} box BORDER_FRAME color 0 labelcolor 7
+                  }
+                  Fl_Box {} {
+                    label Mask
+                    private xywh {535 185 80 20} color 0 labelcolor 7
+                  }
+                }
+              }
             }
           }
         }
       }
       Fl_Group t_progcfg {
-        label {Programmer Config.} open
-        xywh {365 50 260 390} hide
+        label Programmer open
+        tooltip {Programmer Configuration} xywh {365 50 260 390} align 0 hide
       } {
         Fl_Group {} {open
           private xywh {370 55 250 25}
@@ -678,26 +718,30 @@ programmerConfigCB(CFG_COPY);}
             label label
             private xywh {471 55 3 25} box THIN_UP_BOX labeltype NO_LABEL
           }
-          Fl_Button {} {
-            callback {if (programmerConfigCB(CFG_SAVE)) {
+          Fl_Group g_pogStoreMGR {open
+            xywh {475 55 145 25}
+          } {
+            Fl_Button {} {
+              callback {if (programmerConfigCB(CFG_SAVE)) {
     g_progcfg->deactivate();
     g_progCfgNewEditCopy->activate();
     t_progcfg->redraw();
     ch_programmers->do_callback();
 }}
-            private tooltip {Save current programmer settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
-            code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-            class Fl_RaiseButton
-          }
-          Fl_Button {} {
-            callback {if (programmerConfigCB(CFG_DELETE)) {
+              private tooltip {Save current programmer settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+            Fl_Button {} {
+              callback {if (programmerConfigCB(CFG_DELETE)) {
     g_progcfg->deactivate();
     g_progCfgNewEditCopy->activate();
     t_progcfg->redraw();
 }}
-            private tooltip {Remove/discard current programmer settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
-            code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-            class Fl_RaiseButton
+              private tooltip {Remove/discard current programmer settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
           }
         }
         Fl_Group g_progcfg {open
@@ -719,11 +763,11 @@ programmerConfigCB(CFG_COPY);}
             } {
               Fl_Box {} {
                 label {Pin Name}
-                private xywh {370 115 165 20} box BORDER_FRAME color 0 labelcolor 7
+                private xywh {370 115 170 20} box BORDER_FRAME color 0 labelcolor 7
               }
               Fl_Box {} {
                 label Invert
-                private xywh {535 115 45 20} color 0 labelcolor 7
+                private xywh {540 115 40 20} color 0 labelcolor 7
               }
               Fl_Box {} {
                 label {Pin \#}
@@ -850,7 +894,7 @@ programmerConfigCB(CFG_COPY);}
               }
               Fl_Box {} {
                 label {ICSP Clock}
-                private tooltip {The pin used to control the clock signal.} xywh {370 135 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin used to control the clock signal.} xywh {370 135 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[ICSP_CLOCK]=o;}
               }
             }
@@ -976,7 +1020,7 @@ bx_pinName[ICSP_DATA_IN]->redraw();}
               }
               Fl_Box {} {
                 label {ICSP Data In}
-                private tooltip {The pin from which to read the data read from the programmed device.} xywh {370 155 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin from which to read the data read from the programmed device.} xywh {370 155 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[ICSP_DATA_IN]=o;}
               }
             }
@@ -1102,7 +1146,7 @@ bx_pinName[ICSP_DATA_OUT]->redraw();}
               }
               Fl_Box {} {
                 label {ICSP Data Out}
-                private tooltip {The pin used to send the command/data to program the device.} xywh {370 175 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin used to send the command/data to program the device.} xywh {370 175 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[ICSP_DATA_OUT]=o;}
               }
             }
@@ -1228,7 +1272,7 @@ bx_pinName[ICSP_VDD_ON]->redraw();}
               }
               Fl_Box {} {
                 label {A) ICSP Vdd On}
-                private tooltip {The pin which controls the Vdd power on/off.} xywh {370 195 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin which controls the Vdd power on/off.} xywh {370 195 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[ICSP_VDD_ON]=o;}
               }
             }
@@ -1354,7 +1398,7 @@ bx_pinName[ICSP_VPP_ON]->redraw();}
               }
               Fl_Box {} {
                 label {B) ICSP Vpp On}
-                private tooltip {The pin which controls the Vpp power on/off.} xywh {370 215 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin which controls the Vpp power on/off.} xywh {370 215 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[ICSP_VPP_ON]=o;}
               }
             }
@@ -1496,7 +1540,7 @@ bx_pinName[SEL_MIN_VDD]->redraw();}
               }
               Fl_Box {} {
                 label {C) Selects Minimum Vdd}
-                private tooltip {The pin used to select the minimum value of Vdd.} xywh {370 235 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin used to select the minimum value of Vdd.} xywh {370 235 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[SEL_MIN_VDD]=o;}
               }
             }
@@ -1638,7 +1682,7 @@ bx_pinName[SEL_PRG_VDD]->redraw();}
               }
               Fl_Box {} {
                 label {D) Selects Program Vdd}
-                private tooltip {The pin used to select the programming value of Vdd.} xywh {370 255 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin used to select the programming value of Vdd.} xywh {370 255 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[SEL_PRG_VDD]=o;}
               }
             }
@@ -1780,7 +1824,7 @@ bx_pinName[SEL_MAX_VDD]->redraw();}
               }
               Fl_Box {} {
                 label {E) Selects Maximum Vdd}
-                private tooltip {The pin used to select the maximum value of Vdd.} xywh {370 275 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin used to select the maximum value of Vdd.} xywh {370 275 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[SEL_MAX_VDD]=o;}
               }
             }
@@ -1913,7 +1957,7 @@ bx_pinName[SEL_VIHH_VPP]->redraw();}
               }
               Fl_Box {} {
                 label {F) Selects VIH/VIL Vpp}
-                private tooltip {The pin used to select the value of Vpp (VIH~=13V; VIL=Vdd).} xywh {370 295 165 20} box BORDER_BOX color 7 align 20
+                private tooltip {The pin used to select the value of Vpp (VIH~=13V; VIL=Vdd).} xywh {370 295 170 20} box BORDER_BOX color 7 align 20
                 code0 {bx_pinName[SEL_VIHH_VPP]=o;}
               }
             }
@@ -2000,6 +2044,246 @@ bx_pinName[SEL_VIHH_VPP]->redraw();}
             Fl_Check_Button tb_saVddVppControl {
               label {(B) can be set ON even if (A) is OFF}
               tooltip {The programming specifications for some devices (i.e. PIC12C5xx) require that ICSP Vpp rises to VIHH before the ICSP Vdd is ON. To allow this the programmer must control the ICSP Vdd and the ICSP Vpp independently from each other.} xywh {370 415 250 20} down_box DOWN_BOX
+            }
+          }
+        }
+      }
+      Fl_Group t_settings {
+        label Settings open
+        xywh {365 50 260 390} hide
+      } {
+        Fl_Group {} {open
+          private xywh {370 55 250 25}
+        } {
+          Fl_Button {} {
+            callback {generalSettingsCB(CFG_IMPORT);
+g_settings->deactivate();
+g_settingsNewEditCopy->activate();
+t_settings->redraw();}
+            private tooltip {Import the general settings from a file.} image {./pixmaps/cfgopen.xpm} deimage {./pixmaps/cfgopen-desel.xpm} xywh {370 55 25 25} box FLAT_BOX align 16
+            code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+            class Fl_RaiseButton
+          }
+          Fl_Group g_settingsNewEditCopy {open
+            xywh {395 55 80 25}
+          } {
+            Fl_Button {} {
+              callback {g_settings->activate();
+g_settingsNewEditCopy->deactivate();
+g_settingsStoreMGR->activate();
+generalSettingsCB(CFG_NEW);}
+              private image {./pixmaps/filenew.xpm} deimage {./pixmaps/filenew-desel.xpm} xywh {395 55 25 25} box FLAT_BOX align 16 deactivate
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+            Fl_Button {} {
+              callback {g_settings->activate();
+g_settingsNewEditCopy->deactivate();
+g_settingsStoreMGR->activate();
+generalSettingsCB(CFG_EDIT);}
+              private tooltip {Edit the general settings.} image {./pixmaps/edit.xpm} deimage {./pixmaps/edit-desel.xpm} xywh {420 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+            Fl_Button {} {
+              callback {g_settings->activate();
+g_settingsNewEditCopy->deactivate();
+g_settingsStoreMGR->activate();
+generalSettingsCB(CFG_COPY);}
+              private image {./pixmaps/editcopy.xpm} deimage {./pixmaps/editcopy-desel.xpm} xywh {445 55 25 25} box FLAT_BOX align 16 deactivate
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+          }
+          Fl_Box {} {
+            label label
+            private xywh {471 55 3 25} box THIN_UP_BOX labeltype NO_LABEL
+          }
+          Fl_Group g_settingsStoreMGR {open
+            xywh {475 55 145 25} deactivate
+          } {
+            Fl_Button {} {
+              callback {if (generalSettingsCB(CFG_SAVE)) {
+    g_settings->deactivate();
+    g_settingsNewEditCopy->activate();
+    g_settingsStoreMGR->deactivate();
+    t_settings->redraw();
+}}
+              private tooltip {Save the general settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+            Fl_Button {} {
+              callback {if (generalSettingsCB(CFG_DELETE)) {
+    g_settings->deactivate();
+    g_settingsNewEditCopy->activate();
+    g_settingsStoreMGR->deactivate();
+    t_settings->redraw();
+}}
+              private tooltip {Revert/reset the general settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
+              code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+              class Fl_RaiseButton
+            }
+          }
+        }
+        Fl_Group g_settings {open
+          xywh {370 85 250 150} deactivate
+        } {
+          Fl_Group g_prop_delays {open
+            xywh {370 85 250 150} box BORDER_FRAME color 0
+          } {
+            Fl_Input {} {
+              label {Default:}
+              tooltip {Default propagation delay on all signals} xywh {425 110 55 20}
+              code0 {tx_propDelay[PD_DEFAULT]=o;}
+            }
+            Fl_Input {} {
+              label {Additional:}
+              tooltip {Additional propagation delay on all signals} xywh {555 110 60 20}
+              code0 {tx_propDelay[PD_ADDITIONAL]=o;}
+            }
+            Fl_Group {} {open
+              private xywh {370 135 250 100}
+            } {
+              Fl_Group {} {open
+                private xywh {380 135 240 20} box BORDER_BOX color 41
+              } {
+                Fl_Box {} {
+                  label All
+                  private xywh {395 135 45 20} box BORDER_FRAME color 0 labelcolor 7
+                }
+                Fl_Box {} {
+                  label Clk
+                  private xywh {440 135 45 20} color 0 labelcolor 7
+                }
+                Fl_Box {} {
+                  private xywh {380 135 15 20} box FLAT_BOX labelcolor 7
+                }
+                Fl_Box {} {
+                  label Data
+                  private xywh {485 135 45 20} box BORDER_FRAME color 0 labelcolor 7
+                }
+                Fl_Box {} {
+                  label Vpp
+                  private xywh {530 135 45 20} color 0 labelcolor 7
+                }
+                Fl_Box {} {
+                  label Vdd
+                  private xywh {575 135 45 20} box BORDER_FRAME color 0 labelcolor 7
+                }
+              }
+              Fl_Group {} {open
+                private xywh {370 155 250 20} box BORDER_BOX color 7
+              } {
+                Fl_Input {} {
+                  private tooltip {Propagation delay on all read signals} xywh {395 155 45 20} type Float
+                  code0 {tx_propDelay[PD_RD_ALL]=o;}
+                }
+                Fl_Input {} {
+                  private tooltip {Propagation delay on Vdd read signals} xywh {575 155 45 20} type Float
+                  code0 {tx_propDelay[PD_RD_VDD]=o;}
+                }
+                Fl_Box {} {
+                  label R
+                  private xywh {370 155 25 20} box BORDER_BOX color 7 align 16
+                }
+                Fl_Input {} {
+                  private tooltip {Propagation delay on clock read signals} xywh {440 155 45 20} type Float
+                  code0 {tx_propDelay[PD_RD_CLK]=o;}
+                }
+                Fl_Input {} {
+                  private tooltip {Propagation delay on data read signals} xywh {485 155 45 20} type Float
+                  code0 {tx_propDelay[PD_RD_DAT]=o;}
+                }
+                Fl_Input {} {
+                  private tooltip {Propagation delay on Vpp read signals} xywh {530 155 45 20} type Float
+                  code0 {tx_propDelay[PD_RD_VPP]=o;}
+                }
+              }
+              Fl_Group {} {open
+                private xywh {370 175 250 60} box BORDER_BOX color 7
+              } {
+                Fl_Group {} {open
+                  xywh {395 175 225 20}
+                } {
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on all write signals} xywh {395 175 45 20} type Float
+                    code0 {tx_propDelay[PD_WR_ALL]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on Vdd write signals} xywh {575 175 45 20} type Float
+                    code0 {tx_propDelay[PD_WR_VDD]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on clock write signals} xywh {440 175 45 20} type Float
+                    code0 {tx_propDelay[PD_WR_CLK]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on data write signals} xywh {485 175 45 20} type Float
+                    code0 {tx_propDelay[PD_WR_DAT]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on Vpp write signals} xywh {530 175 45 20} type Float
+                    code0 {tx_propDelay[PD_WR_VPP]=o;}
+                  }
+                }
+                Fl_Box {} {
+                  label w
+                  private xywh {370 175 25 60} box BORDER_FRAME color 0 align 16
+                }
+                Fl_Group {} {open
+                  xywh {395 195 225 20}
+                } {
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on Vdd write low to high signals transition} xywh {575 195 45 20} type Float
+                    code0 {tx_propDelay[PD_LH_WR_VDD]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on clock write low to high signals transition} xywh {440 195 45 20} type Float
+                    code0 {tx_propDelay[PD_LH_WR_CLK]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on data write low to high signals transition} xywh {485 195 45 20} type Float
+                    code0 {tx_propDelay[PD_LH_WR_DAT]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on Vpp write low to high signals transition} xywh {530 195 45 20} type Float
+                    code0 {tx_propDelay[PD_LH_WR_VPP]=o;}
+                  }
+                  Fl_Box {} {
+                    label {L->H}
+                    private xywh {395 195 45 20} box BORDER_FRAME color 0 align 16
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {395 215 225 20}
+                } {
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on Vdd write high to low signals transition} xywh {575 215 45 20} type Float
+                    code0 {tx_propDelay[PD_HL_WR_VDD]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on clock write high to low signals transition} xywh {440 215 45 20} type Float
+                    code0 {tx_propDelay[PD_HL_WR_CLK]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on data write high to low signals transition} xywh {485 215 45 20} type Float
+                    code0 {tx_propDelay[PD_HL_WR_DAT]=o;}
+                  }
+                  Fl_Input {} {
+                    private tooltip {Propagation delay on Vpp write high to low signals transition} xywh {530 215 45 20} type Float
+                    code0 {tx_propDelay[PD_HL_WR_VPP]=o;}
+                  }
+                  Fl_Box {} {
+                    label {H->L}
+                    private xywh {395 215 45 20} box BORDER_BOX color 7 align 16
+                  }
+                }
+              }
+            }
+            Fl_Box {} {
+              label {Propagation delays (nS)}
+              xywh {370 85 250 20} box BORDER_BOX color 41
             }
           }
         }
@@ -2275,7 +2559,7 @@ mb_menuBar->redraw();} open
     }
     pb_operation[PB_RESET]->deactivate();
     processOperation(CHIP_TEST_OFF);
-}} selected
+}}
         tooltip {Switch on/off the Vdd line to enter in the On Circuit Test mode.} image {./pixmaps/test_pic.xpm} deimage {./pixmaps/test_pic-desel.xpm} xywh {0 305 35 35} type Toggle box FLAT_BOX down_box PLASTIC_THIN_DOWN_BOX selection_color 3 align 80 when 1
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
@@ -2331,7 +2615,7 @@ sprintf(cvddmin,"%4.2lf",vddmin);
 sprintf(cvddmax,"%4.2lf",vddmax);} {}
   Fl_Window w_calibration {
     label {flP5 - Programmer Calibration} open
-    xywh {256 641 300 200} type Double modal visible
+    xywh {50 103 300 200} type Double modal visible
   } {
     Fl_Box {} {
       label {Programmer Calibration}
@@ -2347,18 +2631,14 @@ sprintf(cvddmax,"%4.2lf",vddmax);} {}
           private xywh {15 50 270 55} box PLASTIC_DOWN_BOX color 3
         } {
           Fl_Box {} {
-            label {DISCONNECT THE CHIP FROM THE ZIF OR ICSP CONNECTOR}
-            private xywh {20 55 260 45} box DOWN_BOX labelfont 1 labelsize 16 labelcolor 36 align 146
+            label OOOOOOOO
+            private xywh {20 55 260 45} box DOWN_BOX labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 144
+            code0 {o->label(devname);}
           }
         }
         Fl_Box {} {
-          label {Use a DMM to measure Vpp/Vdd for the:}
-          private xywh {15 105 270 25} align 146
-        }
-        Fl_Box {} {
-          label OOOOOOOO
-          private xywh {15 130 270 25} labelfont 1 labelsize 16 align 16
-          code0 {o->label(devname);}
+          label {WARNING: DISCONNECT THE CHIP FROM THE ZIF OR ICSP SOCKET}
+          private xywh {15 110 270 45} box PLASTIC_THIN_DOWN_BOX color 3 labeltype ENGRAVED_LABEL labelfont 1 labelsize 16 labelcolor 41 align 144
         }
         Fl_Box {} {
           label {flP5 Digital Voltmeter}
@@ -2393,17 +2673,17 @@ io->vpp(IO::VPP_TO_VIH);} open
           } {
             Fl_Box {} {
               label {12.75}
-              private xywh {20 55 115 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 25
+              private xywh {20 55 115 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 24
               code0 {o->label(cvppmin);}
             }
             Fl_Box {} {
               label {13.25}
-              private xywh {165 55 115 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 25
+              private xywh {165 55 115 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 24
               code0 {o->label(cvppmax);}
             }
             Fl_Box {} {
               label {÷}
-              private xywh {135 55 30 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 21
+              private xywh {135 55 30 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 17
             }
           }
         }
@@ -2419,11 +2699,11 @@ pb_calNext->label("Vdd Write/Prog. @>");
 io->vdd(IO::VDD_TO_MAX);
 io->vdd(IO::VDD_TO_ON);
 io->vpp(IO::VPP_TO_VDD);} open
-        xywh {5 35 290 130} box PLASTIC_UP_BOX color 3 hide
+        xywh {5 35 290 130} box PLASTIC_UP_BOX color 3 align 8 hide
       } {
         Fl_Box {} {
           label {Vdd Maximum}
-          private xywh {10 115 280 40} labeltype ENGRAVED_LABEL labelfont 1 labelsize 34 labelcolor 41
+          private xywh {10 115 280 40} labeltype ENGRAVED_LABEL labelfont 1 labelsize 34 labelcolor 41 align 128
         }
         Fl_Group {} {open
           private xywh {15 50 270 55} box PLASTIC_DOWN_BOX color 3 labelcolor 0
@@ -2433,7 +2713,7 @@ io->vpp(IO::VPP_TO_VDD);} open
           } {
             Fl_Box {} {
               label {5.25}
-              private xywh {20 55 260 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 25
+              private xywh {20 55 260 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 24
               code0 {o->label(cvddmax);}
             }
           }
@@ -2469,17 +2749,17 @@ io->vpp(IO::VPP_TO_VDD);} open
           } {
             Fl_Box {} {
               label {12.75}
-              private xywh {20 55 115 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 25
+              private xywh {20 55 115 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 24
               code0 {o->label(cvddpmin);}
             }
             Fl_Box {} {
               label {13.25}
-              private xywh {165 55 115 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 25
+              private xywh {165 55 115 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 24
               code0 {o->label(cvddpmax);}
             }
             Fl_Box {} {
               label {÷}
-              private xywh {135 55 30 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 21
+              private xywh {135 55 30 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 17
             }
           }
         }
@@ -2509,7 +2789,7 @@ io->vpp(IO::VPP_TO_VDD);} open
           } {
             Fl_Box {} {
               label {5.25}
-              private xywh {20 55 260 45} labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 25
+              private xywh {20 55 260 45} labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 24
               code0 {o->label(cvddmin);}
             }
           }
@@ -2532,7 +2812,7 @@ pb_calNext->label("Done @>");} open
         } {
           Fl_Box {} {
             label FINISH
-            private xywh {20 55 260 45} box DOWN_BOX labeltype SHADOW_LABEL labelfont 1 labelsize 44 labelcolor 36 align 153
+            private xywh {20 55 260 45} box DOWN_BOX labeltype SHADOW_LABEL labelfont 14 labelsize 36 labelcolor 36 align 145
           }
         }
         Fl_Box {} {
@@ -2587,7 +2867,10 @@ pb_calNext->label("Done @>");} open
     Fl_Button pb_calPrec {
       label {@<}
       user_data {&proceed} user_data_type {bool *}
-      callback {if (wz_calibration->value()==g_warning) {
+      callback {if (!io->production() && wz_calibration->value()==g_vddp) {
+    wz_calibration->value(g_vpp);
+    wz_calibration->value()->do_callback();
+} else if (wz_calibration->value()==g_warning) {
     wz_calibration->value(g_warning);
     *v = false;
     w_calibration->hide();
@@ -2629,7 +2912,7 @@ Function {make_report_window(void)} {open
 }} {}
   Fl_Window w_report {
     label {flP5 - Import Report} open
-    xywh {467 656 300 200} type Double modal visible
+    xywh {467 656 300 200} type Double hide modal
   } {
     Fl_Button pb_discard {
       label Discard
@@ -2655,7 +2938,7 @@ Function {make_copyright_window(char *copyright)} {open
 } {
   Fl_Window w_copyright {
     label {flP5 Copyright} open
-    xywh {49 621 350 350} type Double modal visible
+    xywh {49 621 350 350} type Double hide modal
   } {
     Fl_Return_Button {} {
       label OK
@@ -2713,7 +2996,7 @@ if (
 }} {}
   Fl_Window w_regcheck {
     label {flP5 - Registration} open
-    xywh {357 95 300 200} type Double box UP_BOX modal noborder visible
+    xywh {357 95 300 200} type Double box UP_BOX hide modal noborder
   } {
     Fl_Group g_regform {open
       xywh {5 80 290 115}

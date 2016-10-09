@@ -47,7 +47,7 @@ public:
     /** Destructor */
     ~DirectPPIO();
 
-    void set_bit_common (
+    void set_pin_state (
         char *name,
         short reg,
         short bit,
@@ -55,7 +55,7 @@ public:
         bool state
     );
 
-    bool get_bit_common (
+    bool get_pin_state (
         char *name,
         short reg,
         short bit,

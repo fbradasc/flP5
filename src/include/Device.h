@@ -56,6 +56,13 @@ public:
     /** Frees all the memory and resources associated with this object */
     virtual ~Device();
 
+    /** Quickly check that the device is present and correct.
+     * \pre set_iodevice() must have been called with a valid IO object.
+     * \returns A boolean value indicating if the check was successful.
+     * \throws runtime_error Contains a textual description of the error.
+     */
+    virtual bool check(void) = 0;
+
     /** Erase the memory contents of the device. This is only applicable
      * to EEPROM or flash devices that can be electronically erased.
      * \pre set_iodevice() must have been called with a valid IO object.

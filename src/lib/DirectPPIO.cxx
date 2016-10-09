@@ -92,11 +92,7 @@ static char str[20];
     }
 #endif
     /* Turn stuff off */
-    vpp   (VPP_TO_VDD);
-    clock (false);
-    data  (false);
-    vdd   (VDD_TO_OFF);
-    vdd   (VDD_TO_PRG);
+    this->off();
 
     fprintf (
         stderr,
@@ -107,11 +103,7 @@ static char str[20];
 DirectPPIO::~DirectPPIO()
 {
     /* Turn everything off */
-    vpp   (VPP_TO_VDD);
-    clock (false);
-    data  (false);
-    vdd   (VDD_TO_OFF);
-    vdd   (VDD_TO_PRG);
+    this->off();
 
 #ifdef  WIN32
     if (this->hCom != INVALID_HANDLE_VALUE) {
@@ -134,7 +126,7 @@ DirectPPIO::~DirectPPIO()
     );
 }
 
-void DirectPPIO::set_bit_common (
+void DirectPPIO::set_pin_state (
     char *name,
     short reg,
     short bit,
@@ -156,8 +148,12 @@ unsigned int val;
     outb(val, this->ioport + reg);
 }
 
-bool DirectPPIO::get_bit_common(char *name, short reg, short bit, short invert)
-{
+bool DirectPPIO::get_pin_state (
+    char *name, 
+    short reg,
+    short bit,
+    short invert
+) {
 unsigned int val;
 
     val = (inb(this->ioport + reg) >> bit) & 0x01;
