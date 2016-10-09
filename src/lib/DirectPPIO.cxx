@@ -45,16 +45,17 @@ DlPortDriver DirectPPIO::dlPortDriver;
 
 DirectPPIO::DirectPPIO(int port) : ParallelPort(port)
 {
-    if ((port > ports.count) || (port < 0) || !ports.address[port]) {
+    if ((port > ports.count) ||
+        (port < 0)           ||
+        !ports.address[port] ||
+        !ports.device[port]
+    ) {
         throw runtime_error("Invalid DirectPP port number");
     }
 #ifdef WIN32
-static char str[20];
-
     //Test if port is already in use
-    sprintf(str,"LPT%d",port+1);
     this->hCom = CreateFile (
-        str,
+        ports.device[port],
         GENERIC_READ | GENERIC_WRITE,
         0,             /* comm devices must be opened w/exclusive-access */
         NULL,          /* no security attrs                              */
@@ -67,8 +68,8 @@ static char str[20];
     }
 #endif
     /* Turn port access on */
-    this->ioport  = ports.address[port];
-    this->regs = ports.regs[port];
+    this->ioport = ports.address[port];
+    this->regs   = ports.regs[port];
 #ifndef WIN32
     /* Set UID to root if running setuid */
     Util::setUser(0);

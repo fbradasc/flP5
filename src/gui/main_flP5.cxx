@@ -1476,32 +1476,29 @@ char buf[256];
 const Fl_Menu_Item *mitem;
 const char *mdata, *cfgFile;
 
-    for (i=1; i<=ParallelPort::ports.count; i++) {
-#ifdef WIN32
-        sprintf(buf,"lpt%d: address %X",i,ParallelPort::ports.address[i-1]);
-#else
-        sprintf(buf,"lp%d: address %X",i-1,ParallelPort::ports.address[i-1]);
-#endif
-        sm_ppNumber[i].label(strdup(buf));
-        sm_ppNumber[i].show();
-    }
-    for (;i<=MAX_LPTPORTS;i++) {
-        sm_ppNumber[i].hide();
+    for (i=0; i<ParallelPort::ports.count; i++) {
+         ch_parports->add (
+             ParallelPort::ports.ports[i].device,
+             (const char *)0,
+             (Fl_Callback *)0,
+             (void *)strdup(ParallelPort::ports.ports[i].device),
+             0
+         );
     }
     app.get("portNumber",i,0);
-    sm_ppNumber[((i<0 || i>=ParallelPort::ports.count)?1:(i+1))].setonly();
+    ch_parports->value(i);
 
 #if defined(linux) && defined(ENABLE_LINUX_PPDEV)
-    sm_ppAccessMethod->show();
+    g_ppAccessMethod->show();
     linux_pp_dev->show();
     app.get("portAccessMethod",i,0);
+
+    linux_pp_dev->value((i==0));
+    linux_direct_pp->value((i!=0));
 #else
     linux_pp_dev->hide();
-    sm_ppAccessMethod->hide();
-    i=0;
+    g_ppAccessMethod->hide();
 #endif
-
-    sm_ppAccessMethod[i+1].setonly();
 
     for (i=0;i<LAST_PROP_DLY;i++) {
         app.get(spropDly[i].name,j,(int)spropDly[i].defv);

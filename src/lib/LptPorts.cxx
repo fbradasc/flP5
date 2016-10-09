@@ -27,9 +27,10 @@
 #include "LptPorts.h"
 #include "Util.h"
 
-int LptPorts::address[MAX_LPTPORTS] = { 0 };
-int LptPorts::regs[MAX_LPTPORTS] = { 0 };
-int LptPorts::count = 0;
+char* LptPorts::device  [MAX_LPTPORTS] = { 0 };
+int   LptPorts::address [MAX_LPTPORTS] = { 0 };
+int   LptPorts::regs    [MAX_LPTPORTS] = { 0 };
+int   LptPorts::count                  = 0;
 
 LptPorts::LptPorts()
 {
@@ -39,20 +40,37 @@ char str[8];
 
     if (count==0) {
         for (int i=0; i<MAX_LPTPORTS; i++) {
+            device[i]  = 0;
             address[i] = 0;
-            regs[i] = 3;
+            regs[i]    = 3;
         }
-        address[0] = 0x378;
-        address[1] = 0x278;
-        address[2] = 0x3BC;
-        count = 3;
-#ifdef WIN32
         detectPorts();
-#endif
     }
 }
 
-#ifdef WIN32
+LptPorts::~LptPorts()
+{
+    for (int i=0; i<count && i<MAX_LPTPORTS; i++) {
+        if (device[i]) {
+            free(device[i]);
+        }
+    }
+}
+
+#ifndef WIN32
+
+void LptPorts::detectPorts()
+{
+    address[0] = 0x378;
+    address[1] = 0x278;
+    address[2] = 0x3BC;
+    count = 3;
+    for ( int i=0; i<count; i++ ) {
+        device[i]  = strdup(Preferences::Name("lp%d: address %X",i, address[i]));
+    }
+}
+
+#else
 
 void LptPorts::detectPorts()
 {
@@ -71,6 +89,9 @@ OSVERSIONINFO os;
         //  detectPortsNT(); // WinNT version
     } else {
         detectPorts9x(); // Win9x version
+    }
+    for (int i=0; i<count; i++) {
+         device[i] = strdup(Preferences::Name("LPT%d",i));
     }
 }
 

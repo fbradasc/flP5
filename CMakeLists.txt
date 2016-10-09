@@ -50,19 +50,27 @@ IF ( WIN32 )
     SET ( WIN32_EXE_TYPE
           "WIN32"
     )
-    SET ( CMAKE_CXX_FLAGS
-          "/GX /Zm200"
-    )
-    SET ( CMAKE_EXTRA_LINK_FLAGS
-          "/NODEFAULTLIB:libcd"
-          CACHE INTERNAL  "elflags"
-    )
+    IF ( NOT CMAKE_COMPILER_IS_GNUCC )
+        SET ( CMAKE_CXX_FLAGS
+              "/GX /Zm200"
+        )
+        SET ( CMAKE_EXTRA_LINK_FLAGS
+              "/NODEFAULTLIB:libcd"
+              CACHE INTERNAL  "elflags"
+        )
+    ELSE ( NOT CMAKE_COMPILER_IS_GNUCC )
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmessage-length=0")
+        LINK_LIBRARIES ( gdi32 )
+    ENDIF ( NOT CMAKE_COMPILER_IS_GNUCC )
+
     IF ( ${USE_STATIC_FLTK} MATCHES "0" )
         LINK_LIBRARIES  ( ${FLTK_LIBRARY} fltkdll )
-        ADD_DEFINITIONS ( /D "FL_DLL" )
+        ADD_DEFINITIONS ( "FL_DLL" )
     ELSE ( ${USE_STATIC_FLTK} MATCHES "0" )
         LINK_LIBRARIES  ( ${FLTK_LIBRARY} fltk )
     ENDIF ( ${USE_STATIC_FLTK} MATCHES "0" )
+
     LINK_DIRECTORIES( ${FLP5_SOURCE_DIR}/win32/DlPortIO )
     INCLUDE_DIRECTORIES( ${FLP5_SOURCE_DIR}/win32/DlPortIO )
     LINK_LIBRARIES( DlPortIO )

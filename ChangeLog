@@ -1,3 +1,7 @@
+flP5 1.1.8c:
+  * The configuration and selection of the parallel port has been moved
+    from the Setings main menu to the Settings page.
+
 flP5 1.1.8b:
   * Fixed some compilation errors on Visual Studio .net 2003 (thanks to
     Fredrik Silfverduk)

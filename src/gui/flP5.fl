@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0106 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
 decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
@@ -116,7 +116,7 @@ for (i=0;i<LAST_PROP_DLY;i++) {
       private xywh {365 25 260 415} box UP_BOX
     } {
       Fl_Group t_devcfg {
-        label Device open
+        label Device open selected
         tooltip {Device Configuration} xywh {365 50 260 390}
       } {
         Fl_Group {} {open
@@ -217,17 +217,17 @@ deviceConfigCB(CFG_COPY);}
           }
           Fl_Choice ch_devProgSpec {
             label {Vendor && Family:} open
-            tooltip {The programming specifications describing how to program the device.} xywh {485 110 135 20} down_box BORDER_BOX labelcolor 0 textcolor 0
+            tooltip {The programming specifications describing how to program the device.} xywh {485 110 135 20} down_box BORDER_BOX
             code0 {\#include <FL/Fl_Sorted_Choice.H>}
             code1 {o->item_pixmap(mini_device);}
             code2 {// o->folder_pixmap(mini_folder);}
             class Fl_Sorted_Choice
           } {
-            submenu {} {
+            Submenu {} {
               label Microchip open
               private xywh {0 0 100 20}
             } {
-              menuitem {} {
+              MenuItem {} {
                 label {Microchip PIC}
                 user_data {"Microchip/PIC"} user_data_type {const char*}
                 private xywh {15 15 100 20}
@@ -239,7 +239,7 @@ deviceConfigCB(CFG_COPY);}
           private xywh {370 135 250 300} box UP_BOX
         } {
           Fl_Group {} {
-            label General open selected
+            label General open
             private xywh {370 160 250 275}
           } {
             Fl_Group g_devgencfg {open
@@ -253,27 +253,27 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Choice ch_devMemType {
                     label {Memory Type:} open
-                    tooltip {The type of memory in the PIC. This can have the values 'eprom', 'flash', or 'flashe'. 'eprom' can be used for any eprom/OTP device. 'flash' can be used for any type of electronically erasable device 'flashe' is similar to 'flash' but in the programming cycle, the END_PROG command is required.} xywh {505 165 110 20} down_box BORDER_BOX labelcolor 0 textcolor 0
+                    tooltip {The type of memory in the PIC. This can have the values 'eprom', 'flash', or 'flashe'. 'eprom' can be used for any eprom/OTP device. 'flash' can be used for any type of electronically erasable device 'flashe' is similar to 'flash' but in the programming cycle, the END_PROG command is required.} xywh {505 165 110 20} down_box BORDER_BOX
                     code0 {\#include <FL/Fl_Sorted_Choice.H>}
                     code1 {o->item_pixmap(mini_device);}
                     class Fl_Sorted_Choice
                   } {
-                    menuitem {} {
+                    MenuItem {} {
                       label ROM
                       user_data {"rom"} user_data_type {const char*}
                       private xywh {10 10 100 20}
                     }
-                    menuitem {} {
+                    MenuItem {} {
                       label EPROM
                       user_data {"eprom"} user_data_type {const char*}
                       private xywh {10 10 100 20}
                     }
-                    menuitem {} {
+                    MenuItem {} {
                       label FLASH
                       user_data {"flash"} user_data_type {const char*}
                       private xywh {10 10 100 20}
                     }
-                    menuitem {} {
+                    MenuItem {} {
                       label {FLASH E/P}
                       user_data {"flashe"} user_data_type {const char*}
                       private xywh {10 10 100 20}
@@ -285,12 +285,12 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Input {} {
                     label {Word Size:}
-                    private tooltip {The size of an instruction word in bits.} xywh {505 190 60 20} type Int labelcolor 0
+                    private tooltip {The size of an instruction word in bits.} xywh {505 190 60 20} type Int
                     code0 {tx_devParam[PAR_WORD_SIZE]=o;}
                   }
                   Fl_Box {} {
                     label bits
-                    private xywh {565 190 50 20} labelcolor 0 align 16
+                    private xywh {565 190 50 20} align 16
                   }
                 }
                 Fl_Group {} {open
@@ -298,12 +298,12 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Input {} {
                     label {Code Size:}
-                    private tooltip {The number of words of code space.} xywh {505 210 60 20} type Int labelcolor 0
+                    private tooltip {The number of words of code space.} xywh {505 210 60 20} type Int
                     code0 {tx_devParam[PAR_CODE_SIZE]=o;}
                   }
                   Fl_Box {} {
                     label words
-                    private xywh {565 210 50 20} labelcolor 0 align 16
+                    private xywh {565 210 50 20} align 16
                   }
                 }
                 Fl_Group {} {open
@@ -311,12 +311,12 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Input {} {
                     label {Eeprom Size:}
-                    private tooltip {The number of bytes of data EEPROM. If the device doesn't have a data EEPROM, this must be set to 0.} xywh {505 230 60 20} type Int labelcolor 0
+                    private tooltip {The number of bytes of data EEPROM. If the device doesn't have a data EEPROM, this must be set to 0.} xywh {505 230 60 20} type Int
                     code0 {tx_devParam[PAR_EEPROM_SIZE]=o;}
                   }
                   Fl_Box {} {
                     label words
-                    private xywh {565 230 50 20} labelcolor 0 align 16
+                    private xywh {565 230 50 20} align 16
                   }
                 }
               }
@@ -328,12 +328,12 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Input {} {
                     label {Programming Count:}
-                    private tooltip {The maximum number of times to attempt to program a memory location before reporting an error. Defined in the programming spec.} xywh {505 255 60 20} type Int labelcolor 0
+                    private tooltip {The maximum number of times to attempt to program a memory location before reporting an error. Defined in the programming spec.} xywh {505 255 60 20} type Int
                     code0 {tx_devParam[PAR_PROG_COUNT]=o;}
                   }
                   Fl_Box {} {
                     label {(=N)}
-                    private xywh {565 255 50 20} labelcolor 0 align 16
+                    private xywh {565 255 50 20} align 16
                   }
                 }
                 Fl_Group {} {open
@@ -341,12 +341,12 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Input {} {
                     label {Programming Mult.:}
-                    private tooltip {The multiplier for the number of times to overprogram. Defined in the programming spec.} xywh {505 280 60 20} type Int labelcolor 0
+                    private tooltip {The multiplier for the number of times to overprogram. Defined in the programming spec.} xywh {505 280 60 20} type Int
                     code0 {tx_devParam[PAR_PROG_MULT]=o;}
                   }
                   Fl_Box {} {
                     label {(*N)}
-                    private xywh {565 280 50 20} labelcolor 0 align 16
+                    private xywh {565 280 50 20} align 16
                   }
                 }
                 Fl_Group {} {open
@@ -354,11 +354,11 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Box {} {
                     label {[uS]}
-                    private xywh {565 305 50 20} labelcolor 0 align 16
+                    private xywh {565 305 50 20} align 16
                   }
                   Fl_Input {} {
                     label {Programming Time:}
-                    private tooltip {The number of microseconds in each programming attempt for one memory location. To be on the safe side, the maximum value from the datasheet should be used for flash devices.} xywh {505 305 60 20} type Int labelcolor 0
+                    private tooltip {The number of microseconds in each programming attempt for one memory location. To be on the safe side, the maximum value from the datasheet should be used for flash devices.} xywh {505 305 60 20} type Int
                     code0 {tx_devParam[PAR_PROG_TIME]=o;}
                   }
                 }
@@ -367,11 +367,11 @@ deviceConfigCB(CFG_COPY);}
                 } {
                   Fl_Box {} {
                     label {[uS]}
-                    private xywh {565 325 50 20} labelcolor 0 align 16
+                    private xywh {565 325 50 20} align 16
                   }
                   Fl_Input {} {
                     label {Erase Time:}
-                    private tooltip {The number of microseconds that a bulk erase takes.} xywh {505 325 60 20} type Int labelcolor 0
+                    private tooltip {The number of microseconds that a bulk erase takes.} xywh {505 325 60 20} type Int
                     code0 {tx_devParam[PAR_ERASE_TIME]=o;}
                   }
                 }
@@ -727,7 +727,7 @@ cfgWordsCB(CFG_NEW);}
       }
       Fl_Group t_progcfg {
         label Programmer open
-        tooltip {Programmer Configuration} xywh {365 50 260 390} align 0 hide
+        tooltip {Programmer Configuration} xywh {365 50 260 390} hide
       } {
         Fl_Group {} {open
           private xywh {370 55 250 25}
@@ -843,107 +843,107 @@ programmerConfigCB(CFG_COPY);}
                 code1 {ch_pinNumber[ICSP_CLOCK]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {5 5 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {5 5 100 20}
                 }
@@ -969,107 +969,107 @@ bx_pinName[ICSP_DATA_IN]->redraw();}
                 code1 {ch_pinNumber[ICSP_DATA_IN]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {15 15 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {15 15 100 20}
                 }
@@ -1095,107 +1095,107 @@ bx_pinName[ICSP_DATA_OUT]->redraw();}
                 code1 {ch_pinNumber[ICSP_DATA_OUT]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {25 25 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {25 25 100 20}
                 }
@@ -1221,107 +1221,107 @@ bx_pinName[ICSP_VDD_ON]->redraw();}
                 code1 {ch_pinNumber[ICSP_VDD_ON]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {40 40 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {40 40 100 20}
                 }
@@ -1347,107 +1347,107 @@ bx_pinName[ICSP_VPP_ON]->redraw();}
                 code1 {ch_pinNumber[ICSP_VPP_ON]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {95 95 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {95 95 100 20}
                 }
@@ -1489,107 +1489,107 @@ bx_pinName[SEL_MIN_VDD]->redraw();}
                 code1 {ch_pinNumber[SEL_MIN_VDD]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {50 50 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {50 50 100 20}
                 }
@@ -1631,107 +1631,107 @@ bx_pinName[SEL_PRG_VDD]->redraw();}
                 code1 {ch_pinNumber[SEL_PRG_VDD]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {60 60 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {60 60 100 20}
                 }
@@ -1773,107 +1773,107 @@ bx_pinName[SEL_MAX_VDD]->redraw();}
                 code1 {ch_pinNumber[SEL_MAX_VDD]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {70 70 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {70 70 100 20}
                 }
@@ -1906,107 +1906,107 @@ bx_pinName[SEL_VIHH_VPP]->redraw();}
                 code1 {ch_pinNumber[SEL_VIHH_VPP]=o;}
                 class Fl_Sorted_Choice
               } {
-                menuitem {} {
+                MenuItem {} {
                   label 0
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 1
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 2
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 3
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 4
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 5
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 6
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 7
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 8
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 9
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 10
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 11
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 12
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 13
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 14
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 15
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 16
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 17
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 18
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 19
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 20
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 21
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 22
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 23
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 24
                   private xywh {80 80 100 20}
                 }
-                menuitem {} {
+                MenuItem {} {
                   label 25
                   private xywh {80 80 100 20}
                 }
@@ -2106,7 +2106,7 @@ bx_pinName[SEL_VIHH_VPP]->redraw();}
       }
       Fl_Group t_settings {
         label Settings open
-        xywh {365 50 260 390} hide
+        xywh {365 50 260 390} align 5 hide
       } {
         Fl_Group {} {open
           private xywh {370 55 250 25}
@@ -2183,9 +2183,9 @@ generalSettingsCB(CFG_COPY);}
           }
         }
         Fl_Group g_settings {open
-          xywh {370 85 250 150} deactivate
+          xywh {370 85 250 350} labeltype NO_LABEL deactivate
         } {
-          Fl_Group g_prop_delays {open
+          Fl_Group g_prop_delays {
             xywh {370 85 250 150} box BORDER_FRAME color 0
           } {
             Fl_Input {} {
@@ -2342,6 +2342,40 @@ generalSettingsCB(CFG_COPY);}
               xywh {370 85 250 20} box BORDER_BOX color 41
             }
           }
+          Fl_Group g_parport {
+            xywh {370 240 250 45}
+          } {
+            Fl_Choice ch_parports {
+              label {Parallel port:}
+              callback {int i;
+app.get("portNumber",i,0);
+if (i != o->value()) {
+    app.set("portNumber",o->value());
+    ch_programmers->do_callback();
+}} open
+              xywh {455 240 165 20} down_box BORDER_BOX when 6
+              code0 {\#include <FL/Fl_Sorted_Choice.H>}
+              code1 {o->item_pixmap(mini_programmer);}
+              class Fl_Sorted_Choice
+            } {}
+            Fl_Group g_ppAccessMethod {
+              label {Port access:} open
+              xywh {370 265 250 20} align 20
+            } {
+              Fl_Light_Button linux_pp_dev {
+                label Device
+                callback {app.set("portAccessMethod",0);
+ch_programmers->do_callback();}
+                xywh {540 265 80 20} type Radio box ENGRAVED_BOX align 16
+              }
+              Fl_Light_Button linux_direct_pp {
+                label Direct
+                callback {app.set("portAccessMethod",1);
+ch_programmers->do_callback();}
+                xywh {455 265 80 20} type Radio box ENGRAVED_BOX align 16
+              }
+            }
+          }
         }
       }
     }
@@ -2351,128 +2385,71 @@ generalSettingsCB(CFG_COPY);}
       Fl_Menu_Bar mb_menuBar {open
         private xywh {-2 -2 634 20} box FLAT_BOX
       } {
-        submenu {} {
+        Submenu {} {
           label {&File} open
           private xywh {0 0 100 20}
         } {
-          menuitem mi_open {
+          MenuItem mi_open {
             label {&Open HEX file...}
             callback {loadHexFile();}
             xywh {0 0 100 20} shortcut 0x4006f deactivate
           }
-          menuitem mi_save {
+          MenuItem mi_save {
             label {&Save HEX file...}
             callback {saveHexFile();}
             xywh {0 0 100 20} shortcut 0x40073 deactivate divider
           }
-          menuitem {} {
+          MenuItem {} {
             label {&Quit}
             callback {delete flP5;}
             private xywh {0 0 100 20} shortcut 0x40071
           }
         }
-        submenu {} {
-          label {&Settings} open
-          private xywh {0 0 100 20}
-        } {
-          submenu sm_ppNumber {
-            label {Parallel port} open
-            xywh {15 15 100 20}
-          } {
-            menuitem {} {
-              label {lp0: address ...}
-              callback {app.set("portNumber",0);
-ch_programmers->do_callback();}
-              private xywh {15 15 100 20} type Radio shortcut 0x40030
-            }
-            menuitem {} {
-              label {lp1: address ...}
-              callback {app.set("portNumber",1);
-ch_programmers->do_callback();}
-              private xywh {25 25 100 20} type Radio shortcut 0x40031
-            }
-            menuitem {} {
-              label {lp2: address ...}
-              callback {app.set("portNumber",2);
-ch_programmers->do_callback();}
-              private xywh {35 35 100 20} type Radio shortcut 0x40032
-            }
-            menuitem {} {
-              label {lp3: address ...}
-              callback {app.set("portNumber",3);
-ch_programmers->do_callback();}
-              private xywh {45 45 100 20} type Radio shortcut 0x40033
-            }
-            menuitem {} {
-              label {lp4: address ...}
-              callback {app.set("portNumber",4);
-ch_programmers->do_callback();}
-              private xywh {55 55 100 20} type Radio shortcut 0x40034
-            }
-          }
-          submenu sm_ppAccessMethod {
-            label {Port access method} open
-            xywh {20 20 100 20}
-          } {
-            menuitem {} {
-              label {Direct PP}
-              callback {app.set("portAccessMethod",0);
-ch_programmers->do_callback();}
-              private xywh {60 60 100 20} type Radio shortcut 0x40064
-            }
-            menuitem linux_pp_dev {
-              label {Linux PP dev}
-              callback {app.set("portAccessMethod",1);
-ch_programmers->do_callback();}
-              private xywh {50 50 100 20} type Radio shortcut 0x40073
-            }
-          }
-        }
-        submenu sm_operations {
+        Submenu sm_operations {
           label {&Operations} open
           xywh {0 0 100 20}
         } {
-          menuitem {} {
+          MenuItem {} {
             label {&Calibrate}
             callback {processOperation(CHIP_CALIBRATE);}
             private xywh {10 10 100 20} shortcut 0x80063 divider
           }
-          menuitem {} {
+          MenuItem {} {
             label {&Read}
             callback {processOperation(CHIP_READ);}
             private xywh {0 0 100 20} shortcut 0x80072
           }
-          menuitem {} {
+          MenuItem {} {
             label {&Erase}
             callback {processOperation(CHIP_ERASE);}
             private xywh {0 0 100 20} shortcut 0x80065
           }
-          menuitem {} {
+          MenuItem {} {
             label {&Blank check}
             callback {processOperation(CHIP_BLANCK_CHECK);}
             private xywh {0 0 100 20} shortcut 0x80062
           }
-          menuitem {} {
+          MenuItem {} {
             label {&Write}
             callback {processOperation(CHIP_WRITE);}
             private xywh {0 0 100 20} shortcut 0x80077
           }
-          menuitem {} {
+          MenuItem {} {
             label {&Verify}
             callback {processOperation(CHIP_VERIFY);}
             private xywh {0 0 100 20} shortcut 0x80076
           }
         }
-        submenu {} {
+        Submenu {} {
           label {&Help} open
           xywh {0 0 100 20}
         } {
-          menuitem {} {
+          MenuItem {} {
             label {&Manual...}
             callback {showManual();}
             xywh {0 0 100 20} shortcut 0xffbe
           }
-          menuitem {} {
+          MenuItem {} {
             label {&About flP5...}
             callback {make_copyright_window(copyrightText);}
             xywh {0 0 100 20}
@@ -2481,7 +2458,7 @@ ch_programmers->do_callback();}
       }
     }
     Fl_Progress p_progress {
-      xywh {35 420 325 20} box THIN_DOWN_BOX color 49 selection_color 3 labelfont 4 labelsize 12 labelcolor 0 align 20
+      xywh {35 420 325 20} box THIN_DOWN_BOX color 49 selection_color 3 labelfont 4 labelsize 12 align 20
     }
     Fl_Group {} {open
       private xywh {0 25 360 20}
@@ -2510,7 +2487,6 @@ mb_menuBar->redraw();} open
         xywh {35 25 150 20} down_box BORDER_BOX when 6
         code0 {\#include <FL/Fl_Sorted_Choice.H>}
         code1 {o->item_pixmap(mini_device);}
-        code2 {// o->folder_pixmap(mini_folder);}
         class Fl_Sorted_Choice
       } {}
       Fl_Choice ch_programmers {
@@ -2536,7 +2512,6 @@ mb_menuBar->redraw();} open
         xywh {225 25 135 20} down_box BORDER_BOX
         code0 {\#include <FL/Fl_Sorted_Choice.H>}
         code1 {o->item_pixmap(mini_programmer);}
-        code2 {// o->folder_pixmap(mini_folder);}
         class Fl_Sorted_Choice
       } {}
     }
@@ -2762,7 +2737,7 @@ io->vpp(IO::VPP_TO_VDD);} open
           private xywh {10 115 280 40} labeltype ENGRAVED_LABEL labelfont 1 labelsize 34 labelcolor 41 align 128
         }
         Fl_Group {} {open
-          private xywh {15 50 270 55} box PLASTIC_DOWN_BOX color 3 labelcolor 0
+          private xywh {15 50 270 55} box PLASTIC_DOWN_BOX color 3
         } {
           Fl_Group {} {open
             private xywh {20 55 260 45} box DOWN_BOX
@@ -2898,7 +2873,7 @@ pb_calNext->label("Done @>");} open
     wz_calibration->next();
     wz_calibration->value()->do_callback();
 }}
-      xywh {150 170 145 25} box ENGRAVED_BOX labelfont 1 labelcolor 0 align 24
+      xywh {150 170 145 25} box ENGRAVED_BOX labelfont 1 align 24
     }
     Fl_Button pb_calCancel {
       label {@< Cancel}

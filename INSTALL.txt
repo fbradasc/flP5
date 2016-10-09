@@ -128,7 +128,7 @@ III. Windows installation from sources
       - "Executable files" and add to the list:
 
           where:\you\installed\fltk-1.1.3\fluid
-          where:\you\installed\fltk -1.1.3\visualc
+          where:\you\installed\fltk-1.1.3\visualc
 
       - "Include files" and add to the list:
 

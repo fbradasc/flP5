@@ -24,15 +24,18 @@ class LptPorts
 {
 public:
     LptPorts();
+    ~LptPorts();
 
-    static int address[MAX_LPTPORTS];
-    static int regs[MAX_LPTPORTS];
-    static int count;
+    static char* device  [MAX_LPTPORTS];
+    static int   address [MAX_LPTPORTS];
+    static int   regs    [MAX_LPTPORTS];
+    static int   count;
 
 private:
 
-#ifdef WIN32
     void detectPorts();
+
+#ifdef WIN32
     void detectPorts9x(); // Win9x version
     void detectPortsNT(); // WinNT version
 #endif

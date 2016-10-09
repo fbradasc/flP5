@@ -42,17 +42,17 @@ using namespace std;
 LinuxPPDevIO::LinuxPPDevIO(int port) : ParallelPort(port)
 {
 struct stat fdata;
-char devname[20];
 int arg;
 
-    if (stat("/dev/parports", &fdata) == 0) {
-        /* We're using DevFS */
-        sprintf(devname, "/dev/parports/%d", port);
-    } else {
-        sprintf(devname, "/dev/parport%d", port);
+    if ((port > ports.count) ||
+        (port < 0)           ||
+        !ports.address[port] ||
+        !ports.device[port]
+    ) {
+        throw runtime_error("Invalid parallel port number");
     }
     try {
-        if ((this->fd = open(devname, O_RDWR)) < 0) {
+        if ((this->fd = open(ports.device[port], O_RDWR)) < 0) {
             throw errno;
         }
         // if (ioctl(this->fd, PPEXCL) < 0) {
