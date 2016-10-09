@@ -19,7 +19,9 @@
 #define __Microchip_h
 
 #ifdef WIN32
-typedef unsigned long uint32_t;
+typedef unsigned long  uint32_t;
+typedef unsigned short uint16_t;
+typedef unsigned char  uint8_t;
 #else
 #  include <stdint.h>
 #endif

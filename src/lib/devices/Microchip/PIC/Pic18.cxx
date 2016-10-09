@@ -16,9 +16,8 @@
  *
  * $Id: Pic18.cxx,v 1.11 2002/11/07 14:25:20 marka Exp $
  */
-#include <stdexcept>
-
 #include <stdio.h>
+#include <stdexcept>
 
 using namespace std;
 

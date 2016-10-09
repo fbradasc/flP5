@@ -1,12 +1,26 @@
-
 PROJECT ( FLP5 )
+
+###############################################################################
+# Configure CPack
+###############################################################################
+
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fast Light Parallel Port Production PIC Programming Software")
+SET(CPACK_PACKAGE_VENDOR "Francesco Bradascio")
+SET(CPACK_PACKAGE_NAME "flP5")
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "1")
+SET(CPACK_PACKAGE_VERSION_PATCH "8d")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+
+INCLUDE(CPack)
+
+MESSAGE ("CPACK_INSTALL_CMAKE_PROJECTS=${CPACK_INSTALL_CMAKE_PROJECTS}")
 
 SET ( EXECUTABLE_OUTPUT_PATH
       ${FLP5_BINARY_DIR}/bin
       CACHE PATH "install root"
 )
-
-SET ( CMAKE_BACKWARDS_COMPATIBILITY "1.2" )
 
     MESSAGE ("Using CMake ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
     MESSAGE ("*******************************************")

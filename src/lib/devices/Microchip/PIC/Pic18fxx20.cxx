@@ -18,12 +18,13 @@
  *
  * $Id$
  */
+#include <stdexcept>
+#include <iostream>
+
 using namespace std;
 
-#include <stdexcept>
 #include "Microchip.h"
 #include "Util.h"
-#include <iostream>
 
 /* ID locations: 0x200000 - 0x200007 (byte address)
  * Config words: 0x300000 - 0x30000D (byte address)

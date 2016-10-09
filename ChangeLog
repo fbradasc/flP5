@@ -1,3 +1,8 @@
+flP5 1.1.8b:
+  * Fixed some compilation errors on Visual Studio .net 2003 (thanks to
+    Fredrik Silfverduk)
+  * Upgraded to CMake 2.4
+
 flP5 1.1.8:
   * Fixed reading of the deviceID and deviceIDMask from the defices.prefs
     configuraton file.
