@@ -19,7 +19,7 @@
 #ifndef __IO_h
 #define __IO_h
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW32__)
 typedef unsigned long uint32_t;
 #  else
 #  include <stdint.h>
@@ -80,7 +80,7 @@ public:
      *          hardware interface specified by \c name.
      * \throws runtime_error Contains a textual description of the error.
      */
-    static IO *acquire(Preferences *config, char *name, int port = 0);
+    static IO *acquire(Preferences *config, const char *name, int port = 0);
 
     /** Sets the type of the programmer: for production or for developement
      * \param state True if the programmer is for production
@@ -111,6 +111,11 @@ public:
      * beginning and the individual IO destructors do it at the end. */
     virtual void off(void);
 
+    /** Sets the state of the reset signal.
+     * \param state The new state of the reset signal.
+     */
+    virtual void reset(bool state) = 0;
+
     /** Sets the state of the clock signal.
      * \param state The new state of the clock signal.
      */
@@ -140,6 +145,11 @@ public:
      * \param us The number of microseconds to delay for.
      */
     virtual void usleep(microtime_t us);
+
+    /** Get the current time
+     * \return the current time in microseconds
+     */
+    virtual microtime_t now();
 
     /**
      * Sends a stream of up to 32 bits on the data signal, clocked by the
@@ -198,8 +208,15 @@ public:
         microtime_t tlow = 1
     );
 
+    virtual uint32_t shift_bits_out_in (
+        uint32_t bits,
+        int numbits,
+        microtime_t tset  = 1,
+        microtime_t thold = 1
+    );
+
     virtual void set_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
@@ -207,7 +224,7 @@ public:
     ) = 0;
 
     virtual bool get_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert
@@ -218,6 +235,10 @@ protected:
      * \param port A subclass specific port number.
      */
     IO(int port);
+
+    /** To initialize the status of the parallel port pin state 
+     */
+    virtual void initialize() = 0;
 
     /** The programmer attached to the parallel port is a production programmer
      */

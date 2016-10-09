@@ -59,6 +59,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "RegularExpression.h"  // Include class specification 
 #include <stdio.h>
+#include <string.h>
 
 // RegularExpression -- Copies the given regular expression.
 RegularExpression::RegularExpression (const RegularExpression& rxp)

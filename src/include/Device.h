@@ -31,9 +31,13 @@ using namespace std;
 /** \file */
 
 
+/** Shortcut to a pairs of integers. This is used mainly for the
+ * device memory map. */
+typedef pair<int, int> IntPair;
+
 /** Shortcut to a vector of pairs of integers. This is used mainly for the
  * device memory map. */
-typedef vector<pair <int, int> > IntPairVector;
+typedef vector<IntPair> IntPairVector;
 
 
 /** A base class representing a memory device which can be manipulated. This
@@ -97,10 +101,25 @@ public:
      */
     virtual void set_config_default(DataBuffer& buf) = 0;
 
+    /** Retrieves the vendor of the device.
+     * \returns A string containing the vendor of the device.
+     */
+    string get_vendor(void);
+
+    /** Retrieves the spec of the device.
+     * \returns A string containing the spec of the device.
+     */
+    string get_spec(void);
+
     /** Retrieves the name of the device.
      * \returns A string containing the name of the device.
      */
     string get_name(void);
+
+    /** Retrieves the full name of the device (vendor/spec/name).
+     * \returns A string containing the full name of the device (vendor/spec/name).
+     */
+    string get_fullname(void);
 
     /** Get a vector of the valid memory locations of a device. A vector is
      * returned which contains pairs of integers. The first of the pair is the
@@ -121,6 +140,12 @@ public:
      * \returns The number of bits in a data word.
      */
     int get_wordsize(void);
+
+    /** Gets the size in bytes and base address for the code and data memories
+     * \returns The base address and size pair for the code and data memories
+     */ 
+    IntPair &get_code_extent();
+    IntPair &get_data_extent();
 
     /** Gets the native clearvalue depending on the memory address
      * \returns The clearvalue.
@@ -162,7 +187,7 @@ public:
 protected:
     /** The constructor just initializes the Device class variables to
      * default values. */
-    Device(char *name);
+    Device(char *vendor, char *spec, char *name);
 
     /** Calls the progress callback, if it has been defined. The percent
      * completed will be calculated from the progress_counter and
@@ -176,6 +201,12 @@ protected:
 
     /** The size of a data word in bits. The default value for this is 8. */
     int wordsize;
+
+    /** The base address and size pair for the code memory */
+    IntPair code_extent;
+
+    /** The base address and size pair for the data memory */
+    IntPair data_extent;
 
     /** A vector containing pairs of integers that describe the internal
      * layout of memory in the device. This allows a device with a fragmented
@@ -218,6 +249,12 @@ protected:
 
     /** An arbitrary pointer which is passed verbatim to the dump callback. */
     void *dump_cb_data;
+
+    /** The vendor of the device that was given to the constructor. */
+    string vendor;
+
+    /** The spec of the device that was given to the constructor. */
+    string spec;
 
     /** The name of the device that was given to the constructor. */
     string name;

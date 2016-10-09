@@ -23,6 +23,7 @@ using namespace std;
 
 #include "Device.h"
 #include "devices/Microchip/Microchip.h"
+#include "devices/Atmel/Atmel.h"
 #include "Util.h"
 
 Preferences *Device::config = NULL;
@@ -38,8 +39,10 @@ char *vendor, *spec;
     if (spec) {
         *spec='\0';
         spec++;
-        if (strncasecmp(vendor,"Microchip",sizeof("Microchip")) == 0) { 
-            d = Microchip::load(spec);
+        if (strncasecmp(vendor,"Microchip",sizeof("Microchip")-1) == 0) { 
+            d = Microchip::load(vendor, spec);
+        } else if (strncasecmp(vendor,"Atmel",sizeof("Atmel")-1) == 0) { 
+            d = Atmel::load(vendor, spec);
         } else {
             throw runtime_error (
                 (const char *)Preferences::Name (
@@ -59,7 +62,7 @@ char *vendor, *spec;
     return d;
 }
 
-Device::Device(char *name)
+Device::Device(char *vendor, char *spec, char *name)
 {
     this->wordsize = 8;
     this->set_iodevice(NULL);
@@ -67,6 +70,8 @@ Device::Device(char *name)
     this->set_dump_cb(NULL);
     this->progress_count = 0;
     this->progress_total = 1;
+    this->vendor = string(vendor);
+    this->spec = string(spec);
     this->name = string(name);
 }
 
@@ -134,9 +139,34 @@ IntPairVector::iterator n = memmap.begin();
     }
 }
 
+string Device::get_vendor(void)
+{
+    return this->vendor;
+}
+
+string Device::get_spec(void)
+{
+    return this->spec;
+}
+
 string Device::get_name(void)
 {
     return this->name;
+}
+
+string Device::get_fullname(void)
+{
+    return this->vendor + "/" + this->spec + "/" + this->name;
+}
+
+IntPair &Device::get_code_extent()
+{
+    return this->code_extent;
+}
+
+IntPair &Device::get_data_extent()
+{
+    return this->data_extent;
 }
 
 IntPairVector& Device::get_mmap(void)

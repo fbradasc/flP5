@@ -25,7 +25,7 @@ using namespace std;
 #include "Util.h"
 
 
-Pic12f6xx::Pic12f6xx(char *name) : Pic16(name)
+Pic12f6xx::Pic12f6xx(char *vendor, char *spec, char *device) : Pic16(vendor, spec, device)
 {
     this->flags |= PIC_HAS_OSCAL;
 }

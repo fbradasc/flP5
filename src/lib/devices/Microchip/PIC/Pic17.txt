@@ -1,4 +1,4 @@
-const Instruction Pic17::opcodes[] = {
+const Pic::Instruction Pic17::opcodes[] = {
   { "addlw",  0xff00, 0xb100,   INSN_CLASS_LIT8         },
   { "addwf",  0xfe00, 0x0e00,   INSN_CLASS_OPWF8        },
   { "addwfc", 0xfe00, 0x1000,   INSN_CLASS_OPWF8        },

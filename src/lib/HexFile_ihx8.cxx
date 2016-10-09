@@ -42,7 +42,7 @@ HexFile_ihx8::~HexFile_ihx8(void)
     }
 }
 
-void HexFile_ihx8::read(DataBuffer& buf)
+void HexFile_ihx8::read(DataBuffer& buf, long start, long len)
 {
 int count, type, cksum, offset, bufwordlen;
 unsigned long extbase;
@@ -111,6 +111,9 @@ bool check_cksum, corrupted;
         }
         if (!check_cksum) {
             for (offset=0; offset<count; offset++) {
+                if (len && (extbase+addr+offset)>=len) {
+                    throw runtime_error("HEX data size exceeds the buffer size.");
+                }
                 if (sscanf(p, "%02X", &data) == 0) {
                     corrupted = true;
                     break;
@@ -120,17 +123,17 @@ bool check_cksum, corrupted;
                 p += 2;
                 switch (bufwordlen) {
                     case 8:
-                        buf[extbase+addr+offset] = data;
+                        buf[start+extbase+addr+offset] = data;
                     break;
                     case 16:
-                        if (((extbase+addr+offset) % 2) == 0) {
+                        if (((start+extbase+addr+offset) % 2) == 0) {
                             /* Low byte of the word */
-                            buf[(extbase+addr+offset)/2] &= ~0x00ff;
-                            buf[(extbase+addr+offset)/2] |= data;
+                            buf[(start+extbase+addr+offset)/2] &= ~0x00ff;
+                            buf[(start+extbase+addr+offset)/2] |= data;
                         } else {
                             /* High byte of the word */
-                            buf[(extbase+addr+offset)/2] &= ~0xff00;
-                            buf[(extbase+addr+offset)/2] |= (data << 8);
+                            buf[(start+extbase+addr+offset)/2] &= ~0xff00;
+                            buf[(start+extbase+addr+offset)/2] |= (data << 8);
                         }
                     break;
                 default:

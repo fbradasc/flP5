@@ -19,7 +19,6 @@
 
 #ifdef  WIN32
 
-#include <windows.h>
 #include <stdio.h>
 
 #include "DlPortDriver.h"
@@ -287,7 +286,7 @@ OSVERSIONINFO os;
         return;
     }
     // Are we running Windows NT?
-    memset(&os, NULL, sizeof(OSVERSIONINFO));
+    memset(&os, '\0', sizeof(OSVERSIONINFO));
     os.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx(&os);
     fRunningWinNT=(os.dwPlatformId==VER_PLATFORM_WIN32_NT);

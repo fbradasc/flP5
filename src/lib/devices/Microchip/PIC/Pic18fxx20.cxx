@@ -34,7 +34,7 @@ using namespace std;
 #define ID_LOC_WRDS    (8/2)
 #define CFG_WORDS_WRDS (14/2)
 
-Pic18fxx20::Pic18fxx20(char *name) : Pic18(name)
+Pic18fxx20::Pic18fxx20(char *vendor, char *spec, char *device) : Pic18(vendor, spec, device)
 {
 }
 
@@ -56,9 +56,9 @@ void Pic18fxx20::erase(void)
         write_command(COMMAND_CORE_INSTRUCTION, ASM_NOP);
         this->io->usleep(this->erase_time);
 
-        pic_off();
+        off();
     } catch (std::exception& e) {
-        pic_off();
+        off();
         throw;
     }
 }
@@ -90,13 +90,13 @@ unsigned int offset;    /* byte offset */
         throw runtime_error (
             (const char *)Preferences::Name(
                 "Couldn't write program memory at address 0x%06lx",
-                (unsigned long)offset
+                (uint32_t)offset
             )
         );
     }
 }
 
-void Pic18fxx20::write_id_memory(DataBuffer& buf, unsigned long addr, bool verify)
+void Pic18fxx20::write_id_memory(DataBuffer& buf, uint32_t addr, bool verify)
 {
     progress(addr);
     try {
@@ -125,7 +125,7 @@ void Pic18fxx20::write_id_memory(DataBuffer& buf, unsigned long addr, bool verif
     }
 }
 
-void Pic18fxx20::write_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
+void Pic18fxx20::write_data_memory(DataBuffer& buf, uint32_t addr, bool verify)
 {
     uint32_t     ins;
     uint8_t      data;
@@ -206,10 +206,10 @@ void Pic18fxx20::write_data_memory(DataBuffer& buf, unsigned long addr, bool ver
     }
 }
 
-void Pic18fxx20::write_config_memory(DataBuffer& buf, unsigned long addr, bool verify)
+void Pic18fxx20::write_config_memory(DataBuffer& buf, uint32_t addr, bool verify)
 {
     int           i = 0;
-    unsigned long skipd_addr;
+    uint32_t skipd_addr;
 
     try {
         /* Step 1: Direct access to config memory */
@@ -265,7 +265,7 @@ void Pic18fxx20::write_config_memory(DataBuffer& buf, unsigned long addr, bool v
     }
 }
 
-void Pic18fxx20::read_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
+void Pic18fxx20::read_data_memory(DataBuffer& buf, uint32_t addr, bool verify)
 {
     uint32_t     ins;
     unsigned int offset; /* Byte offset */
@@ -332,8 +332,8 @@ void Pic18fxx20::read_data_memory(DataBuffer& buf, unsigned long addr, bool veri
 
 bool Pic18fxx20::load_write_buffer (
     DataBuffer&   buf,
-    unsigned long addr,
-    unsigned long count
+    uint32_t addr,
+    uint32_t count
 ) {
     unsigned int    i;
     unsigned int    a = 0xffff;

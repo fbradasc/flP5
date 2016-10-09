@@ -42,7 +42,7 @@ HexFile_ihx16::~HexFile_ihx16(void)
     }
 }
 
-void HexFile_ihx16::read(DataBuffer& buf)
+void HexFile_ihx16::read(DataBuffer& buf, long start, long len)
 {
 int count, type, cksum, offset;
 unsigned int addr, data;
@@ -50,6 +50,9 @@ unsigned long extbase;
 char in[100];
 char *p;
 bool check_cksum, corrupted;
+
+    start /= 2; // byte to word addressing conversion
+    len   /= 2; // byte to word size conversion
 
     if (this->mode == HEXFILE_WRITE) {
         throw logic_error (
@@ -98,12 +101,15 @@ bool check_cksum, corrupted;
         }
         if (!check_cksum) {
             for (offset=0; offset<count; offset++) {
+                if (len && (extbase+addr+offset)>=len) {
+                    throw runtime_error("HEX data size exceeds the buffer size.");
+                }
                 if (sscanf(p, "%04X", &data) == 0) {
                     corrupted = true;
                     break;
                 }
                 p += 4;
-                buf[extbase+addr+offset] = data;
+                buf[start+extbase+addr+offset] = data;
                 cksum += ((data >> 8) & 0xff);
                 cksum += (data & 0xff);
             }

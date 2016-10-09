@@ -113,7 +113,7 @@ public:
      *          regular expression.
      * \throws logic_error If the regex compilation fails.
      */
-    static bool regexMatch(char *regex, char *string);
+    static bool regexMatch(const char *regex, char *string);
 
     /** Tests if the filename exists.
      * \param filename The file name to test
@@ -152,6 +152,8 @@ public:
      * \param user ID to switch on
      */
     static bool setUser(int userid); 
+
+    static int snprintfcat(size_t &pos, char *buffer, size_t buffer_size, const char *fmt, ...);
 };
 
 

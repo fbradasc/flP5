@@ -1,4 +1,14 @@
+cmake_minimum_required(VERSION 2.6)
+
 PROJECT ( FLP5 )
+
+# For compile and link with FLTK (autodetection don't work!)
+SET(CM_FLTKHOME $ENV{FLTKHOME})
+IF (CM_FLTKHOME)
+    INCLUDE_DIRECTORIES($ENV{FLTKHOME}/include)
+    LINK_DIRECTORIES($ENV{FLTKHOME}/lib)
+ENDIF (CM_FLTKHOME)
+
 
 ###############################################################################
 # Configure CPack
@@ -15,12 +25,7 @@ SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
 
 INCLUDE(CPack)
 
-MESSAGE ("CPACK_INSTALL_CMAKE_PROJECTS=${CPACK_INSTALL_CMAKE_PROJECTS}")
-
-SET ( EXECUTABLE_OUTPUT_PATH
-      ${FLP5_BINARY_DIR}/bin
-      CACHE PATH "install root"
-)
+SET(EXECUTABLE_OUTPUT_PATH ${FLP5_BINARY_DIR}/bin CACHE PATH "install root")
 
     MESSAGE ("Using CMake ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
     MESSAGE ("*******************************************")
@@ -47,34 +52,25 @@ ENDIF ( CMAKE_CONFIGURE_INSTALL_PREFIX )
 MAKE_DIRECTORY( ${EXECUTABLE_OUTPUT_PATH} )
 
 IF ( WIN32 )
-    SET ( WIN32_EXE_TYPE
-          "WIN32"
-    )
-    IF ( NOT CMAKE_COMPILER_IS_GNUCC )
-        SET ( CMAKE_CXX_FLAGS
-              "/GX /Zm200"
-        )
-        SET ( CMAKE_EXTRA_LINK_FLAGS
-              "/NODEFAULTLIB:libcd"
-              CACHE INTERNAL  "elflags"
-        )
-    ELSE ( NOT CMAKE_COMPILER_IS_GNUCC )
+    SET ( INSTALL_PREFIX ${FLP5_BINARY_DIR}/IJP/package )
+    SET ( WIN32_EXE_TYPE "WIN32" )
+    IF ( CMAKE_COMPILER_IS_GNUCC )
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmessage-length=0")
         LINK_LIBRARIES ( gdi32 )
-    ENDIF ( NOT CMAKE_COMPILER_IS_GNUCC )
-
-    IF ( ${USE_STATIC_FLTK} MATCHES "0" )
-        LINK_LIBRARIES  ( ${FLTK_LIBRARY} fltkdll )
-        ADD_DEFINITIONS ( "FL_DLL" )
-    ELSE ( ${USE_STATIC_FLTK} MATCHES "0" )
-        LINK_LIBRARIES  ( ${FLTK_LIBRARY} fltk )
-    ENDIF ( ${USE_STATIC_FLTK} MATCHES "0" )
-
+    ELSE ( CMAKE_COMPILER_IS_GNUCC )
+        ADD_DEFINITIONS(/DWIN32)
+        SET(CMAKE_CXX_FLAGS "/GX /Zm200")
+        SET(CMAKE_EXTRA_LINK_FLAGS "/NODEFAULTLIB:libcd" CACHE INTERNAL  "elflags")
+    ENDIF ( CMAKE_COMPILER_IS_GNUCC )
+    ADD_DEFINITIONS(-DWIN32)
+    INCLUDE_DIRECTORIES(${FLTK_INCLUDE_PATH})
+    LINK_LIBRARIES ( ${FLTK_LIBRARY} fltk fltk_images fltk_zlib fltk_jpeg fltk_png wsock32 comctl32 ole32 uuid wsock32 gdi32 comdlg32)
     LINK_DIRECTORIES( ${FLP5_SOURCE_DIR}/win32/DlPortIO )
     INCLUDE_DIRECTORIES( ${FLP5_SOURCE_DIR}/win32/DlPortIO )
     LINK_LIBRARIES( DlPortIO )
 ELSE ( WIN32 )
+    SET ( INSTALL_PREFIX "" )
 
     IF ( ${UX_REL} MATCHES "1" ) 
          SET ( CMAKE_CXX_FLAGS "-DOPTIMIZE -O2" )
@@ -117,11 +113,17 @@ ENDIF ( CMAKE_HAS_X )
 
 SUBDIRS( src )
 
-INSTALL_FILES ( /share/flP5/doc FILES
+INSTALL_FILES ( ${INSTALL_PREFIX}/share/flP5/doc FILES
     LICENSE.txt
     README.txt
 )
-INSTALL_FILES ( /share/flP5/data FILES
+INSTALL_FILES ( ${INSTALL_PREFIX}/share/flP5/data FILES
     data/devices.prefs
     data/programmers.prefs
 )
+IF ( WIN32 )
+INSTALL_FILES ( ${INSTALL_PREFIX}/ FILES
+    DlPortIO/DlPortIO.dll
+    DlPortIO/DlPortIO.sys
+)
+ENDIF ( WIN32 )

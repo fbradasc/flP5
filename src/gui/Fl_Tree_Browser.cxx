@@ -30,12 +30,12 @@ Fl_Pixmap* Fl_Tree_Browser::s_open_icon_   = 0;
 Fl_Pixmap* Fl_Tree_Browser::s_closed_icon_ = 0;
 Fl_Pixmap* Fl_Tree_Browser::s_empty_icon_  = 0;
 
-static Fl_Tree_Item *last_item_open(Fl_Tree_Item *item)
+static Fl_Tree_Item *last_item_open(Fl_Tree_Item *item, int skip)
 {
     if (item->childs() && item->opened()) {
-        for (item=item->childs(); item; item = item->next()) {
-            if (!item->next()) { // this is the last son
-                return last_item_open(item);
+        for (item=item->childs(); item; item = item->forward(skip)) {
+            if (!item->forward(skip)) { // this is the last son
+                return last_item_open(item, skip);
             }
         }
     }
@@ -153,30 +153,30 @@ void *Fl_Tree_Browser::item_first() const
     return (void *)items_;
 }
 
-void *Fl_Tree_Browser::item_next(void *l) const
+void *Fl_Tree_Browser::item_next(void *l, int skip) const
 {
 Fl_Tree_Item *item = (Fl_Tree_Item *)l;
 
     if (item->childs() && item->opened()) {
         return (void *)(item->childs());
-    } else if (item->next()) {
-        return (void *)(item->next());
+    } else if (item->forward(skip)) {
+        return (void *)(item->forward(skip));
     } else if (item->father()) { // the last son, go up one level
         for (item = item->father(); item; item = item->father()) {
-            if (item->next()) {
-                return (void *)(item->next());
+            if (item->forward(skip)) {
+                return (void *)(item->forward(skip));
             } // else the last son, go up one level
         }
     }
     return (void *)0;
 }
 
-void *Fl_Tree_Browser::item_prev(void *l) const
+void *Fl_Tree_Browser::item_prev(void *l, int skip) const
 {
 Fl_Tree_Item *item = (Fl_Tree_Item *)l;
 
-    if (item->prev()) {
-        return (void *)last_item_open(item->prev());
+    if (item->backward(skip)) {
+        return (void *)last_item_open(item->backward(skip), skip);
     }
     return (void *)(item->father());
 }
@@ -227,11 +227,11 @@ Fl_Pixmap *icon = 0;
             switch (Fl::event_key()) {
                 case FL_Up:
                     l = (Fl_Tree_Item *) (
-                            (selection()) ? item_prev(selection())
+                            (selection()) ? item_prev(selection(), FL_MENU_INACTIVE|FL_MENU_INVISIBLE)
                                           : (top()) ? top()
                                                     : item_first()
                     );
-                    for (;l;l = (Fl_Tree_Item *)item_prev((void *)l)) {
+                    for (;l;l = (Fl_Tree_Item *)item_prev((void *)l, FL_MENU_INACTIVE|FL_MENU_INVISIBLE)) {
                         if (item_height((void *)l)>0) {
                             select_only((void *)l,0);
                             break;
@@ -240,11 +240,11 @@ Fl_Pixmap *icon = 0;
                     return 1;
                 case FL_Down:
                     l = (Fl_Tree_Item *) (
-                            (selection()) ? item_next(selection())
+                            (selection()) ? item_next(selection(), FL_MENU_INACTIVE|FL_MENU_INVISIBLE)
                                           : (top()) ? top()
                                                     : item_first()
                     );
-                    for (;l;l = (Fl_Tree_Item *)item_next((void *)l)) {
+                    for (;l;l = (Fl_Tree_Item *)item_next((void *)l, FL_MENU_INACTIVE|FL_MENU_INVISIBLE)) {
                         if (item_height((void *)l)>0) {
                             select_only((void *)l,0);
                             break;
@@ -552,6 +552,7 @@ Fl_Tree_Item::Fl_Tree_Item (
     Fl_Color         color,
     int              font,
     int              font_size,
+    int              flags,
     bool             can_open,
     bool             opened,
     Fl_Tree_Browser *parent,
@@ -587,7 +588,9 @@ Fl_Tree_Item::Fl_Tree_Item (
 
     opened_    = opened;
 
-    color_     = color;
+    flags_     = flags;
+
+    color_     = ( active() ) ? color : fl_inactive(color);
     font_      = font;
     font_size_ = font_size;
 

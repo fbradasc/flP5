@@ -20,11 +20,12 @@
 
 #include "Util.h"
 
+#include <stdlib.h>
 #include <sys/stat.h>
 
 string Util::programPath="";
 
-bool Util::regexMatch(char *regex, char *string)
+bool Util::regexMatch(const char *regex, char *string)
 {
 RegularExpression re(regex);
         
@@ -149,7 +150,8 @@ static string flP5Root;
 #ifdef FLP5_PREFIX
     if (!Util::fileExists(flP5Root + path)) {
         // try compiled in install prefix
-        flP5Root = FLP5_PREFIX "/share/flP5";
+        flP5Root = FLP5_PREFIX;
+        flP5Root += "/share/flP5";
     }
 #endif
     if (!Util::fileExists(flP5Root + path)) {
@@ -183,4 +185,17 @@ bool Util::setUser(int userid)
 #endif
 
     return true;
+}
+
+int Util::snprintfcat(size_t &pos, char *buffer, size_t buffer_size, const char *fmt, ...)
+{
+int     written = 0;
+va_list args;
+
+    va_start(args,fmt);
+    if (buffer_size > pos) {
+        written = vsnprintf(&buffer[pos], buffer_size-pos, fmt, args);
+        pos += written;
+    }
+    return written;
 }

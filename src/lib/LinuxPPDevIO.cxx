@@ -44,15 +44,15 @@ LinuxPPDevIO::LinuxPPDevIO(int port) : ParallelPort(port)
 struct stat fdata;
 int arg;
 
-    if ((port > ports.count) ||
-        (port < 0)           ||
-        !ports.address[port] ||
-        !ports.device[port]
+    if ((port > ports.count)                   ||
+        (port < 0)                             ||
+        (ports[port].access != LptPort::PPDEV) ||
+        !ports[port].device
     ) {
         throw runtime_error("Invalid parallel port number");
     }
     try {
-        if ((this->fd = open(ports.device[port], O_RDWR)) < 0) {
+        if ((this->fd = open(ports[port].device, O_RDWR)) < 0) {
             throw errno;
         }
         // if (ioctl(this->fd, PPEXCL) < 0) {
@@ -104,7 +104,7 @@ int arg;
 }
 
 void LinuxPPDevIO::set_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert,
@@ -159,7 +159,7 @@ int parm1, parm2, arg;
 }
 
 bool LinuxPPDevIO::get_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert
@@ -189,6 +189,25 @@ unsigned int parm, arg;
         parm ^= 0x01;
     }
     return parm;
+}
+
+bool LinuxPPDevIO::probe(LptPort &port)
+{
+    if (NULL == port.device) {
+        return false;
+    }
+    int fd = open(port.device, O_RDWR);
+    if (fd == -1) {
+        return false;
+    }
+    if (ioctl(fd, PPCLAIM)) {
+        close(fd);
+        return false;
+    }
+    ioctl(fd,PPRELEASE);
+    close(fd);
+
+    return true;
 }
 
 #endif // linux

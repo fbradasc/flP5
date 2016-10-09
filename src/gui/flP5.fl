@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
+version 1.0300 
 header_name {.h} 
 code_name {.cxx}
 decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
@@ -42,10 +42,25 @@ decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
 decl {\#include "proto_flP5.h"} {public
 } 
 
-decl {\#include <FL/Fl_Choice.H>} {public
+decl {\#include "AvrUI.h"} {public
+} 
+
+decl {\#include "PicUI.h"} {public
+} 
+
+decl {\#include "ParallelPort.h"} {public
+} 
+
+decl {\#include <FL/Fl_File_Chooser.H>} {public
+} 
+
+decl {\#include <FL/Fl_Sorted_Choice.H>} {public
 } 
 
 decl {\#include <FL/Fl_Check_Button.H>} {public
+} 
+
+decl {\#include <FL/Fl_Light_Button.H>} {public
 } 
 
 decl {\#include <FL/Fl_Box.H>} {public
@@ -59,22 +74,18 @@ decl {\#include <FL/fl_ask.H>} {public
 
 decl {bool load_item=false;} {} 
 
-decl {Fl_Choice *ch_pinNumber[9];} {public
+decl {bool proceed=false;} {} 
+
+decl {Fl_Group *g_parportPin[25];} {public
 } 
 
-decl {Fl_Check_Button *tb_pinInvert[9];} {public
+decl {Fl_Sorted_Choice *ch_pinConnection[25];} {public
 } 
 
-decl {Fl_Box *bx_pinName[9];} {public
-} 
-
-decl {Fl_Input *tx_devParam[LAST_PARAM];} {public
+decl {Fl_Light_Button *tb_pinInvert[25];} {public
 } 
 
 decl {Fl_Input *tx_propDelay[LAST_PROP_DLY];} {public
-} 
-
-decl {Fl_Input *tx_devCfgWord[LAST_CONFIG_WORD];} {public
 } 
 
 decl {\#include <FL/Fl_RaiseButton.H>} {public
@@ -97,26 +108,26 @@ Function {make_flP5()} {
 } {
   code {int i;
 
-for (i=0;i<LAST_PIN;i++) {
-    ch_pinNumber[i] = 0;
-    tb_pinInvert[i] = 0;
-    bx_pinName[i] = 0;
+for (i=0;i<PARPORT_PINS;i++) {
+    g_parportPin[i]     = 0;
+    ch_pinConnection[i] = 0;
+    tb_pinInvert[i]     = 0;
 }
-for (i=0;i<LAST_PARAM;i++) {
-    tx_devParam[i] = 0;
+for (i=0;i<PicUI::LAST_PARAM;i++) {
+    PicUI::tx_Param[i] = 0;
 }
 for (i=0;i<LAST_PROP_DLY;i++) {
     tx_propDelay[i] = 0;
 }} {}
   Fl_Window flP5 {
     label {flP5 - Fast Light Parallel Port Production PIC Programmer} open
-    xywh {336 88 630 445} type Double visible
+    xywh {765 25 630 445} type Double visible
   } {
     Fl_Tabs {} {open
       private xywh {365 25 260 415} box UP_BOX
     } {
       Fl_Group t_devcfg {
-        label Device open selected
+        label Device open
         tooltip {Device Configuration} xywh {365 50 260 390}
       } {
         Fl_Group {} {open
@@ -126,11 +137,11 @@ for (i=0;i<LAST_PROP_DLY;i++) {
             callback {deviceConfigCB(CFG_IMPORT);
 ch_devices->do_callback();
 g_devcfg->deactivate();
-g_devgencfg->deactivate();
-g_devcfgwords->deactivate();
-g_devmiscellanea->deactivate();
-g_devCfgNewEditCopy->activate();
-t_devcfg->redraw();}
+PicUI::deactivate();
+AvrUI::deactivate();
+g_progCfgNewEditCopy->activate();
+t_devcfg->redraw();
+ch_devices->activate();}
             private tooltip {Import the device settings from a file.} image {./pixmaps/cfgopen.xpm} deimage {./pixmaps/cfgopen-desel.xpm} xywh {370 55 25 25} box FLAT_BOX align 16
             code0 {o->hilighted_box(FL_THIN_UP_BOX);}
             class Fl_RaiseButton
@@ -139,33 +150,33 @@ t_devcfg->redraw();}
             xywh {395 55 75 25}
           } {
             Fl_Button {} {
-              callback {g_devcfg->activate();
-g_devgencfg->activate();
-g_devcfgwords->activate();
-g_devmiscellanea->activate();
-g_devCfgNewEditCopy->deactivate();
+              callback {ch_devices->deactivate();
+g_devcfg->activate();
+PicUI::activate();
+AvrUI::activate();
+g_progCfgNewEditCopy->deactivate();
 deviceConfigCB(CFG_NEW);}
               private tooltip {Insert a new device.} image {./pixmaps/filenew.xpm} deimage {./pixmaps/filenew-desel.xpm} xywh {395 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
               class Fl_RaiseButton
             }
             Fl_Button {} {
-              callback {g_devcfg->activate();
-g_devgencfg->activate();
-g_devcfgwords->activate();
-g_devmiscellanea->activate();
-g_devCfgNewEditCopy->deactivate();
+              callback {ch_devices->deactivate();
+g_devcfg->activate();
+PicUI::activate();
+AvrUI::activate();
+g_progCfgNewEditCopy->deactivate();
 deviceConfigCB(CFG_EDIT);}
               private tooltip {Edit current device settings.} image {./pixmaps/edit.xpm} deimage {./pixmaps/edit-desel.xpm} xywh {420 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
               class Fl_RaiseButton
             }
             Fl_Button {} {
-              callback {g_devcfg->activate();
-g_devgencfg->activate();
-g_devcfgwords->activate();
-g_devmiscellanea->activate();
-g_devCfgNewEditCopy->deactivate();
+              callback {ch_devices->deactivate();
+g_devcfg->activate();
+PicUI::activate();
+AvrUI::activate();
+g_progCfgNewEditCopy->deactivate();
 deviceConfigCB(CFG_COPY);}
               private tooltip {Clone current device settings.} image {./pixmaps/editcopy.xpm} deimage {./pixmaps/editcopy-desel.xpm} xywh {445 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
@@ -174,7 +185,7 @@ deviceConfigCB(CFG_COPY);}
           }
           Fl_Box {} {
             label label
-            private xywh {471 55 3 25} box THIN_UP_BOX labeltype NO_LABEL
+            private xywh {471 55 2 25} box THIN_DOWN_BOX labeltype NO_LABEL
           }
           Fl_Group g_devCfgStoreMGR {open
             xywh {475 55 145 25}
@@ -182,12 +193,12 @@ deviceConfigCB(CFG_COPY);}
             Fl_Button {} {
               callback {if (deviceConfigCB(CFG_SAVE)) {
     g_devcfg->deactivate();
-    g_devgencfg->deactivate();
-    g_devcfgwords->deactivate();
-    g_devmiscellanea->deactivate();
-    g_devCfgNewEditCopy->activate();
+    PicUI::deactivate();
+    AvrUI::deactivate();
+    g_progCfgNewEditCopy->activate();
     t_devcfg->redraw();
     ch_devices->do_callback();
+    ch_devices->activate();
 }}
               private tooltip {Save current device settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
@@ -196,11 +207,11 @@ deviceConfigCB(CFG_COPY);}
             Fl_Button {} {
               callback {if (deviceConfigCB(CFG_DELETE)) {
     g_devcfg->deactivate();
-    g_devgencfg->deactivate();
-    g_devcfgwords->deactivate();
-    g_devmiscellanea->deactivate();
-    g_devCfgNewEditCopy->activate();
+    PicUI::deactivate();
+    AvrUI::deactivate();
+    g_progCfgNewEditCopy->activate();
     t_devcfg->redraw();
+    ch_devices->activate();
 }}
               private tooltip {Remove/discard current device settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
@@ -228,496 +239,1274 @@ deviceConfigCB(CFG_COPY);}
               private xywh {0 0 100 20}
             } {
               MenuItem {} {
-                label {Microchip PIC}
+                label {Microchip/PIC}
                 user_data {"Microchip/PIC"} user_data_type {const char*}
+                callback {g_DeviceSettings->value(PicUI::g_Settings);}
                 private xywh {15 15 100 20}
+              }
+            }
+            Submenu {} {
+              label Atmel open
+              xywh {0 0 63 20}
+            } {
+              MenuItem {} {
+                label {Atmel/AVR}
+                user_data {"Atmel/AVR"} user_data_type {const char*}
+                callback {g_DeviceSettings->value(AvrUI::g_Settings);}
+                private xywh {0 0 30 20}
               }
             }
           }
         }
-        Fl_Tabs {} {open
-          private xywh {370 135 250 300} box UP_BOX
+        Fl_Wizard g_DeviceSettings {open
+          xywh {370 135 250 300} box FLAT_BOX labeltype NO_LABEL
         } {
-          Fl_Group {} {
-            label General open
-            private xywh {370 160 250 275}
+          Fl_Tabs {} {open
+            private xywh {370 135 250 300} box UP_BOX
+            code0 {PicUI::g_Settings=o;}
           } {
-            Fl_Group g_devgencfg {open
-              xywh {375 165 240 265} deactivate
+            Fl_Group {} {
+              label General open
+              private xywh {370 160 250 275} labelsize 12
             } {
-              Fl_Group {} {open
-                private xywh {375 165 240 85}
+              Fl_Group {} {
+                private xywh {375 165 240 265} deactivate
+                code0 {PicUI::g_gencfg=o;}
               } {
                 Fl_Group {} {open
-                  private xywh {375 165 240 20}
+                  private xywh {375 165 240 85}
                 } {
-                  Fl_Choice ch_devMemType {
-                    label {Memory Type:} open
-                    tooltip {The type of memory in the PIC. This can have the values 'eprom', 'flash', or 'flashe'. 'eprom' can be used for any eprom/OTP device. 'flash' can be used for any type of electronically erasable device 'flashe' is similar to 'flash' but in the programming cycle, the END_PROG command is required.} xywh {505 165 110 20} down_box BORDER_BOX
-                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                    code1 {o->item_pixmap(mini_device);}
-                    class Fl_Sorted_Choice
+                  Fl_Group {} {
+                    private xywh {375 165 240 20}
                   } {
-                    MenuItem {} {
-                      label ROM
-                      user_data {"rom"} user_data_type {const char*}
-                      private xywh {10 10 100 20}
+                    Fl_Choice {} {
+                      label {Memory Type:}
+                      private tooltip {The type of memory in the PIC. This can have the values 'eprom', 'flash', or 'flashe'. 'eprom' can be used for any eprom/OTP device. 'flash' can be used for any type of electronically erasable device 'flashe' is similar to 'flash' but in the programming cycle, the END_PROG command is required.} xywh {505 165 110 20} down_box BORDER_BOX
+                      code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                      code1 {o->item_pixmap(mini_device);}
+                      code2 {PicUI::ch_MemType=o;}
+                      class Fl_Sorted_Choice
+                    } {
+                      MenuItem {} {
+                        label ROM
+                        user_data {"rom"} user_data_type {const char*}
+                        private xywh {20 20 100 20}
+                      }
+                      MenuItem {} {
+                        label EPROM
+                        user_data {"eprom"} user_data_type {const char*}
+                        private xywh {20 20 100 20}
+                      }
+                      MenuItem {} {
+                        label FLASH
+                        user_data {"flash"} user_data_type {const char*}
+                        private xywh {20 20 100 20}
+                      }
+                      MenuItem {} {
+                        label {FLASH E/P}
+                        user_data {"flashe"} user_data_type {const char*}
+                        private xywh {20 20 100 20}
+                      }
                     }
-                    MenuItem {} {
-                      label EPROM
-                      user_data {"eprom"} user_data_type {const char*}
-                      private xywh {10 10 100 20}
+                  }
+                  Fl_Group {} {
+                    private xywh {375 190 240 20}
+                  } {
+                    Fl_Input {} {
+                      label {Word Size:}
+                      private tooltip {The size of an instruction word in bits.} xywh {505 190 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_WORD_SIZE]=o;}
                     }
-                    MenuItem {} {
-                      label FLASH
-                      user_data {"flash"} user_data_type {const char*}
-                      private xywh {10 10 100 20}
-                    }
-                    MenuItem {} {
-                      label {FLASH E/P}
-                      user_data {"flashe"} user_data_type {const char*}
-                      private xywh {10 10 100 20}
+                    Fl_Box {} {
+                      label bits
+                      private xywh {565 190 50 20} align 16
                     }
                   }
-                }
-                Fl_Group {} {open
-                  private xywh {375 190 240 20}
-                } {
-                  Fl_Input {} {
-                    label {Word Size:}
-                    private tooltip {The size of an instruction word in bits.} xywh {505 190 60 20} type Int
-                    code0 {tx_devParam[PAR_WORD_SIZE]=o;}
+                  Fl_Group {} {
+                    private xywh {375 210 240 20}
+                  } {
+                    Fl_Input {} {
+                      label {Code Size:}
+                      private tooltip {The number of words of code space.} xywh {505 210 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_CODE_SIZE]=o;}
+                    }
+                    Fl_Box {} {
+                      label words
+                      private xywh {565 210 50 20} align 16
+                    }
                   }
-                  Fl_Box {} {
-                    label bits
-                    private xywh {565 190 50 20} align 16
-                  }
-                }
-                Fl_Group {} {open
-                  private xywh {375 210 240 20}
-                } {
-                  Fl_Input {} {
-                    label {Code Size:}
-                    private tooltip {The number of words of code space.} xywh {505 210 60 20} type Int
-                    code0 {tx_devParam[PAR_CODE_SIZE]=o;}
-                  }
-                  Fl_Box {} {
-                    label words
-                    private xywh {565 210 50 20} align 16
-                  }
-                }
-                Fl_Group {} {open
-                  private xywh {375 230 240 20}
-                } {
-                  Fl_Input {} {
-                    label {Eeprom Size:}
-                    private tooltip {The number of bytes of data EEPROM. If the device doesn't have a data EEPROM, this must be set to 0.} xywh {505 230 60 20} type Int
-                    code0 {tx_devParam[PAR_EEPROM_SIZE]=o;}
-                  }
-                  Fl_Box {} {
-                    label words
-                    private xywh {565 230 50 20} align 16
+                  Fl_Group {} {
+                    private xywh {375 230 240 20}
+                  } {
+                    Fl_Input {} {
+                      label {Eeprom Size:}
+                      private tooltip {The number of bytes of data EEPROM. If the device doesn't have a data EEPROM, this must be set to 0.} xywh {505 230 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_EEPROM_SIZE]=o;}
+                    }
+                    Fl_Box {} {
+                      label words
+                      private xywh {565 230 50 20} align 16
+                    }
                   }
                 }
-              }
-              Fl_Group {} {open
-                private xywh {375 255 240 90}
-              } {
-                Fl_Group {} {open
-                  private xywh {375 255 240 20}
+                Fl_Group {} {
+                  private xywh {375 255 240 90}
                 } {
-                  Fl_Input {} {
-                    label {Programming Count:}
-                    private tooltip {The maximum number of times to attempt to program a memory location before reporting an error. Defined in the programming spec.} xywh {505 255 60 20} type Int
-                    code0 {tx_devParam[PAR_PROG_COUNT]=o;}
+                  Fl_Group {} {open
+                    private xywh {375 255 240 20}
+                  } {
+                    Fl_Input {} {
+                      label {Programming Count:}
+                      private tooltip {The maximum number of times to attempt to program a memory location before reporting an error. Defined in the programming spec.} xywh {505 255 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_PROG_COUNT]=o;}
+                    }
+                    Fl_Box {} {
+                      label {(=N)}
+                      private xywh {565 255 50 20} align 16
+                    }
                   }
-                  Fl_Box {} {
-                    label {(=N)}
-                    private xywh {565 255 50 20} align 16
+                  Fl_Group {} {open
+                    private xywh {375 280 240 20}
+                  } {
+                    Fl_Input {} {
+                      label {Programming Mult.:}
+                      private tooltip {The multiplier for the number of times to overprogram. Defined in the programming spec.} xywh {505 280 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_PROG_MULT]=o;}
+                    }
+                    Fl_Box {} {
+                      label {(*N)}
+                      private xywh {565 280 50 20} align 16
+                    }
+                  }
+                  Fl_Group {} {open
+                    private xywh {375 305 240 20}
+                  } {
+                    Fl_Box {} {
+                      label {[uS]}
+                      private xywh {565 305 50 20} align 16
+                    }
+                    Fl_Input {} {
+                      label {Programming Time:}
+                      private tooltip {The number of microseconds in each programming attempt for one memory location. To be on the safe side, the maximum value from the datasheet should be used for flash devices.} xywh {505 305 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_PROG_TIME]=o;}
+                    }
+                  }
+                  Fl_Group {} {open
+                    private xywh {375 325 240 20}
+                  } {
+                    Fl_Box {} {
+                      label {[uS]}
+                      private xywh {565 325 50 20} align 16
+                    }
+                    Fl_Input {} {
+                      label {Erase Time:}
+                      private tooltip {The number of microseconds that a bulk erase takes.} xywh {505 325 60 20} type Int
+                      code0 {PicUI::tx_Param[PicUI::PAR_ERASE_TIME]=o;}
+                    }
                   }
                 }
-                Fl_Group {} {open
-                  private xywh {375 280 240 20}
+                Fl_Group {} {
+                  private xywh {375 350 240 80}
                 } {
-                  Fl_Input {} {
-                    label {Programming Mult.:}
-                    private tooltip {The multiplier for the number of times to overprogram. Defined in the programming spec.} xywh {505 280 60 20} type Int
-                    code0 {tx_devParam[PAR_PROG_MULT]=o;}
+                  Fl_Group {} {open
+                    private xywh {375 350 240 20} box BORDER_BOX color 41
+                  } {
+                    Fl_Box {} {
+                      label {Vmin [V]}
+                      private xywh {495 350 60 20} labelcolor 7
+                    }
+                    Fl_Box {} {
+                      label {Vmax [V]}
+                      private xywh {555 350 60 20} box BORDER_FRAME color 0 labelcolor 7
+                    }
+                    Fl_Box {} {
+                      label Voltage
+                      private xywh {375 350 120 20} box BORDER_FRAME color 0 labelcolor 7
+                    }
                   }
-                  Fl_Box {} {
-                    label {(*N)}
-                    private xywh {565 280 50 20} align 16
+                  Fl_Group {} {open
+                    private xywh {375 370 240 20} box BORDER_BOX color 7
+                  } {
+                    Fl_Input {} {
+                      private tooltip {The minimum value for Vpp.} xywh {495 370 60 20} type Float
+                      code0 {PicUI::tx_Param[PicUI::PAR_VPP_MIN]=o;}
+                    }
+                    Fl_Input {} {
+                      private tooltip {The maximum value for Vpp.} xywh {555 370 60 20} type Float
+                      code0 {PicUI::tx_Param[PicUI::PAR_VPP_MAX]=o;}
+                    }
+                    Fl_Box {} {
+                      label {Vpp [VIHH]}
+                      private xywh {375 370 120 20} align 20
+                    }
                   }
-                }
-                Fl_Group {} {open
-                  private xywh {375 305 240 20}
-                } {
-                  Fl_Box {} {
-                    label {[uS]}
-                    private xywh {565 305 50 20} align 16
+                  Fl_Group {} {open
+                    private xywh {375 390 240 20} box BORDER_BOX color 7
+                  } {
+                    Fl_Input {} {
+                      private tooltip {The minimum value for Vdd.} xywh {495 390 60 20} type Float
+                      code0 {PicUI::tx_Param[PicUI::PAR_VDD_MIN]=o;}
+                    }
+                    Fl_Input {} {
+                      private tooltip {The maximum value for Vdd.} xywh {555 390 60 20} type Float
+                      code0 {PicUI::tx_Param[PicUI::PAR_VDD_MAX]=o;}
+                    }
+                    Fl_Box {} {
+                      label {Vdd [Read/Verify]}
+                      private xywh {375 390 120 20} align 20
+                    }
                   }
-                  Fl_Input {} {
-                    label {Programming Time:}
-                    private tooltip {The number of microseconds in each programming attempt for one memory location. To be on the safe side, the maximum value from the datasheet should be used for flash devices.} xywh {505 305 60 20} type Int
-                    code0 {tx_devParam[PAR_PROG_TIME]=o;}
-                  }
-                }
-                Fl_Group {} {open
-                  private xywh {375 325 240 20}
-                } {
-                  Fl_Box {} {
-                    label {[uS]}
-                    private xywh {565 325 50 20} align 16
-                  }
-                  Fl_Input {} {
-                    label {Erase Time:}
-                    private tooltip {The number of microseconds that a bulk erase takes.} xywh {505 325 60 20} type Int
-                    code0 {tx_devParam[PAR_ERASE_TIME]=o;}
-                  }
-                }
-              }
-              Fl_Group {} {open
-                private xywh {375 350 240 80}
-              } {
-                Fl_Group {} {open
-                  private xywh {375 350 240 20} box BORDER_BOX color 41
-                } {
-                  Fl_Box {} {
-                    label {Vmin [V]}
-                    private xywh {495 350 60 20} labelcolor 7
-                  }
-                  Fl_Box {} {
-                    label {Vmax [V]}
-                    private xywh {555 350 60 20} box BORDER_FRAME color 0 labelcolor 7
-                  }
-                  Fl_Box {} {
-                    label Voltage
-                    private xywh {375 350 120 20} box BORDER_FRAME color 0 labelcolor 7
-                  }
-                }
-                Fl_Group {} {open
-                  private xywh {375 370 240 20} box BORDER_BOX color 7
-                } {
-                  Fl_Input {} {
-                    private tooltip {The minimum value for Vpp.} xywh {495 370 60 20} type Float
-                    code0 {tx_devParam[PAR_VPP_MIN]=o;}
-                  }
-                  Fl_Input {} {
-                    private tooltip {The maximum value for Vpp.} xywh {555 370 60 20} type Float
-                    code0 {tx_devParam[PAR_VPP_MAX]=o;}
-                  }
-                  Fl_Box {} {
-                    label {Vpp [VIHH]}
-                    private xywh {375 370 120 20} align 20
-                  }
-                }
-                Fl_Group {} {open
-                  private xywh {375 390 240 20} box BORDER_BOX color 7
-                } {
-                  Fl_Input {} {
-                    private tooltip {The minimum value for Vdd.} xywh {495 390 60 20} type Float
-                    code0 {tx_devParam[PAR_VDD_MIN]=o;}
-                  }
-                  Fl_Input {} {
-                    private tooltip {The maximum value for Vdd.} xywh {555 390 60 20} type Float
-                    code0 {tx_devParam[PAR_VDD_MAX]=o;}
-                  }
-                  Fl_Box {} {
-                    label {Vdd [Read/Verify]}
-                    private xywh {375 390 120 20} align 20
-                  }
-                }
-                Fl_Group {} {open
-                  private xywh {375 410 240 20} box BORDER_BOX color 7
-                } {
-                  Fl_Input {} {
-                    private tooltip {The minimum value for Vdd during programming.} xywh {495 410 60 20} type Float
-                    code0 {tx_devParam[PAR_VDDP_MIN]=o;}
-                  }
-                  Fl_Input {} {
-                    private tooltip {The maximum value for Vdd during programming.} xywh {555 410 60 20} type Float
-                    code0 {tx_devParam[PAR_VDDP_MAX]=o;}
-                  }
-                  Fl_Box {} {
-                    label {Vdd [Write/Progr.]}
-                    private xywh {375 410 120 20} align 20
+                  Fl_Group {} {open
+                    private xywh {375 410 240 20} box BORDER_BOX color 7
+                  } {
+                    Fl_Input {} {
+                      private tooltip {The minimum value for Vdd during programming.} xywh {495 410 60 20} type Float
+                      code0 {PicUI::tx_Param[PicUI::PAR_VDDP_MIN]=o;}
+                    }
+                    Fl_Input {} {
+                      private tooltip {The maximum value for Vdd during programming.} xywh {555 410 60 20} type Float
+                      code0 {PicUI::tx_Param[PicUI::PAR_VDDP_MAX]=o;}
+                    }
+                    Fl_Box {} {
+                      label {Vdd [Write/Progr.]}
+                      private xywh {375 410 120 20} align 20
+                    }
                   }
                 }
               }
             }
-          }
-          Fl_Group {} {
-            label {Cfg. Words} open
-            private xywh {370 160 250 275} hide
-          } {
-            Fl_Group g_devcfgwords {open
-              xywh {375 165 240 265} deactivate
+            Fl_Group {} {
+              label {Configuration  Words} open
+              private xywh {370 160 250 275} labelsize 12 hide
             } {
-              Fl_Group g_devConfigWordsEdit {open
-                xywh {375 165 240 125}
+              Fl_Group {} {
+                private xywh {375 165 240 265} deactivate
+                code0 {PicUI::g_cfgwords=o;}
               } {
                 Fl_Group {} {open
-                  private xywh {375 165 240 40}
+                  private xywh {375 165 240 125}
+                  code0 {PicUI::g_ConfigWordsEdit=o;}
                 } {
                   Fl_Group {} {open
-                    private xywh {375 165 240 20} box BORDER_BOX color 41
+                    private xywh {375 165 240 40}
                   } {
-                    Fl_Box {} {
-                      label Mask
-                      private xywh {450 165 55 20} box BORDER_FRAME color 0 labelcolor 7
+                    Fl_Group {} {open
+                      private xywh {375 165 240 20} box BORDER_BOX color 41
+                    } {
+                      Fl_Box {} {
+                        label Mask
+                        private xywh {450 165 55 20} box BORDER_FRAME color 0 labelcolor 7
+                      }
+                      Fl_Box {} {
+                        label Save
+                        private xywh {505 165 55 20} color 0 labelcolor 7
+                      }
+                      Fl_Box {} {
+                        label Default
+                        private xywh {560 165 55 20} box BORDER_FRAME color 0 labelcolor 7
+                      }
                     }
-                    Fl_Box {} {
-                      label Save
-                      private xywh {505 165 55 20} color 0 labelcolor 7
-                    }
-                    Fl_Box {} {
-                      label Default
-                      private xywh {560 165 55 20} box BORDER_FRAME color 0 labelcolor 7
+                    Fl_Group {} {open
+                      private xywh {375 185 240 20} box BORDER_BOX color 7
+                    } {
+                      Fl_Box {} {
+                        label {Conf. word}
+                        private xywh {375 185 75 20} box BORDER_FRAME color 0 align 20
+                      }
+                      Fl_Input {} {
+                        tooltip {A bitmask of all valid (non-reserved) configuration bits.} xywh {450 185 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_MASK]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {A bitmask of persistent bits in  the  configuration word.  These bits will be saved before and restored after a chip erase. They will also not  be  modifiable when programming the device.} xywh {505 185 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_SAVE]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The default value of the configuration bits after an erase.} xywh {560 185 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_DEFV]=o;}
+                      }
                     }
                   }
                   Fl_Group {} {open
-                    private xywh {375 185 240 20} box BORDER_BOX color 7
+                    private xywh {375 210 240 80}
                   } {
-                    Fl_Box {} {
-                      label {Conf. word}
-                      private xywh {375 185 75 20} box BORDER_FRAME color 0 align 20
+                    Fl_Group {} {open
+                      private xywh {375 210 240 20} box BORDER_BOX color 41
+                    } {
+                      Fl_Box {} {
+                        label Mask
+                        private xywh {450 210 55 20} box BORDER_FRAME color 0 labelcolor 7
+                      }
+                      Fl_Box {} {
+                        label On
+                        private xywh {505 210 55 20} color 0 labelcolor 7
+                      }
+                      Fl_Box {} {
+                        label Off
+                        private xywh {560 210 55 20} box BORDER_FRAME color 0 labelcolor 7
+                      }
                     }
-                    Fl_Input {} {
-                      tooltip {A bitmask of all valid (non-reserved) configuration bits.} xywh {450 185 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_MASK]=o;}
+                    Fl_Group {} {open
+                      private xywh {375 230 240 20} box BORDER_BOX color 7
+                    } {
+                      Fl_Box {} {
+                        label {Code prot.}
+                        private tooltip {Code protection bit(s).} xywh {375 230 75 20} color 0 align 20
+                      }
+                      Fl_Input {} {
+                        tooltip {A bitmask of all the code protection bits.} xywh {450 230 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_CP_MASK]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The value of the code protection bits when all memory is code protected.} xywh {505 230 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_CP_ALL]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The value of the code protection bits when no memory is code protected.} xywh {560 230 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_CP_NONE]=o;}
+                      }
                     }
-                    Fl_Input {} {
-                      tooltip {A bitmask of persistent bits in  the  configuration word.  These bits will be saved before and restored after a chip erase. They will also not  be  modifiable when programming the device.} xywh {505 185 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_SAVE]=o;}
+                    Fl_Group {} {open
+                      private xywh {375 250 240 20} box BORDER_BOX color 7
+                    } {
+                      Fl_Box {} {
+                        label {Data prot.}
+                        private tooltip {Data memory code protection bit(s).} xywh {375 250 75 20} color 0 align 20
+                      }
+                      Fl_Input {} {
+                        tooltip {A bitmask of the bit(s) that enable data memory code protection.} xywh {450 250 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_DP_MASK]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The value of the data memory code protection bit(s) when data code protection is enabled.} xywh {505 250 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_DP_ON]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The value of the data memory code protection bit(s) when data code protection is disabled.} xywh {560 250 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_DP_OFF]=o;}
+                      }
                     }
-                    Fl_Input {} {
-                      tooltip {The default value of the configuration bits after an erase.} xywh {560 185 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_DEFV]=o;}
+                    Fl_Group {} {open
+                      private xywh {375 270 240 20} box BORDER_BOX color 7
+                    } {
+                      Fl_Box {} {
+                        label {Bkg. Debug}
+                        private tooltip {On-chip background debugger bit(s).} xywh {375 270 75 20} color 0 align 20
+                      }
+                      Fl_Input {} {
+                        tooltip {A bitmask for the bit(s) which enable the on-chip background debugger.} xywh {450 270 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_BD_MASK]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The value of the background debugger bits when the debugger is enabled.} xywh {505 270 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_BD_ON]=o;}
+                      }
+                      Fl_Input {} {
+                        tooltip {The value of the background debugger bits when the debugger is disabled.} xywh {560 270 55 20} labeltype NO_LABEL
+                        code0 {PicUI::tx_CfgWord[PicUI::CW_BD_OFF]=o;}
+                      }
                     }
                   }
                 }
                 Fl_Group {} {open
-                  private xywh {375 210 240 80}
+                  private xywh {590 295 25 135}
+                  code0 {PicUI::g_ConfigWordsToolBar=o;}
+                } {
+                  Fl_Button {} {
+                    callback {PicUI::g_ConfigWordsEdit->activate();
+PicUI::g_ConfigWordsNewEditCopy->deactivate();
+PicUI::cfgWordsCB(CFG_NEW);}
+                    private tooltip {Insert the settings for a new configuration word.} image {./pixmaps/filenew.xpm} deimage {./pixmaps/filenew-desel.xpm} xywh {590 295 25 25} box FLAT_BOX align 16
+                    code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+                    class Fl_RaiseButton
+                  }
+                  Fl_Group {} {open
+                    private xywh {590 320 25 50} deactivate
+                    code0 {PicUI::g_ConfigWordsNewEditCopy=o;}
+                  } {
+                    Fl_Button {} {
+                      callback {if (PicUI::ls_ConfigWords->value()>1) {
+    PicUI::g_ConfigWordsEdit->activate();
+    PicUI::g_ConfigWordsNewEditCopy->deactivate();
+    PicUI::cfgWordsCB(CFG_EDIT);
+}}
+                      private tooltip {Edit current configuration word settings.} image {./pixmaps/edit.xpm} deimage {./pixmaps/edit-desel.xpm} xywh {590 320 25 25} box FLAT_BOX align 16
+                      code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+                      class Fl_RaiseButton
+                    }
+                    Fl_Button {} {
+                      callback {if (PicUI::ls_ConfigWords->value()>1) {
+    PicUI::g_ConfigWordsEdit->activate();
+    PicUI::g_ConfigWordsNewEditCopy->deactivate();
+    PicUI::cfgWordsCB(CFG_COPY);
+}}
+                      private tooltip {Clone current configuration word settings.} image {./pixmaps/editcopy.xpm} deimage {./pixmaps/editcopy-desel.xpm} xywh {590 345 25 25} box FLAT_BOX align 16
+                      code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+                      class Fl_RaiseButton
+                    }
+                  }
+                  Fl_Box {} {
+                    label label
+                    private xywh {590 371 25 2} box THIN_DOWN_BOX labeltype NO_LABEL
+                  }
+                  Fl_Button {} {
+                    callback {if (PicUI::cfgWordsCB(CFG_SAVE)) {
+    PicUI::g_ConfigWordsEdit->deactivate();
+    PicUI::g_ConfigWordsNewEditCopy->activate();
+    PicUI::g_cfgwords->redraw();
+}}
+                    private tooltip {Save current configuration word settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {590 375 25 25} box FLAT_BOX align 16
+                    code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+                    class Fl_RaiseButton
+                  }
+                  Fl_Button {} {
+                    callback {if (PicUI::cfgWordsCB(CFG_DELETE)) {
+    PicUI::g_ConfigWordsEdit->deactivate();
+    PicUI::g_ConfigWordsNewEditCopy->activate();
+    PicUI::g_cfgwords->redraw();
+}}
+                    private tooltip {Remove the last configuration word in the list.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {590 405 25 25} box FLAT_BOX align 16
+                    code0 {o->hilighted_box(FL_THIN_UP_BOX);}
+                    class Fl_RaiseButton
+                  }
+                }
+              }
+              Fl_Browser {} {
+                callback {PicUI::cfgWordsCB(CFG_LOAD);}
+                private xywh {375 295 215 135} type Hold box DOWN_BOX textfont 4 textsize 12
+                code0 {\#include <FL/Fl_Hold_Browser.H>}
+                code1 {o->add("@u w\# | cw mask| cw save| cw defv| cp mask| cp all | cp none| dp mask| dp on  | dp off | bd mask| bd on  | bd off ");}
+                code2 {PicUI::ls_ConfigWords=o;}
+                class Fl_Hold_Browser
+              }
+            }
+            Fl_Group {} {
+              label {Misc.} open
+              private xywh {370 160 250 275} labelsize 12 hide
+            } {
+              Fl_Group {} {
+                private xywh {375 165 240 265} deactivate
+                code0 {PicUI::g_miscellanea=o;}
+              } {
+                Fl_Check_Button {} {
+                  label Experimental
+                  private xywh {375 165 240 20} down_box DOWN_BOX
+                  code0 {PicUI::tb_Experimental=o;}
+                }
+                Fl_Group {} {open
+                  private xywh {375 185 240 40}
                 } {
                   Fl_Group {} {open
-                    private xywh {375 210 240 20} box BORDER_BOX color 41
+                    private xywh {375 205 240 20} box BORDER_BOX color 7
                   } {
-                    Fl_Box {} {
-                      label Mask
-                      private xywh {450 210 55 20} box BORDER_FRAME color 0 labelcolor 7
+                    Fl_Input {} {
+                      private tooltip {Device ID value} xywh {455 205 80 20} labeltype NO_LABEL
+                      code0 {PicUI::tx_Param[PicUI::PAR_DEVICE_ID]=o;}
+                    }
+                    Fl_Input {} {
+                      private tooltip {Device ID mask} xywh {535 205 80 20} labeltype NO_LABEL
+                      code0 {PicUI::tx_Param[PicUI::PAR_DEVICE_ID_MASK]=o;}
                     }
                     Fl_Box {} {
-                      label On
-                      private xywh {505 210 55 20} color 0 labelcolor 7
-                    }
-                    Fl_Box {} {
-                      label Off
-                      private xywh {560 210 55 20} box BORDER_FRAME color 0 labelcolor 7
+                      label {Device ID}
+                      private xywh {375 205 80 20} box BORDER_FRAME color 0 align 20
                     }
                   }
                   Fl_Group {} {open
-                    private xywh {375 230 240 20} box BORDER_BOX color 7
+                    private xywh {375 185 240 20} box BORDER_BOX color 41
                   } {
                     Fl_Box {} {
-                      label {Code prot.}
-                      private tooltip {Code protection bit(s).} xywh {375 230 75 20} color 0 align 20
+                      label Value
+                      private xywh {455 185 80 20} box BORDER_FRAME color 0 labelcolor 7
                     }
-                    Fl_Input {} {
-                      tooltip {A bitmask of all the code protection bits.} xywh {450 230 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_CP_MASK]=o;}
-                    }
-                    Fl_Input {} {
-                      tooltip {The value of the code protection bits when all memory is code protected.} xywh {505 230 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_CP_ALL]=o;}
-                    }
-                    Fl_Input {} {
-                      tooltip {The value of the code protection bits when no memory is code protected.} xywh {560 230 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_CP_NONE]=o;}
+                    Fl_Box {} {
+                      label Mask
+                      private xywh {535 185 80 20} color 0 labelcolor 7
                     }
                   }
+                }
+                Fl_Group {} {open
+                  xywh {375 230 240 40}
+                } {
                   Fl_Group {} {open
                     private xywh {375 250 240 20} box BORDER_BOX color 7
                   } {
+                    Fl_Input {} {
+                      tooltip {Write buffer size} xywh {455 250 80 20} labeltype NO_LABEL
+                      code0 {PicUI::tx_Param[PicUI::PAR_WRITE_BUF_SIZE]=o;}
+                    }
+                    Fl_Input {} {
+                      tooltip {Erase buffer size} xywh {535 250 80 20} labeltype NO_LABEL
+                      code0 {PicUI::tx_Param[PicUI::PAR_ERASE_BUF_SIZE]=o;}
+                    }
                     Fl_Box {} {
-                      label {Data prot.}
-                      private tooltip {Data memory code protection bit(s).} xywh {375 250 75 20} color 0 align 20
-                    }
-                    Fl_Input {} {
-                      tooltip {A bitmask of the bit(s) that enable data memory code protection.} xywh {450 250 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_DP_MASK]=o;}
-                    }
-                    Fl_Input {} {
-                      tooltip {The value of the data memory code protection bit(s) when data code protection is enabled.} xywh {505 250 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_DP_ON]=o;}
-                    }
-                    Fl_Input {} {
-                      tooltip {The value of the data memory code protection bit(s) when data code protection is disabled.} xywh {560 250 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_DP_OFF]=o;}
+                      label {Buffer Size}
+                      private xywh {375 250 80 20} box BORDER_FRAME color 0 align 20
                     }
                   }
                   Fl_Group {} {open
-                    private xywh {375 270 240 20} box BORDER_BOX color 7
+                    private xywh {375 230 240 20} box BORDER_BOX color 41
                   } {
                     Fl_Box {} {
-                      label {Bkg. Debug}
-                      private tooltip {On-chip background debugger bit(s).} xywh {375 270 75 20} color 0 align 20
+                      label Write
+                      private xywh {455 230 80 20} box BORDER_FRAME color 0 labelcolor 7
                     }
-                    Fl_Input {} {
-                      tooltip {A bitmask for the bit(s) which enable the on-chip background debugger.} xywh {450 270 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_BD_MASK]=o;}
-                    }
-                    Fl_Input {} {
-                      tooltip {The value of the background debugger bits when the debugger is enabled.} xywh {505 270 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_BD_ON]=o;}
-                    }
-                    Fl_Input {} {
-                      tooltip {The value of the background debugger bits when the debugger is disabled.} xywh {560 270 55 20} labeltype NO_LABEL
-                      code0 {tx_devCfgWord[CW_BD_OFF]=o;}
+                    Fl_Box {} {
+                      label Erase
+                      private xywh {535 230 80 20} color 0 labelcolor 7
                     }
                   }
                 }
               }
-              Fl_Group g_devConfigWordsToolBar {
-                xywh {590 295 25 135}
-              } {
-                Fl_Button {} {
-                  callback {g_devConfigWordsEdit->activate();
-g_devConfigWordsNewEditCopy->deactivate();
-cfgWordsCB(CFG_NEW);}
-                  private tooltip {Insert the settings for a new configuration word.} image {./pixmaps/filenew.xpm} deimage {./pixmaps/filenew-desel.xpm} xywh {590 295 25 25} box FLAT_BOX align 16
-                  code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-                  class Fl_RaiseButton
-                }
-                Fl_Group g_devConfigWordsNewEditCopy {open
-                  xywh {590 320 25 50} deactivate
-                } {
-                  Fl_Button {} {
-                    callback {if (ls_devConfigWords->value()>1) {
-    g_devConfigWordsEdit->activate();
-    g_devConfigWordsNewEditCopy->deactivate();
-    cfgWordsCB(CFG_EDIT);
-}}
-                    private tooltip {Edit current configuration word settings.} image {./pixmaps/edit.xpm} deimage {./pixmaps/edit-desel.xpm} xywh {590 320 25 25} box FLAT_BOX align 16
-                    code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-                    class Fl_RaiseButton
-                  }
-                  Fl_Button {} {
-                    callback {if (ls_devConfigWords->value()>1) {
-    g_devConfigWordsEdit->activate();
-    g_devConfigWordsNewEditCopy->deactivate();
-    cfgWordsCB(CFG_COPY);
-}}
-                    private tooltip {Clone current configuration word settings.} image {./pixmaps/editcopy.xpm} deimage {./pixmaps/editcopy-desel.xpm} xywh {590 345 25 25} box FLAT_BOX align 16
-                    code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-                    class Fl_RaiseButton
-                  }
-                }
-                Fl_Box {} {
-                  label label
-                  private xywh {590 371 25 3} box THIN_UP_BOX labeltype NO_LABEL
-                }
-                Fl_Button {} {
-                  callback {if (cfgWordsCB(CFG_SAVE)) {
-    g_devConfigWordsEdit->deactivate();
-    g_devConfigWordsNewEditCopy->activate();
-    g_devcfgwords->redraw();
-}}
-                  private tooltip {Save current configuration word settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {590 375 25 25} box FLAT_BOX align 16
-                  code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-                  class Fl_RaiseButton
-                }
-                Fl_Button {} {
-                  callback {if (cfgWordsCB(CFG_DELETE)) {
-    g_devConfigWordsEdit->deactivate();
-    g_devConfigWordsNewEditCopy->activate();
-    g_devcfgwords->redraw();
-}}
-                  private tooltip {Remove the last configuration word in the list.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {590 405 25 25} box FLAT_BOX align 16
-                  code0 {o->hilighted_box(FL_THIN_UP_BOX);}
-                  class Fl_RaiseButton
-                }
-              }
-            }
-            Fl_Browser ls_devConfigWords {
-              callback {cfgWordsCB(CFG_LOAD);}
-              xywh {375 295 215 135} type Hold box DOWN_BOX textfont 4 textsize 12
-              code0 {\#include <FL/Fl_Hold_Browser.H>}
-              code1 {o->add("@u w\# | cw mask| cw save| cw defv| cp mask| cp all | cp none| dp mask| dp on  | dp off | bd mask| bd on  | bd off ");}
-              class Fl_Hold_Browser
             }
           }
-          Fl_Group {} {
-            label {Misc.} open
-            private xywh {370 160 250 275} hide
+          Fl_Tabs {} {open
+            private xywh {370 135 250 300} box UP_BOX hide
+            code0 {AvrUI::g_Settings=o;}
           } {
-            Fl_Group g_devmiscellanea {open
-              xywh {375 165 240 265} deactivate
+            Fl_Group {} {
+              label General open
+              private tooltip {General Settings} xywh {370 160 250 275} labelsize 12
             } {
-              Fl_Check_Button tb_devExperimental {
-                label Experimental
-                xywh {375 165 240 20} down_box DOWN_BOX
-              }
               Fl_Group {} {open
-                xywh {375 185 240 40}
+                private xywh {374 165 241 265} deactivate
+                code0 {AvrUI::g_gencfg=o;}
               } {
                 Fl_Group {} {open
-                  private xywh {375 205 240 20} box BORDER_BOX color 7
+                  xywh {375 165 240 80}
                 } {
-                  Fl_Input {} {
-                    tooltip {Device ID value} xywh {455 205 80 20} labeltype NO_LABEL
-                    code0 {tx_devParam[PAR_DEVICE_ID]=o;}
+                  Fl_Group {} {
+                    label {Wait Delay [uS]} open
+                    xywh {375 165 120 60} box BORDER_BOX color 41 labelcolor 7 align 17
+                  } {
+                    Fl_Group {} {open
+                      xywh {375 185 120 20} box BORDER_BOX color 41
+                    } {
+                      Fl_Box {} {
+                        label Reset
+                        tooltip {Minimum Wait Delay [milli seconds]} xywh {375 185 60 20} color 0 labelcolor 7 align 16
+                      }
+                      Fl_Box {} {
+                        label Erase
+                        tooltip {Minimum Wait Delay [milli seconds]} xywh {435 185 60 20} box BORDER_FRAME color 0 labelcolor 7 align 16
+                      }
+                    }
+                    Fl_Input {} {
+                      label {Reset Wait Delay}
+                      tooltip {Wait Delay after Reset [micro seconds]} xywh {375 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_WD_RESET]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Erase Wait Delay}
+                      tooltip {Wait Delay after Erase [micro seconds]} xywh {435 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_WD_ERASE]=o;}
+                    }
                   }
-                  Fl_Input {} {
-                    tooltip {Device ID mask} xywh {535 205 80 20} labeltype NO_LABEL
-                    code0 {tx_devParam[PAR_DEVICE_ID_MASK]=o;}
-                  }
-                  Fl_Box {} {
-                    label {Device ID}
-                    private xywh {375 205 80 20} box BORDER_FRAME color 0 align 20
+                  Fl_Group {} {
+                    label {Vcc [V]} open
+                    private xywh {495 165 120 60} box BORDER_BOX color 41 labelcolor 7 align 17
+                  } {
+                    Fl_Group {} {open
+                      private xywh {495 185 120 20} box BORDER_BOX color 41
+                    } {
+                      Fl_Box {} {
+                        label Min
+                        private xywh {495 185 60 20} labelcolor 7
+                      }
+                      Fl_Box {} {
+                        label Max
+                        private xywh {555 185 60 20} box BORDER_FRAME color 0 labelcolor 7
+                      }
+                    }
+                    Fl_Input {} {
+                      label {Vcc Min}
+                      private tooltip {The minimum value for Vcc during programming} xywh {495 205 60 20} type Float labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_VCC_MIN]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Vcc Max}
+                      private tooltip {The maximum value for Vcc during programming} xywh {555 205 60 20} type Float labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_VCC_MAX]=o;}
+                    }
                   }
                 }
                 Fl_Group {} {open
-                  private xywh {375 185 240 20} box BORDER_BOX color 41
+                  xywh {374 230 241 200}
                 } {
-                  Fl_Box {} {
-                    label Value
-                    private xywh {455 185 80 20} box BORDER_FRAME color 0 labelcolor 7
+                  Fl_Group {} {open
+                    xywh {375 230 240 20}
+                  } {
+                    Fl_Box {} {
+                      label {Signature:}
+                      xywh {375 230 75 20}
+                    }
+                    Fl_Input {} {
+                      label {Signature Byte 1}
+                      callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                      tooltip {Signature byte 1} xywh {451 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                      code0 {AvrUI::tx_Param[Avr::PAR_SIGN_B0]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Signature Byte 2}
+                      callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                      tooltip {Signature byte 2} xywh {486 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                      code0 {AvrUI::tx_Param[Avr::PAR_SIGN_B1]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Signature Byte 3}
+                      callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                      tooltip {Signature byte 3} xywh {521 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                      code0 {AvrUI::tx_Param[Avr::PAR_SIGN_B2]=o;}
+                    }
+                    Fl_Box {} {
+                      label {[hex 8]}
+                      xywh {555 230 60 20}
+                    }
                   }
-                  Fl_Box {} {
-                    label Mask
-                    private xywh {535 185 80 20} color 0 labelcolor 7
+                  Fl_Group {} {open
+                    xywh {375 255 240 35}
+                  } {
+                    Fl_Input {} {
+                      label {Read Signature Instruction}
+                      callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                      xywh {375 270 240 20} labeltype NO_LABEL labelfont 4 labelsize 12 align 5 when 1 textfont 4 textsize 12
+                      code0 {AvrUI::tx_Param[Avr::PAR_READ_SIGNATURE_INST]=o;}
+                      code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                    }
+                    Fl_Box {} {
+                      label {Read Signature Byte:}
+                      xywh {375 255 240 15} align 22
+                    }
+                  }
+                  Fl_Group {} {open
+                    xywh {375 325 240 35}
+                  } {
+                    Fl_Input {} {
+                      label {Programming Enable Instruction}
+                      callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                      xywh {375 340 240 20} labeltype NO_LABEL labelfont 4 labelsize 12 align 5 when 1 textfont 4 textsize 12
+                      code0 {AvrUI::tx_Param[Avr::PAR_PROGRAMMING_ENABLE_INST]=o;}
+                      code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                    }
+                    Fl_Box {} {
+                      label {Programming Enable:}
+                      xywh {375 325 240 15} align 22
+                    }
+                  }
+                  Fl_Group {} {open
+                    xywh {374 360 241 35}
+                  } {
+                    Fl_Input {} {
+                      label {Chip Erase Instruction}
+                      callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                      xywh {375 375 240 20} labeltype NO_LABEL labelfont 4 labelsize 12 align 5 when 1 textfont 4 textsize 12
+                      code0 {AvrUI::tx_Param[Avr::PAR_CHIP_ERASE_INST]=o;}
+                      code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                    }
+                    Fl_Box {} {
+                      label {Chip Erase:}
+                      xywh {374 360 240 15} align 22
+                    }
+                  }
+                  Fl_Group {} {open
+                    xywh {375 395 240 35}
+                  } {
+                    Fl_Input {} {
+                      label {Poll RDY/BSY Instrcution}
+                      callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                      xywh {375 410 240 20} labeltype NO_LABEL labelfont 4 labelsize 12 align 5 when 1 textfont 4 textsize 12
+                      code0 {AvrUI::tx_Param[Avr::PAR_POLL_INST]=o;}
+                      code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                    }
+                    Fl_Box {} {
+                      label {Poll RDY/BSY:}
+                      xywh {375 395 240 15} align 22
+                    }
+                  }
+                  Fl_Group {} {open
+                    xywh {374 290 240 35}
+                  } {
+                    Fl_Input {} {
+                      label {Read Calibration Byte Instruction}
+                      callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                      xywh {374 305 240 20} labeltype NO_LABEL labelfont 4 labelsize 12 align 5 when 1 textfont 4 textsize 12
+                      code0 {AvrUI::tx_Param[Avr::PAR_READ_CALIBRATION_INST]=o;}
+                      code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                    }
+                    Fl_Box {} {
+                      label {Read Calibration Byte:}
+                      xywh {374 290 240 15} align 22
+                    }
                   }
                 }
               }
-              Fl_Group {} {open
-                xywh {375 230 240 40}
+            }
+            Fl_Group {} {
+              label Flash open
+              private tooltip {Flash Memory} xywh {370 160 250 275} labelsize 12 hide
+            } {
+              Fl_Group {} {
+                xywh {374 165 241 265} deactivate
+                code0 {AvrUI::g_flashcfg=o;}
               } {
                 Fl_Group {} {open
-                  private xywh {375 250 240 20} box BORDER_BOX color 7
+                  xywh {374 165 241 60}
                 } {
-                  Fl_Input {} {
-                    tooltip {Write buffer size} xywh {455 250 80 20} labeltype NO_LABEL
-                    code0 {tx_devParam[PAR_WRITE_BUF_SIZE]=o;}
+                  Fl_Group {} {open
+                    xywh {374 200 241 25}
+                  } {
+                    Fl_Input {} {
+                      label {Flash Size}
+                      xywh {375 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_FLASH_SIZE]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Flash Page Size}
+                      xywh {435 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_FLASH_PAGE_SIZE]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Flash Pages}
+                      xywh {495 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_FLASH_PAGES]=o;}
+                    }
+                    Fl_Input {} {
+                      label {Flash Wait Delay}
+                      xywh {555 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_WD_FLASH]=o;}
+                    }
                   }
-                  Fl_Input {} {
-                    tooltip {Erase buffer size} xywh {535 250 80 20} labeltype NO_LABEL
-                    code0 {tx_devParam[PAR_ERASE_BUF_SIZE]=o;}
-                  }
-                  Fl_Box {} {
-                    label {Buffer Size}
-                    private xywh {375 250 80 20} box BORDER_FRAME color 0 align 20
+                  Fl_Group {} {open
+                    xywh {375 165 240 40} box BORDER_BOX color 40
+                  } {
+                    Fl_Box {} {
+                      label {Size [Bytes]}
+                      xywh {375 165 60 40} box BORDER_FRAME color 0 labelcolor 7 align 144
+                    }
+                    Fl_Box {} {
+                      label {Page Sz. [Bytes]}
+                      xywh {435 165 60 40} labelcolor 7 align 144
+                    }
+                    Fl_Box {} {
+                      label {Num Pages}
+                      xywh {495 165 60 40} box BORDER_FRAME color 0 labelcolor 7 align 144
+                    }
+                    Fl_Box {} {
+                      label {Delay [uS]}
+                      xywh {555 165 60 40} labelcolor 7 align 144
+                    }
                   }
                 }
                 Fl_Group {} {open
-                  private xywh {375 230 240 20} box BORDER_BOX color 41
+                  xywh {375 230 240 20}
                 } {
                   Fl_Box {} {
-                    label Write
-                    private xywh {455 230 80 20} box BORDER_FRAME color 0 labelcolor 7
+                    label {[hex 8]}
+                    xywh {565 230 50 20} align 20
                   }
                   Fl_Box {} {
-                    label Erase
-                    private xywh {535 230 80 20} color 0 labelcolor 7
+                    label {Read Back:}
+                    xywh {375 230 80 20} align 20
+                  }
+                  Fl_Input {} {
+                    label {Flash Read Back P1}
+                    callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                    xywh {475 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                    code0 {AvrUI::tx_Param[Avr::PAR_FLASH_READ_BACK_P1]=o;}
+                  }
+                  Fl_Input {} {
+                    label {Flash Read Back P2}
+                    callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                    xywh {530 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                    code0 {AvrUI::tx_Param[Avr::PAR_FLASH_READ_BACK_P2]=o;}
+                  }
+                  Fl_Box {} {
+                    label p2
+                    xywh {510 230 20 20} align 20
+                  }
+                  Fl_Box {} {
+                    label p1
+                    xywh {455 230 20 20} align 20
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 255 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Read Program Memory Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 270 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_FLASH_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read Program Memory:}
+                    xywh {375 255 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 290 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Write Program Memory Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 305 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_FLASH_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write Program Memory:}
+                    xywh {375 290 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 325 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Load Extended Address Byte Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 340 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_LOAD_EXT_ADDR_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Load Extended Address Byte:}
+                    xywh {375 325 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 360 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Load Program Memory Page Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 375 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_LOAD_FLASH_PAGE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Load Program Memory Page:}
+                    xywh {375 360 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 395 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Write Program Memory Page Instrcution}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 410 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_FLASH_PAGE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write Program Memory Page:}
+                    xywh {375 395 240 15} align 22
+                  }
+                }
+              }
+            }
+            Fl_Group {} {
+              label EEPROM open
+              private tooltip {EEPROM Memory} xywh {370 160 250 275} labelsize 12 hide
+            } {
+              Fl_Group {} {
+                xywh {374 165 241 265} deactivate
+                code0 {AvrUI::g_eepromcfg=o;}
+              } {
+                Fl_Group {} {open
+                  xywh {375 165 240 60}
+                } {
+                  Fl_Group {} {open
+                    xywh {375 205 240 20}
+                  } {
+                    Fl_Input {} {
+                      label {EEPROM Size}
+                      xywh {375 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_EEPROM_SIZE]=o;}
+                    }
+                    Fl_Input {} {
+                      label {EEPROM Page Size}
+                      xywh {435 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_EEPROM_PAGE_SIZE]=o;}
+                    }
+                    Fl_Input {} {
+                      label {EEPROM Pages}
+                      xywh {495 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_EEPROM_PAGES]=o;}
+                    }
+                    Fl_Input {} {
+                      label {EEPROM Wait Delay}
+                      xywh {555 205 60 20} type Int labeltype NO_LABEL
+                      code0 {AvrUI::tx_Param[Avr::PAR_WD_EEPROM]=o;}
+                    }
+                  }
+                  Fl_Group {} {open
+                    xywh {375 165 240 40} box BORDER_BOX color 40
+                  } {
+                    Fl_Box {} {
+                      label {Size [Bytes]}
+                      xywh {375 165 60 40} box BORDER_FRAME color 0 labelcolor 7 align 144
+                    }
+                    Fl_Box {} {
+                      label {Page Sz. [Bytes]}
+                      xywh {435 165 60 40} labelcolor 7 align 144
+                    }
+                    Fl_Box {} {
+                      label {Num Pages}
+                      xywh {495 165 60 40} box BORDER_FRAME color 0 labelcolor 7 align 144
+                    }
+                    Fl_Box {} {
+                      label {Delay [uS]}
+                      xywh {555 165 60 40} labelcolor 7 align 144
+                    }
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 230 240 20}
+                } {
+                  Fl_Box {} {
+                    label {[hex 8]}
+                    xywh {565 230 50 20} align 20
+                  }
+                  Fl_Box {} {
+                    label {Read Back:}
+                    xywh {375 230 80 20} align 20
+                  }
+                  Fl_Input {} {
+                    label {EEPROM Read Back P1}
+                    callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                    xywh {475 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                    code0 {AvrUI::tx_Param[Avr::PAR_EEPROM_READ_BACK_P1]=o;}
+                  }
+                  Fl_Input {} {
+                    label {EEPROM Read Back P2}
+                    callback {AvrUI::validateChar(o,Avr::validHexDigit,2);}
+                    xywh {530 230 35 20} labeltype NO_LABEL when 1 textfont 4
+                    code0 {AvrUI::tx_Param[Avr::PAR_EEPROM_READ_BACK_P2]=o;}
+                  }
+                  Fl_Box {} {
+                    label p2
+                    xywh {510 230 20 20} align 20
+                  }
+                  Fl_Box {} {
+                    label p1
+                    xywh {455 230 20 20} align 20
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 288 240 37}
+                } {
+                  Fl_Input {} {
+                    label {Read EEPROM Memory Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 305 240 20} labeltype NO_LABEL when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_EEPROM_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read EEPROM Memory:}
+                    xywh {375 290 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 323 240 37}
+                } {
+                  Fl_Input {} {
+                    label {Write EEPROM Memory Instrcution}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 340 240 20} labeltype NO_LABEL when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_EEPROM_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write EEPROM Memory:}
+                    xywh {375 325 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 358 240 37}
+                } {
+                  Fl_Input {} {
+                    label {Load EEPROM Memory Page Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 375 240 20} labeltype NO_LABEL when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_LOAD_EEPROM_PAGE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Load EEPROM Memory Page:}
+                    xywh {375 360 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 390 240 40}
+                } {
+                  Fl_Input {} {
+                    label {Write EEPROM Memory Page Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 410 240 20} labeltype NO_LABEL when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_EEPROM_PAGE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write EEPROM Memory Page:}
+                    xywh {375 395 240 15} align 22
+                  }
+                }
+              }
+            }
+            Fl_Group {} {
+              label Fuse open
+              private tooltip Fuses xywh {370 160 250 275} labelsize 12 hide
+            } {
+              Fl_Group {} {
+                xywh {375 165 240 265} deactivate
+                code0 {AvrUI::g_fusecfg=o;}
+              } {
+                Fl_Check_Button {} {
+                  label {Power OFF After Write Fuse bits}
+                  xywh {375 165 240 20} down_box DOWN_BOX align 16
+                  code0 {AvrUI::tb_powerOffAfterWrite=o;}
+                }
+                Fl_Group {} {open
+                  xywh {375 190 170 20}
+                } {
+                  Fl_Input {} {
+                    label {Fuse Wait Delay}
+                    xywh {455 190 60 20} type Int labeltype NO_LABEL
+                    code0 {AvrUI::tx_Param[Avr::PAR_WD_FUSE]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Wait delay:}
+                    xywh {375 190 80 20} align 20
+                  }
+                  Fl_Box {} {
+                    label {[uS]}
+                    xywh {515 190 30 20} align 20
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 220 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Read Fuse (Low) Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 235 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_FUSE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read Fuse (Low) Bits:}
+                    xywh {375 220 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 255 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Write Fuse (Low) Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 270 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_FUSE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write Fuse (Low) Bits:}
+                    xywh {375 255 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 290 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Read Fuse High Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 305 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_FUSE_HIGH_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read Fuse High Bits:}
+                    xywh {375 290 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 325 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Write Fuse High Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 340 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_FUSE_HIGH_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write Fuse High Bits:}
+                    xywh {375 325 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 360 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Read Extended Fuse Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 375 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_EXT_FUSE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read Extended Fuse Bits:}
+                    xywh {375 360 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 395 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Write Extended Fuse Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 410 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_EXT_FUSE_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write Extended Fuse Bits:}
+                    xywh {375 395 240 15} align 22
+                  }
+                }
+              }
+            }
+            Fl_Group {} {
+              label {Misc.} open
+              tooltip {Lock and Calibration} xywh {370 160 250 275} labelsize 12 hide
+            } {
+              Fl_Group {} {open
+                xywh {375 165 240 265} deactivate
+                code0 {AvrUI::g_misccfg=o;}
+              } {
+                Fl_Check_Button {} {
+                  label Experimental
+                  private xywh {375 165 240 20} down_box DOWN_BOX
+                  code0 {AvrUI::tb_Experimental=o;}
+                }
+                Fl_Group {} {open
+                  xywh {375 190 240 20}
+                } {
+                  Fl_Input {} {
+                    label {Number of Calibration Bytes}
+                    xywh {560 190 55 20} type Int labeltype NO_LABEL when 1
+                    code0 {AvrUI::tx_Param[Avr::PAR_CALIBRATION_BYTES]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Number of Calibration Bytes:}
+                    xywh {375 190 185 20} align 20
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 215 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Fuse (Low) bits names}
+                    callback {AvrUI::validateChar(o,Avr::validBitNameChars,Avr::BITS_IN_FUSES*(Avr::BIT_NAME_MAX_SIZE+1)-1);}
+                    tooltip {b7 name, b6 name, ..., b1 name, b0 name} xywh {375 230 240 20} labeltype NO_LABEL align 0 textfont 4 textsize 12
+                    code0 {o->value("-,-,-,-,-,-,-,-");}
+                    code1 {AvrUI::tx_bitNames[Avr::FUSE_LOW_BITS]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Fuse (Low) bits names:}
+                    xywh {375 215 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 250 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Fuse High bits names}
+                    callback {AvrUI::validateChar(o,Avr::validBitNameChars,Avr::BITS_IN_FUSES*(Avr::BIT_NAME_MAX_SIZE+1)-1);}
+                    tooltip {b7 name, b6 name, ..., b1 name, b0 name} xywh {375 265 240 20} labeltype NO_LABEL align 0 textfont 4 textsize 12
+                    code0 {o->value("-,-,-,-,-,-,-,-");}
+                    code1 {AvrUI::tx_bitNames[Avr::FUSE_HIGH_BITS]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Fuse High bits names:}
+                    xywh {375 250 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 285 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Ext Fuse bits names}
+                    callback {AvrUI::validateChar(o,Avr::validBitNameChars,Avr::BITS_IN_FUSES*(Avr::BIT_NAME_MAX_SIZE+1)-1);}
+                    tooltip {b7 name, b6 name, ..., b1 name, b0 name} xywh {375 300 240 20} labeltype NO_LABEL align 0 textfont 4 textsize 12
+                    code0 {o->value("-,-,-,-,-,-,-,-");}
+                    code1 {AvrUI::tx_bitNames[Avr::EXT_FUSE_BITS]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Ext Fuse bits names:}
+                    xywh {375 285 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 320 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Lock bits names}
+                    callback {AvrUI::validateChar(o,Avr::validBitNameChars,Avr::BITS_IN_FUSES*(Avr::BIT_NAME_MAX_SIZE+1)-1);}
+                    tooltip {b7 name, b6 name, ..., b1 name, b0 name} xywh {375 335 240 20} labeltype NO_LABEL align 0 textfont 4 textsize 12
+                    code0 {o->value("-,-,-,-,-,-,-,-");}
+                    code1 {AvrUI::tx_bitNames[Avr::LOCK_BITS]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Lock bits names:}
+                    xywh {375 320 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 325 240 35} hide
+                } {
+                  Fl_Input {} {
+                    label {Read Calibration Byte Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 340 240 20} labeltype NO_LABEL labelfont 4 labelsize 12 align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_CALIBRATION_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read Calibration Byte:}
+                    xywh {375 325 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 360 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Read lock Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 375 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_READ_LOCK_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Read lock Bits:}
+                    xywh {375 360 240 15} align 22
+                  }
+                }
+                Fl_Group {} {open
+                  xywh {375 395 240 35}
+                } {
+                  Fl_Input {} {
+                    label {Write lock Bits Instruction}
+                    callback {AvrUI::validateChar(o,Avr::validInstructionChars,32);}
+                    xywh {375 410 240 20} labeltype NO_LABEL align 5 when 1 textfont 4 textsize 12
+                    code0 {AvrUI::tx_Param[Avr::PAR_WRITE_LOCK_INST]=o;}
+                    code1 {o->tooltip(AvrUI::instructionsFormatTips);}
+                  }
+                  Fl_Box {} {
+                    label {Write lock Bits:}
+                    xywh {375 395 240 15} align 22
                   }
                 }
               }
@@ -736,8 +1525,11 @@ cfgWordsCB(CFG_NEW);}
             callback {programmerConfigCB(CFG_IMPORT);
 ch_programmers->do_callback();
 g_progcfg->deactivate();
+g_pinConnections->deactivate();
+g_pinSetup->deactivate();
 g_progCfgNewEditCopy->activate();
-t_progcfg->redraw();}
+t_progcfg->redraw();
+ch_programmers->activate();}
             private tooltip {Import the programmer settings from a file.} image {./pixmaps/cfgopen.xpm} deimage {./pixmaps/cfgopen-desel.xpm} xywh {370 55 25 25} box FLAT_BOX align 16
             code0 {o->hilighted_box(FL_THIN_UP_BOX);}
             class Fl_RaiseButton
@@ -746,7 +1538,10 @@ t_progcfg->redraw();}
             xywh {395 55 80 25}
           } {
             Fl_Button {} {
-              callback {g_progcfg->activate();
+              callback {ch_programmers->deactivate();
+g_progcfg->activate();
+g_pinConnections->activate();
+g_pinSetup->activate();
 g_progCfgNewEditCopy->deactivate();
 programmerConfigCB(CFG_NEW);}
               private tooltip {Insert a new programmer.} image {./pixmaps/filenew.xpm} deimage {./pixmaps/filenew-desel.xpm} xywh {395 55 25 25} box FLAT_BOX align 16
@@ -754,7 +1549,10 @@ programmerConfigCB(CFG_NEW);}
               class Fl_RaiseButton
             }
             Fl_Button {} {
-              callback {g_progcfg->activate();
+              callback {ch_programmers->deactivate();
+g_progcfg->activate();
+g_pinConnections->activate();
+g_pinSetup->activate();
 g_progCfgNewEditCopy->deactivate();
 programmerConfigCB(CFG_EDIT);}
               private tooltip {Edit current programmer settings.} image {./pixmaps/edit.xpm} deimage {./pixmaps/edit-desel.xpm} xywh {420 55 25 25} box FLAT_BOX align 16
@@ -762,7 +1560,10 @@ programmerConfigCB(CFG_EDIT);}
               class Fl_RaiseButton
             }
             Fl_Button {} {
-              callback {g_progcfg->activate();
+              callback {ch_programmers->deactivate();
+g_progcfg->activate();
+g_pinConnections->activate();
+g_pinSetup->activate();
 g_progCfgNewEditCopy->deactivate();
 programmerConfigCB(CFG_COPY);}
               private tooltip {Clone current programmer settings.} image {./pixmaps/editcopy.xpm} deimage {./pixmaps/editcopy-desel.xpm} xywh {445 55 25 25} box FLAT_BOX align 16
@@ -772,17 +1573,20 @@ programmerConfigCB(CFG_COPY);}
           }
           Fl_Box {} {
             label label
-            private xywh {471 55 3 25} box THIN_UP_BOX labeltype NO_LABEL
+            private xywh {471 55 2 25} box THIN_DOWN_BOX labeltype NO_LABEL
           }
-          Fl_Group g_pogStoreMGR {open
+          Fl_Group g_progStoreMGR {open
             xywh {475 55 145 25}
           } {
             Fl_Button {} {
               callback {if (programmerConfigCB(CFG_SAVE)) {
     g_progcfg->deactivate();
+    g_pinConnections->activate();
+    g_pinSetup->activate();
     g_progCfgNewEditCopy->activate();
     t_progcfg->redraw();
     ch_programmers->do_callback();
+    ch_programmers->activate();
 }}
               private tooltip {Save current programmer settings.} image {./pixmaps/cfgsave.xpm} deimage {./pixmaps/cfgsave-desel.xpm} xywh {475 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
@@ -791,8 +1595,11 @@ programmerConfigCB(CFG_COPY);}
             Fl_Button {} {
               callback {if (programmerConfigCB(CFG_DELETE)) {
     g_progcfg->deactivate();
+    g_pinConnections->deactivate();
+    g_pinSetup->deactivate();
     g_progCfgNewEditCopy->activate();
     t_progcfg->redraw();
+    ch_programmers->activate();
 }}
               private tooltip {Remove/discard current programmer settings.} image {./pixmaps/editdelete.xpm} deimage {./pixmaps/editdelete-desel.xpm} xywh {595 55 25 25} box FLAT_BOX align 16
               code0 {o->hilighted_box(FL_THIN_UP_BOX);}
@@ -801,7 +1608,7 @@ programmerConfigCB(CFG_COPY);}
           }
         }
         Fl_Group g_progcfg {open
-          xywh {370 85 250 350} deactivate
+          xywh {370 85 250 20} deactivate
         } {
           Fl_Group {} {open
             private xywh {370 85 250 20}
@@ -811,1295 +1618,534 @@ programmerConfigCB(CFG_COPY);}
               tooltip {The name of the programming device.} xywh {495 85 125 20}
             }
           }
-          Fl_Group {} {open
-            private xywh {370 115 250 200} align 129
+        }
+        Fl_Tabs {} {open
+          xywh {365 110 260 330} box UP_BOX
+        } {
+          Fl_Group {} {
+            label {Pin Connections} open
+            xywh {365 130 260 310}
           } {
-            Fl_Group {} {open
-              private xywh {370 115 250 20} box BORDER_BOX color 41
+            Fl_Group g_pinConnections {open
+              xywh {370 140 250 290} deactivate
             } {
-              Fl_Box {} {
-                label {Pin Name}
-                private xywh {370 115 170 20} box BORDER_FRAME color 0 labelcolor 7
-              }
-              Fl_Box {} {
-                label Invert
-                private xywh {540 115 40 20} color 0 labelcolor 7
-              }
-              Fl_Box {} {
-                label {Pin \#}
-                private xywh {580 115 40 20} box BORDER_FRAME color 0 labelcolor 7
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin used to control the clock signal.} xywh {370 135 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin used to control the clock signal.} xywh {550 135 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[ICSP_CLOCK]=o;}
-              }
-              Fl_Choice {} {
-                private xywh {580 135 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[ICSP_CLOCK]=o;}
-                class Fl_Sorted_Choice
+              Fl_Group {} {
+                xywh {370 140 250 20}
               } {
-                MenuItem {} {
-                  label 0
-                  private xywh {5 5 100 20}
+                Fl_Group {} {open
+                  xywh {370 140 125 20} box BORDER_BOX color 41
+                } {
+                  Fl_Box {} {
+                    label {Inv.}
+                    private xywh {370 140 30 20} color 16 labelcolor 7
+                  }
+                  Fl_Box {} {
+                    label Connection
+                    private xywh {400 140 95 20} box BORDER_BOX color 41 labelcolor 7
+                  }
                 }
-                MenuItem {} {
-                  label 1
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {5 5 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {5 5 100 20}
+                Fl_Group {} {open
+                  xywh {495 140 125 20} box BORDER_BOX color 41
+                } {
+                  Fl_Box {} {
+                    label {Inv.}
+                    private xywh {495 140 30 20} color 16 labelcolor 7
+                  }
+                  Fl_Box {} {
+                    label Connection
+                    private xywh {525 140 95 20} box BORDER_BOX color 41 labelcolor 7
+                  }
                 }
               }
-              Fl_Box {} {
-                label {ICSP Clock}
-                private tooltip {The pin used to control the clock signal.} xywh {370 135 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[ICSP_CLOCK]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin from which to read the data read from\\nthe programmed device.} xywh {370 155 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin from which to read the data read from the programmed device.} xywh {550 155 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[ICSP_DATA_IN]=o;}
-              }
-              Fl_Choice {} {
-                callback {bx_pinName[ICSP_DATA_IN]->color(FL_WHITE);
-bx_pinName[ICSP_DATA_IN]->redraw();}
-                private tooltip {The pin from which to read the data read from the programmed device.} xywh {580 155 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[ICSP_DATA_IN]=o;}
-                class Fl_Sorted_Choice
+              Fl_Group {} {open
+                xywh {370 170 250 260}
               } {
-                MenuItem {} {
-                  label 0
-                  private xywh {15 15 100 20}
+                Fl_Group {} {open
+                  xywh {370 170 125 20}
+                  code0 {g_parportPin[0]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 1
+                    xywh {370 170 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[0]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 170 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[0]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 190 125 20}
+                  code0 {g_parportPin[1]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 2
+                    xywh {370 190 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[1]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 190 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[1]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 210 125 20}
+                  code0 {g_parportPin[2]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 3
+                    xywh {370 210 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[2]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 210 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[2]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 230 125 20}
+                  code0 {g_parportPin[3]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 4
+                    xywh {370 230 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[3]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 230 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[3]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 250 125 20}
+                  code0 {g_parportPin[4]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 5
+                    xywh {370 250 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[4]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 250 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[4]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 270 125 20}
+                  code0 {g_parportPin[5]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 6
+                    xywh {370 270 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[5]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 270 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[5]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 290 125 20}
+                  code0 {g_parportPin[6]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 7
+                    xywh {370 290 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[6]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 290 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[6]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 310 125 20}
+                  code0 {g_parportPin[7]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 8
+                    xywh {370 310 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[7]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 310 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[7]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 330 125 20}
+                  code0 {g_parportPin[8]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 9
+                    xywh {370 330 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[8]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 330 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[8]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 350 125 20}
+                  code0 {g_parportPin[9]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 10
+                    xywh {370 350 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[9]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 350 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[9]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 370 125 20}
+                  code0 {g_parportPin[10]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 11
+                    xywh {370 370 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[10]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 370 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[10]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 390 125 20}
+                  code0 {g_parportPin[11]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 12
+                    xywh {370 390 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[11]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 390 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[11]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {370 410 125 20}
+                  code0 {g_parportPin[12]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 13
+                    xywh {370 410 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[12]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {400 410 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[12]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 180 125 20}
+                  code0 {g_parportPin[13]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 14
+                    xywh {495 181 30 19} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[13]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 180 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[13]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 200 125 20}
+                  code0 {g_parportPin[14]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 15
+                    xywh {495 200 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[14]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 200 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[14]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 220 125 20}
+                  code0 {g_parportPin[15]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 16
+                    xywh {495 220 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[15]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 220 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[15]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 240 125 20}
+                  code0 {g_parportPin[16]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 17
+                    xywh {495 240 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[16]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 240 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[16]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 260 125 20}
+                  code0 {g_parportPin[17]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 18
+                    xywh {495 260 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[17]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 260 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[17]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 280 125 20}
+                  code0 {g_parportPin[18]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 19
+                    xywh {495 280 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[18]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 280 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[18]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 300 125 20}
+                  code0 {g_parportPin[19]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 20
+                    xywh {495 300 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[19]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 300 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[19]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 320 125 20}
+                  code0 {g_parportPin[20]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 21
+                    xywh {495 320 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[20]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 320 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[20]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 340 125 20}
+                  code0 {g_parportPin[21]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 22
+                    xywh {495 340 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[21]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 340 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[21]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 360 125 20}
+                  code0 {g_parportPin[22]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 23
+                    xywh {495 360 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[22]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 360 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[22]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 380 125 20}
+                  code0 {g_parportPin[23]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 24
+                    xywh {495 380 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[23]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 380 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[23]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
+                }
+                Fl_Group {} {open
+                  xywh {495 400 125 20}
+                  code0 {g_parportPin[24]=o;}
+                } {
+                  Fl_Light_Button {} {
+                    label 25
+                    xywh {495 400 30 20} box FLAT_BOX selection_color 4
+                    code0 {tb_pinInvert[24]=o;}
+                  }
+                  Fl_Choice {} {open
+                    private xywh {525 400 95 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
+                    code0 {\#include <FL/Fl_Sorted_Choice.H>}
+                    code1 {ch_pinConnection[24]=o;}
+                    class Fl_Sorted_Choice
+                  } {}
                 }
-                MenuItem {} {
-                  label 1
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {15 15 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {15 15 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {ICSP Data In}
-                private tooltip {The pin from which to read the data read from the programmed device.} xywh {370 155 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[ICSP_DATA_IN]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin used to send the command/data to\\nprogram the device.} xywh {370 175 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin used to send the command/data to program the device.} xywh {550 175 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[ICSP_DATA_OUT]=o;}
-              }
-              Fl_Choice {} {
-                callback {bx_pinName[ICSP_DATA_OUT]->color(FL_WHITE);
-bx_pinName[ICSP_DATA_OUT]->redraw();}
-                private tooltip {The pin used to send the command/data to program the device.} xywh {580 175 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[ICSP_DATA_OUT]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {25 25 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {25 25 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {ICSP Data Out}
-                private tooltip {The pin used to send the command/data to program the device.} xywh {370 175 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[ICSP_DATA_OUT]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin which controls the Vdd power on/off.} xywh {370 195 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin which controls the Vpp power on.} xywh {550 195 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[ICSP_VDD_ON]=o;}
-              }
-              Fl_Choice {} {
-                callback {bx_pinName[ICSP_VDD_ON]->color(FL_WHITE);
-bx_pinName[ICSP_VDD_ON]->redraw();}
-                private tooltip {The pin which controls the Vpp power on.} xywh {580 195 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[ICSP_VDD_ON]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {40 40 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {40 40 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {A) ICSP Vdd On}
-                private tooltip {The pin which controls the Vdd power on/off.} xywh {370 195 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[ICSP_VDD_ON]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin which controls the Vpp power on/off.} xywh {370 215 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin which controls the Vpp power on/off.} xywh {550 215 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[ICSP_VPP_ON]=o;}
-              }
-              Fl_Choice {} {
-                callback {bx_pinName[ICSP_VPP_ON]->color(FL_WHITE);
-bx_pinName[ICSP_VPP_ON]->redraw();}
-                private tooltip {The pin which controls the Vpp power on/off.} xywh {580 215 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[ICSP_VPP_ON]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {95 95 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {95 95 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {B) ICSP Vpp On}
-                private tooltip {The pin which controls the Vpp power on/off.} xywh {370 215 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[ICSP_VPP_ON]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin used to select the minimum value of Vdd.} xywh {370 235 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin used to select the minimum value of Vdd.} xywh {550 235 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[SEL_MIN_VDD]=o;}
-              }
-              Fl_Choice {} {
-                callback {if (o->value()) {
-    tb_vddMinCond [0]->value(1);
-    tb_vddMinCond [0]->deactivate();
-    tb_vddProgCond[0]->activate();
-    tb_vddMaxCond [0]->activate();
-} else {
-    tb_vddMinCond [0]->value(0);
-    tb_vddProgCond[0]->value(0);
-    tb_vddMaxCond [0]->value(0);
-    tb_vddMinCond [0]->deactivate();
-    tb_vddProgCond[0]->deactivate();
-    tb_vddMaxCond [0]->deactivate();
-}
-tb_vddMinCond [0]->redraw();
-tb_vddProgCond[0]->redraw();
-tb_vddMaxCond [0]->redraw();
-bx_pinName[SEL_MIN_VDD]->color(FL_WHITE);
-bx_pinName[SEL_MIN_VDD]->redraw();}
-                private tooltip {The pin used to select the minimum value of Vdd.} xywh {580 235 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[SEL_MIN_VDD]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {50 50 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {50 50 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {C) Selects Minimum Vdd}
-                private tooltip {The pin used to select the minimum value of Vdd.} xywh {370 235 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[SEL_MIN_VDD]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin used to select the programming value\\nof Vdd.} xywh {370 255 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin used to select the programming value of Vdd.} xywh {550 255 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[SEL_PRG_VDD]=o;}
-              }
-              Fl_Choice {} {
-                callback {if (o->value()) {
-    tb_vddMinCond [1]->activate();
-    tb_vddProgCond[1]->value(1);
-    tb_vddProgCond[1]->deactivate();
-    tb_vddMaxCond [1]->activate();
-} else {
-    tb_vddMinCond [1]->value(0);
-    tb_vddProgCond[1]->value(0);
-    tb_vddMaxCond [1]->value(0);
-    tb_vddMinCond [1]->deactivate();
-    tb_vddProgCond[1]->deactivate();
-    tb_vddMaxCond [1]->deactivate();
-}
-tb_vddMinCond [1]->redraw();
-tb_vddProgCond[1]->redraw();
-tb_vddMaxCond [1]->redraw();
-bx_pinName[SEL_PRG_VDD]->color(FL_WHITE);
-bx_pinName[SEL_PRG_VDD]->redraw();}
-                private tooltip {The pin used to select the programming value of Vdd.} xywh {580 255 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[SEL_PRG_VDD]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {60 60 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {60 60 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {D) Selects Program Vdd}
-                private tooltip {The pin used to select the programming value of Vdd.} xywh {370 255 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[SEL_PRG_VDD]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin used to select the maximum value of Vdd.} xywh {370 275 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin used to select the maximum value of Vdd.} xywh {550 275 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[SEL_MAX_VDD]=o;}
-              }
-              Fl_Choice {} {
-                callback {if (o->value()) {
-    tb_vddMinCond [2]->activate();
-    tb_vddProgCond[2]->activate();
-    tb_vddMaxCond [2]->value(1);
-    tb_vddMaxCond [2]->deactivate();
-} else {
-    tb_vddMinCond [2]->value(0);
-    tb_vddProgCond[2]->value(0);
-    tb_vddMaxCond [2]->value(0);
-    tb_vddMinCond [2]->deactivate();
-    tb_vddProgCond[2]->deactivate();
-    tb_vddMaxCond [2]->deactivate();
-}
-tb_vddMinCond [2]->redraw();
-tb_vddProgCond[2]->redraw();
-tb_vddMaxCond [2]->redraw();
-bx_pinName[SEL_MAX_VDD]->color(FL_WHITE);
-bx_pinName[SEL_MAX_VDD]->redraw();}
-                private tooltip {The pin used to select the maximum value of Vdd.} xywh {580 275 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[SEL_MAX_VDD]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {70 70 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {70 70 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {E) Selects Maximum Vdd}
-                private tooltip {The pin used to select the maximum value of Vdd.} xywh {370 275 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[SEL_MAX_VDD]=o;}
-              }
-            }
-            Fl_Group {} {open
-              private tooltip {The pin used to select the value of Vpp.} xywh {370 295 250 20} box BORDER_BOX color 7
-            } {
-              Fl_Check_Button {} {
-                private tooltip {The pin used to select the value of Vpp.} xywh {550 295 20 20} down_box DOWN_BOX align 4
-                code0 {tb_pinInvert[SEL_VIHH_VPP]=o;}
-              }
-              Fl_Choice {} {
-                callback {if (o->value()) {
-    tb_vppOffCond->activate();
-} else {
-    tb_vppOffCond->value(0);
-    tb_vppOffCond->deactivate();
-}
-tb_vppOffCond->redraw();
-bx_pinName[SEL_VIHH_VPP]->color(FL_WHITE);
-bx_pinName[SEL_VIHH_VPP]->redraw();}
-                private tooltip {The pin used to select the value of Vpp.} xywh {580 295 40 20} box NO_BOX down_box BORDER_BOX labeltype NO_LABEL when 1
-                code0 {\#include <FL/Fl_Sorted_Choice.H>}
-                code1 {ch_pinNumber[SEL_VIHH_VPP]=o;}
-                class Fl_Sorted_Choice
-              } {
-                MenuItem {} {
-                  label 0
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 1
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 2
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 3
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 4
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 5
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 6
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 7
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 8
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 9
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 10
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 11
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 12
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 13
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 14
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 15
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 16
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 17
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 18
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 19
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 20
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 21
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 22
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 23
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 24
-                  private xywh {80 80 100 20}
-                }
-                MenuItem {} {
-                  label 25
-                  private xywh {80 80 100 20}
-                }
-              }
-              Fl_Box {} {
-                label {F) Selects VIH/VIL Vpp}
-                private tooltip {The pin used to select the value of Vpp (VIH~=13V; VIL=Vdd).} xywh {370 295 170 20} box BORDER_BOX color 7 align 20
-                code0 {bx_pinName[SEL_VIHH_VPP]=o;}
               }
             }
           }
-          Fl_Group {} {open
-            private xywh {370 325 250 110}
+          Fl_Group {} {
+            label {Pin Setup} open
+            xywh {365 130 260 310} hide
           } {
-            Fl_Group {} {open
-              private xywh {370 325 250 20}
+            Fl_Group g_pinSetup {open
+              xywh {370 135 250 300} deactivate
             } {
-              Fl_Box {} {
-                label {Vdd=Vdd min.}
-                private xywh {370 325 95 20} color 0 align 20
+              Fl_Group {} {open
+                private xywh {370 135 250 70} box THIN_DOWN_BOX
+              } {
+                Fl_Box {} {
+                  label {Vdd=Vdd min. if:}
+                  private xywh {375 140 100 60} color 0 align 144
+                }
+                Fl_Check_Button {tb_vddMinCond[0]} {
+                  label {Vdd Min Selected}
+                  tooltip {Minimum Vdd Selected} xywh {475 140 145 20} down_box DOWN_BOX
+                }
+                Fl_Check_Button {tb_vddMinCond[1]} {
+                  label {Vdd Prog Selected}
+                  tooltip {Programming Vdd Selected} xywh {475 160 145 20} down_box DOWN_BOX
+                }
+                Fl_Check_Button {tb_vddMinCond[2]} {
+                  label {Vdd Max Selected}
+                  tooltip {Maximum Vdd Selected} xywh {475 180 145 20} down_box DOWN_BOX
+                }
               }
-              Fl_Box {} {
-                label {if:}
-                private xywh {465 325 15 20} align 20
+              Fl_Group {} {open
+                private xywh {370 205 250 70} box THIN_DOWN_BOX
+              } {
+                Fl_Box {} {
+                  label {Vdd=Vdd prg. if:}
+                  private xywh {375 210 100 60} color 0 align 144
+                }
+                Fl_Check_Button {tb_vddPrgCond[0]} {
+                  label {Vdd Min Selected}
+                  tooltip {Minimum Vdd Selected} xywh {475 210 145 20} down_box DOWN_BOX
+                }
+                Fl_Check_Button {tb_vddPrgCond[1]} {
+                  label {Vdd Prog Selected}
+                  tooltip {Programming Vdd Selected} xywh {475 230 145 20} down_box DOWN_BOX
+                }
+                Fl_Check_Button {tb_vddPrgCond[2]} {
+                  label {Vdd Max Selected}
+                  tooltip {Maximum Vdd Selected} xywh {475 250 145 20} down_box DOWN_BOX
+                }
               }
-              Fl_Check_Button {tb_vddMinCond[0]} {
-                label {C=}
-                tooltip {Minimum Vdd Selected} xywh {510 325 20 20} down_box DOWN_BOX align 4 deactivate
+              Fl_Group {} {open
+                private xywh {370 275 250 70} box THIN_DOWN_BOX
+              } {
+                Fl_Box {} {
+                  label {Vdd=Vdd max. if:}
+                  private xywh {374 280 100 60} color 0 align 144
+                }
+                Fl_Check_Button {tb_vddMaxCond[0]} {
+                  label {Vdd Min Selected}
+                  tooltip {Minimum Vdd Selected} xywh {475 280 145 20} down_box DOWN_BOX
+                }
+                Fl_Check_Button {tb_vddMaxCond[1]} {
+                  label {Vdd Prog Selected}
+                  tooltip {Programming Vdd Selected} xywh {475 300 145 20} down_box DOWN_BOX
+                }
+                Fl_Check_Button {tb_vddMaxCond[2]} {
+                  label {Vdd Max Selected}
+                  tooltip {Maximum Vdd Selected} xywh {475 320 145 20} down_box DOWN_BOX
+                }
               }
-              Fl_Check_Button {tb_vddMinCond[1]} {
-                label {D=}
-                tooltip {Programming Vdd Selected} xywh {555 325 20 20} down_box DOWN_BOX align 4 deactivate
+              Fl_Group {} {open
+                xywh {370 345 250 40} box THIN_DOWN_BOX
+              } {
+                Fl_Check_Button tb_vppOffCond {
+                  label {Set VIH/VIL Vpp OFF before setting ICSP VDD OFF}
+                  tooltip {Some programmers switch ICSP Vpp OFF by putting it to GND. Enabling this causes the disconnection of ICSP Vpp from VIHH before putting it to GND.} xywh {375 350 240 30} box FLAT_BOX down_box DOWN_BOX align 144
+                }
               }
-              Fl_Check_Button {tb_vddMinCond[2]} {
-                label {E=}
-                tooltip {Maximum Vdd Selected} xywh {600 325 20 20} down_box DOWN_BOX align 4 deactivate
+              Fl_Group {} {open
+                xywh {370 385 250 50} box THIN_DOWN_BOX
+              } {
+                Fl_Check_Button tb_saVddVppControl {
+                  label {ICSP VPP can be set ON even  if ICSP VDD is OFF}
+                  tooltip {The programming specifications for some devices (i.e. PIC12C5xx) require that ICSP Vpp rises to VIHH before the ICSP Vdd is ON. To allow this the programmer must control the ICSP Vdd and the ICSP Vpp independently from each other.} xywh {375 390 240 40} box FLAT_BOX down_box DOWN_BOX align 144
+                }
               }
-            }
-            Fl_Group {} {open
-              private xywh {370 345 250 20}
-            } {
-              Fl_Box {} {
-                label {Vdd=Vdd prg.}
-                private xywh {370 345 95 20} color 0 align 20
-              }
-              Fl_Box {} {
-                label {if:}
-                private xywh {465 345 15 20} align 20
-              }
-              Fl_Check_Button {tb_vddProgCond[0]} {
-                label {C=}
-                tooltip {Minimum Vdd Selected} xywh {510 345 20 20} down_box DOWN_BOX align 4 deactivate
-              }
-              Fl_Check_Button {tb_vddProgCond[1]} {
-                label {D=}
-                tooltip {Programming Vdd Selected} xywh {555 345 20 20} down_box DOWN_BOX align 4 deactivate
-              }
-              Fl_Check_Button {tb_vddProgCond[2]} {
-                label {E=}
-                tooltip {Maximum Vdd Selected} xywh {600 345 20 20} down_box DOWN_BOX align 4 deactivate
-              }
-            }
-            Fl_Group {} {open
-              private xywh {370 365 250 20}
-            } {
-              Fl_Box {} {
-                label {Vdd=Vdd max.}
-                private xywh {370 365 95 20} color 0 align 20
-              }
-              Fl_Box {} {
-                label {if:}
-                private xywh {465 365 15 20} align 20
-              }
-              Fl_Check_Button {tb_vddMaxCond[0]} {
-                label {C=}
-                tooltip {Minimum Vdd Selected} xywh {510 365 20 20} down_box DOWN_BOX align 4 deactivate
-              }
-              Fl_Check_Button {tb_vddMaxCond[1]} {
-                label {D=}
-                tooltip {Programming Vdd Selected} xywh {555 365 20 20} down_box DOWN_BOX align 4 deactivate
-              }
-              Fl_Check_Button {tb_vddMaxCond[2]} {
-                label {E=}
-                tooltip {Maximum Vdd Selected} xywh {600 365 20 20} down_box DOWN_BOX align 4 deactivate
-              }
-            }
-            Fl_Check_Button tb_vppOffCond {
-              label {Set (F) OFF before setting (B) OFF}
-              tooltip {Some programmers switch ICSP Vpp OFF by putting it to GND. Enabling this causes the disconnection of ICSP Vpp from VIHH before putting it to GND.} xywh {370 390 250 20} down_box DOWN_BOX deactivate
-            }
-            Fl_Check_Button tb_saVddVppControl {
-              label {(B) can be set ON even if (A) is OFF}
-              tooltip {The programming specifications for some devices (i.e. PIC12C5xx) require that ICSP Vpp rises to VIHH before the ICSP Vdd is ON. To allow this the programmer must control the ICSP Vdd and the ICSP Vpp independently from each other.} xywh {370 415 250 20} down_box DOWN_BOX
             }
           }
         }
@@ -2153,7 +2199,7 @@ generalSettingsCB(CFG_COPY);}
           }
           Fl_Box {} {
             label label
-            private xywh {471 55 3 25} box THIN_UP_BOX labeltype NO_LABEL
+            private xywh {471 55 2 25} box THIN_DOWN_BOX labeltype NO_LABEL
           }
           Fl_Group g_settingsStoreMGR {open
             xywh {475 55 145 25} deactivate
@@ -2379,7 +2425,7 @@ ch_programmers->do_callback();}
         }
       }
     }
-    Fl_Group {} {open
+    Fl_Group {} {
       private xywh {-2 -2 634 22} box ENGRAVED_BOX
     } {
       Fl_Menu_Bar mb_menuBar {open
@@ -2535,7 +2581,7 @@ mb_menuBar->redraw();} open
         class Fl_RaiseButton
       }
       Fl_Box {} {
-        private xywh {0 121 35 3} box THIN_UP_BOX labeltype NO_LABEL
+        private xywh {0 121 35 2} box THIN_DOWN_BOX labeltype NO_LABEL
       }
       Fl_Button {pb_operation[0]} {
         callback {processOperation(CHIP_READ);}
@@ -2551,7 +2597,7 @@ mb_menuBar->redraw();} open
       }
       Fl_Button {pb_operation[2]} {
         callback {processOperation(CHIP_BLANCK_CHECK);}
-        tooltip {Perform a blanck check of the Device memory.} image {./pixmaps/check_pic.xpm} deimage {./pixmaps/check_pic-desel.xpm} xywh {0 195 35 35} box FLAT_BOX align 16
+        tooltip {Perform a blank check of the Device memory.} image {./pixmaps/check_pic.xpm} deimage {./pixmaps/check_pic-desel.xpm} xywh {0 195 35 35} box FLAT_BOX align 16
         code0 {o->hilighted_box(FL_THIN_UP_BOX);}
         class Fl_RaiseButton
       }
@@ -2568,7 +2614,7 @@ mb_menuBar->redraw();} open
         class Fl_RaiseButton
       }
       Fl_Box {} {
-        private xywh {0 301 35 3} box THIN_UP_BOX labeltype NO_LABEL
+        private xywh {0 301 35 2} box THIN_DOWN_BOX labeltype NO_LABEL
       }
       Fl_Button {pb_operation[5]} {
         callback {if (o->value()) {
@@ -2606,7 +2652,7 @@ mb_menuBar->redraw();} open
         class Fl_RaiseButton
       }
       Fl_Box {} {
-        private xywh {0 376 35 3} box THIN_UP_BOX labeltype NO_LABEL
+        private xywh {0 376 35 2} box THIN_DOWN_BOX labeltype NO_LABEL
       }
       Fl_Button {pb_operation[7]} {
         callback {processOperation(CHIP_CALIBRATE);}
@@ -2616,7 +2662,48 @@ mb_menuBar->redraw();} open
       }
     }
   }
-  code {loadPreferences();
+  code {Fl_Menu_Item pinNames[] = {
+ {"OFF", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+
+ {"SCK", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"SDI/MISO", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"SDO/MOSI", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"VDD/VCC", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"VPP/RESET", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+
+ {"Vdd Min", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"Vdd Prog", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"Vdd Max", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+ {"VIH/VIL Vpp", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 12, 0},
+
+ {0,0,0,0,0,0,0,0,0}
+};
+
+for (i=0;i<PARPORT_PINS;i++) {
+    if (ch_pinConnection[i]) {
+        ch_pinConnection[i]->clear();
+        for (int j=0; j<sizeof(pinNames)/sizeof(Fl_Menu_Item)-1; j++) {
+            if (!strcmp(pinNames[j].label(),"OFF") ||
+                !strcmp(pinNames[j].label(),"SDI/MISO") ||
+                (ParallelPort::getReg(i) != 1)) {
+                pinNames[j].activate();
+            } else {
+                pinNames[j].deactivate();
+            }
+        }
+        ch_pinConnection[i]->copy(pinNames);
+        if ((ParallelPort::getReg(i) == -1)) {
+            g_parportPin[i]->deactivate();
+        }
+        ch_pinConnection[i]->damage(FL_DAMAGE_ALL);
+    }
+}
+
+// need to create the avr_fuses_window before loading the preferences
+// in case the selected device is an AVR
+make_avr_fuses_window();
+
+loadPreferences();
 
 flP5->position (
     (Fl::w()/2 - flP5->w()/2),
@@ -2646,7 +2733,7 @@ sprintf(cvddmin,"%4.2lf",vddmin);
 sprintf(cvddmax,"%4.2lf",vddmax);} {}
   Fl_Window w_calibration {
     label {flP5 - Programmer Calibration} open
-    xywh {50 103 300 200} type Double modal visible
+    xywh {1095 500 300 200} type Double hide modal
   } {
     Fl_Box {} {
       label {Programmer Calibration}
@@ -2943,7 +3030,7 @@ Function {make_report_window(void)} {open
 }} {}
   Fl_Window w_report {
     label {flP5 - Import Report} open
-    xywh {467 656 300 200} type Double hide modal
+    xywh {785 500 300 200} type Double hide modal
   } {
     Fl_Button pb_discard {
       label Discard
@@ -2965,11 +3052,11 @@ w_report->hide();}
   code {w_report->hide();} {}
 } 
 
-Function {make_copyright_window(char *copyright)} {open
+Function {make_copyright_window(const char *copyright)} {open
 } {
   Fl_Window w_copyright {
     label {flP5 Copyright} open
-    xywh {49 621 350 350} type Double hide modal
+    xywh {405 25 350 350} type Double hide modal
   } {
     Fl_Return_Button {} {
       label OK
@@ -3027,7 +3114,7 @@ if (
 }} {}
   Fl_Window w_regcheck {
     label {flP5 - Registration} open
-    xywh {357 95 300 200} type Double box UP_BOX hide modal noborder
+    xywh {357 95 300 200} type Double box UP_BOX modal noborder visible
   } {
     Fl_Group g_regform {open
       xywh {5 80 290 115}
@@ -3115,4 +3202,352 @@ if (remain) {
     bx_countdown->hide();
     g_regform->show();
 }} {}
+} 
+
+Function {make_open_avr_window()} {open
+} {
+  code {if (w_open_avr) {
+    return w_open_avr;
+}} {}
+  Fl_Window w_open_avr {
+    label {AVR Memories} open
+    xywh {5 25 300 115} type Double modal visible
+  } {
+    Fl_Button {} {
+      label Cancel
+      callback {proceed = false;
+w_open_avr->hide();}
+      xywh {5 85 140 25}
+    }
+    Fl_Return_Button {} {
+      label Open
+      callback {proceed = true;
+w_open_avr->hide();}
+      xywh {155 85 140 25}
+    }
+    Fl_Output tx_flash_hex_file {
+      label {Flash Memory .HEX file:}
+      callback {char *fname;
+
+fname = fl_file_chooser (
+    "Flash HEX file selection"
+    "*.hex",
+    NULL,
+    0
+);
+if (fname && fname[0]!='\\0') {
+    o->value(fname);
+} else {
+    o->value("");
+}}
+      xywh {5 20 290 20} align 5
+    }
+    Fl_Output tx_eeprom_hex_file {
+      label {EEPROM Memory .HEX file:}
+      callback {char *fname;
+
+fname = fl_file_chooser (
+    "EEPROM HEX file selection"
+    "*.hex\\t*.eep",
+    NULL,
+    0
+);
+if (fname && fname[0]!='\\0') {
+    o->value(fname);
+} else {
+    o->value("");
+}}
+      xywh {5 60 290 20} align 5
+    }
+  }
+  code {w_open_avr->hide();} {}
+} 
+
+Function {show_open_avr_window()} {open return_type bool
+} {
+  code {proceed = false;
+
+w_open_avr->position (
+    flP5->x() + (flP5->w()/2 - w_open_avr->w()/2),
+    flP5->y() + (flP5->h()/2 - w_open_avr->h()/2)
+);
+w_open_avr->show();
+
+while (w_open_avr->visible()) {
+    Fl::wait();
+}
+return proceed;} {}
+} 
+
+Function {make_avr_fuses_window()} {open
+} {
+  code {if (w_avr_fuses) {
+    return w_avr_fuses;
+}} {}
+  Fl_Window w_avr_fuses {
+    label {AVR Fuses & Locks Settings} open
+    xywh {316 511 380 180} type Double modal visible
+  } {
+    Fl_Button {} {
+      label Cancel
+      callback {proceed = false;
+w_avr_fuses->hide();}
+      xywh {5 150 180 25}
+    }
+    Fl_Return_Button {} {
+      label Proceed
+      callback {proceed = true;
+w_avr_fuses->hide();} selected
+      xywh {194 150 180 25}
+    }
+    Fl_Group {} {open
+      xywh {5 5 370 140}
+    } {
+      Fl_Group {} {open
+        xywh {5 25 15 120}
+      } {
+        Fl_Box {} {
+          label 0
+          xywh {5 25 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 1
+          xywh {5 40 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 2
+          xywh {5 55 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 3
+          xywh {5 70 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 4
+          xywh {5 85 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 5
+          xywh {5 100 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 6
+          xywh {5 115 15 15} labelsize 12 align 20
+        }
+        Fl_Box {} {
+          label 7
+          xywh {5 130 15 15} labelsize 12 align 20
+        }
+      }
+      Fl_Group {} {open
+        xywh {20 5 85 140}
+        code0 {AvrUI::g_fuses[Avr::FUSE_LOW_BITS]=o;}
+      } {
+        Fl_Box {} {
+          label {Fuse (Low)}
+          xywh {20 5 83 18} box BORDER_BOX color 47 labelsize 12 align 16
+        }
+        Fl_Group {} {open
+          xywh {20 25 85 120}
+        } {
+          Fl_Light_Button {} {
+            xywh {20 25 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][0]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 40 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][1]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 55 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][2]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 70 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][3]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 85 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][4]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 100 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][5]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 115 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][6]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {20 130 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_LOW_BITS][7]=o;}
+          }
+        }
+      }
+      Fl_Group {} {open
+        xywh {110 5 85 140}
+        code0 {AvrUI::g_fuses[Avr::FUSE_HIGH_BITS]=o;}
+      } {
+        Fl_Box {} {
+          label {Fuse High}
+          xywh {110 5 83 18} box BORDER_BOX color 47 labelsize 12 align 16
+        }
+        Fl_Group {} {open
+          xywh {110 25 85 120}
+        } {
+          Fl_Light_Button {} {
+            xywh {110 25 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][0]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 40 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][1]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 55 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][2]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 70 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][3]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 85 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][4]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 100 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][5]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 115 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][6]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {110 130 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::FUSE_HIGH_BITS][7]=o;}
+          }
+        }
+      }
+      Fl_Group {} {open
+        xywh {200 5 85 140}
+        code0 {AvrUI::g_fuses[Avr::EXT_FUSE_BITS]=o;}
+      } {
+        Fl_Box {} {
+          label {Ext Fuse}
+          xywh {200 5 83 18} box BORDER_BOX color 47 labelsize 12 align 16
+        }
+        Fl_Group {} {open
+          xywh {200 25 85 120}
+        } {
+          Fl_Light_Button {} {
+            xywh {200 25 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][0]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 40 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][1]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 55 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][2]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 70 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][3]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 85 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][4]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 100 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][5]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 115 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][6]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {200 130 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::EXT_FUSE_BITS][7]=o;}
+          }
+        }
+      }
+      Fl_Group {} {open
+        xywh {290 5 85 140}
+        code0 {AvrUI::g_fuses[Avr::LOCK_BITS]=o;}
+      } {
+        Fl_Box {} {
+          label Locks
+          xywh {290 5 83 18} box BORDER_BOX color 47 labelsize 12 align 16
+        }
+        Fl_Group {} {open
+          xywh {290 25 85 120}
+        } {
+          Fl_Light_Button {} {
+            xywh {290 25 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][0]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 40 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][1]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 55 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][2]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 70 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][3]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 85 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][4]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 100 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][5]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 115 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][6]=o;}
+          }
+          Fl_Light_Button {} {
+            xywh {290 130 85 15} box NO_BOX labelfont 4 labelsize 12 align 16
+            code0 {AvrUI::lb_bits[Avr::LOCK_BITS][7]=o;}
+          }
+        }
+      }
+      Fl_Box {} {
+        label label
+        xywh {106 5 2 140} box THIN_DOWN_BOX labeltype NO_LABEL
+      }
+      Fl_Box {} {
+        label label
+        xywh {196 5 2 140} box THIN_DOWN_BOX labeltype NO_LABEL
+      }
+      Fl_Box {} {
+        label label
+        xywh {286 5 2 140} box THIN_DOWN_BOX labeltype NO_LABEL
+      }
+    }
+  }
+  code {w_avr_fuses->hide();} {}
+} 
+
+Function {show_avr_fuses_window()} {open return_type bool
+} {
+  code {proceed = false;
+
+w_avr_fuses->position (
+    flP5->x() + (flP5->w()/2 - w_avr_fuses->w()/2),
+    flP5->y() + (flP5->h()/2 - w_avr_fuses->h()/2)
+);
+w_avr_fuses->show();
+
+while (w_avr_fuses->visible()) {
+    Fl::wait();
+}
+return proceed;} {}
 } 

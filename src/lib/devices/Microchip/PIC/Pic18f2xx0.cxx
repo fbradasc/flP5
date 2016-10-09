@@ -33,7 +33,7 @@ using namespace std;
 #define ID_LOC_WRDS    (8/2)
 #define CFG_WORDS_WRDS (14/2)
 
-Pic18f2xx0::Pic18f2xx0(char *name) : Pic18fxx20(name)
+Pic18f2xx0::Pic18f2xx0(char *vendor, char *spec, char *device) : Pic18fxx20(vendor, spec, device)
 {
 }
 
@@ -57,14 +57,14 @@ void Pic18f2xx0::erase(void)
         write_command(COMMAND_CORE_INSTRUCTION, ASM_NOP);
         this->io->usleep(this->erase_time);
 
-        pic_off();
+        off();
     } catch (std::exception& e) {
-        pic_off();
+        off();
         throw;
     }
 }
 
-void Pic18f2xx0::write_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
+void Pic18f2xx0::write_data_memory(DataBuffer& buf, uint32_t addr, bool verify)
 {
     uint32_t        ins;
     uint8_t            data;
@@ -144,7 +144,7 @@ void Pic18f2xx0::write_data_memory(DataBuffer& buf, unsigned long addr, bool ver
     }
 }
 
-void Pic18f2xx0::read_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
+void Pic18f2xx0::read_data_memory(DataBuffer& buf, uint32_t addr, bool verify)
 {
     uint32_t     ins;
     unsigned int offset;    /* Byte offset */

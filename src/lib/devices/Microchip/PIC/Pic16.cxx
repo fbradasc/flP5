@@ -25,7 +25,7 @@ using namespace std;
 #include "IO.h"
 #include "Util.h"
 
-const Instruction Pic16::opcodes[] = {
+const Pic::Instruction Pic16::opcodes[] = {
   { "addlw" , 0x3e00, 0x3e00, INSN_CLASS_LIT8     },
   { "addwf" , 0x3f00, 0x0700, INSN_CLASS_OPWF7    },
   { "andlw" , 0x3f00, 0x3900, INSN_CLASS_LIT8     },
@@ -66,7 +66,7 @@ const Instruction Pic16::opcodes[] = {
   { 0       , 0x0000, 0x0000, INSN_CLASS_NULL     }
 };
 
-Pic16::Pic16(char *name) : Pic(name)
+Pic16::Pic16(char *vendor, char *spec, char *device) : Pic(vendor, spec, device)
 {
 int tmp;
 
@@ -88,13 +88,24 @@ int tmp;
         this->flags |= PIC_FEATURE_BKBUG;
     }
     /* Create the memory map for this device */
-    this->memmap.push_back(IntPair (0, this->codesize));
+    IntPair p(0,0);
+    this->code_extent = p;
+    this->data_extent = p;
+
+    p.first  = 0;
+    p.second = this->codesize;
+    this->memmap.push_back(p);
+    this->code_extent = p;
+
     this->memmap.push_back (
         IntPair (0x2000,(this->flags & PIC_FEATURE_BKBUG) ? 5 : 4)
     );
     this->memmap.push_back(IntPair (0x2007, 1));
     if (this->flags & PIC_FEATURE_EEPROM) {
-        this->memmap.push_back(IntPair (0x2100, this->eesize));
+        p.first  = 0x2100;
+        p.second = this->eesize;
+        this->memmap.push_back(p);
+        this->data_extent = p;
     }
 }
 
@@ -108,7 +119,7 @@ void Pic16::erase(void)
         throw runtime_error("Operation not supported by device");
     }
     /* Read the config word and OSCAL if this PIC has it */
-    unsigned long cword, oscal = 0;
+    uint32_t cword, oscal = 0;
     try {
         this->set_program_mode();
 
@@ -131,9 +142,9 @@ void Pic16::erase(void)
             this->write_command(COMMAND_INC_ADDRESS);
         }
         cword = read_config_word();
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
     /* Wait a bit after exiting program mode */
@@ -199,9 +210,9 @@ void Pic16::erase(void)
                     );
                 }
             }
-            this->pic_off();
+            this->off();
         } catch(std::exception& e) {
-            this->pic_off();
+            this->off();
             throw;
         }
     }
@@ -257,9 +268,9 @@ uint32_t data;
         this->write_config_word(data);
         this->progress_count++;
 
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }
@@ -309,9 +320,9 @@ void Pic16::read(DataBuffer& buf, bool verify)
         }
         this->progress_count++;
 
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }
@@ -344,9 +355,9 @@ void Pic16::bulk_erase(void)
             this->write_command(COMMAND_BEGIN_PROG);
             this->io->usleep(this->erase_time);
         }
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }

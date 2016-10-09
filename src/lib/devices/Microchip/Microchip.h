@@ -18,7 +18,7 @@
 #ifndef __Microchip_h
 #define __Microchip_h
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW32__)
 typedef unsigned long  uint32_t;
 typedef unsigned short uint16_t;
 typedef unsigned char  uint8_t;
@@ -30,8 +30,6 @@ typedef unsigned char  uint8_t;
 #include "IO.h"
 
 /** \file */
-
-typedef pair<int, int> IntPair;         /**< A pair of integers */
 
 #define PIC_FEATURE_EEPROM 0x00000001   /**< PIC has a data EEPROM */
 #define PIC_REQUIRE_EPROG  0x00000002   /**< PIC requires END_PROG command */
@@ -58,10 +56,10 @@ public:
      * \retval Device An instance of a subclass of Device representing the
      *         device given by the name parameter.
      */
-    static Device *load(char *name);
+    static Device *load(char *vendor, char *name);
 
     /** Constructor */
-    Microchip(char *name);
+    Microchip(char *vendor, char *spec, char *device);
 
     /** Destructor */
     ~Microchip();
@@ -116,15 +114,6 @@ enum Instruction_Class {
       INSN_CLASS_LIT4       // SX: bits 3:0 contain a 4 bit literal
 };
 
-class Instruction
-{
-public:
-    const char *name;
-    const long int mask;
-    const long int opcode;
-    const enum Instruction_Class type;
-};
-
 /** A Device implementation which implements a base class for Microchip's PIC
  * microcontrollers. These microcontrollers are programmed serially and have
  * a word size of 12, 14, or 16 bits. They come in memory configurations of
@@ -133,6 +122,15 @@ public:
 class Pic : public Microchip
 {
 public:
+    class Instruction
+    {
+    public:
+        const char *name;
+        const long int mask;
+        const long int opcode;
+        const enum Instruction_Class type;
+    };
+
     /* PIC commands */
     // const static int
     enum Commands_List {
@@ -164,7 +162,7 @@ public:
      * \retval Device An instance of a subclass of Device representing the
      *         device given by the name parameter.
      */
-    static Device *load(char *name);
+    static Device *load(char *vendor, char *spec, char *device);
 
     /** Dumps/disassemblates the contents of the DataBuffer.
      * \param buf The DataBuffer containing the data to dump/disassemblate.
@@ -173,7 +171,7 @@ public:
     virtual void dump(DataBuffer& buf);
 
     /** Constructor */
-    Pic(char *name);
+    Pic(char *vendor, char *spec, char *device);
 
     /** Destructor */
     ~Pic();
@@ -210,7 +208,7 @@ protected:
     /** Turn off the PIC device. This will set the clock and data lines to
      * low and shut off both Vpp and Vcc.
      */
-    virtual void pic_off(void);
+    virtual void off(void);
 
     /** Write a 6 bit command to the PIC. After the write, a 1us delay is
      * performed as required by the device.
@@ -286,7 +284,7 @@ protected:
     unsigned int write_buffer_size;
     unsigned int erase_buffer_size;
 
-    const Instruction *popcodes;
+    const Pic::Instruction *popcodes;
 };
 
 
@@ -303,7 +301,7 @@ public:
      * \param name The name of the PIC device.
      * \throws runtime_error Contains a description of the error.
      */
-    Pic16(char *name);
+    Pic16(char *vendor, char *spec, char *device);
 
     /** Destructor */
     ~Pic16();
@@ -481,7 +479,7 @@ protected:
     /** Data protection bits. */
     unsigned int cpd_mask, cpd_on, cpd_off;
 
-    static const Instruction opcodes[];
+    static const Pic::Instruction opcodes[];
 };
 
 
@@ -490,7 +488,7 @@ protected:
 class Pic16f8xx : public Pic16
 {
 public:
-    Pic16f8xx(char *name);    /**< Constructor */
+    Pic16f8xx(char *vendor, char *spec, char *device);    /**< Constructor */
     ~Pic16f8xx();             /**< Destructor */
 
 protected:
@@ -510,7 +508,7 @@ public:
         COMMAND_CHIP_ERASE      = 0x1f  /**< Chip Erase                     */
     };
 
-    Pic16f87xA(char *name);   /**< Constructor */
+    Pic16f87xA(char *vendor, char *spec, char *device);   /**< Constructor */
     ~Pic16f87xA();            /**< Destructor */
 
 protected:
@@ -525,7 +523,7 @@ protected:
 class Pic16f6xx : public Pic16
 {
 public:
-    Pic16f6xx(char *name);    /**< Constructor */
+    Pic16f6xx(char *vendor, char *spec, char *device);    /**< Constructor */
     ~Pic16f6xx();             /**< Destructor */
 
 protected:
@@ -541,7 +539,7 @@ protected:
 class Pic12f6xx : public Pic16
 {
 public:
-    Pic12f6xx(char *name);    /**< Constructor */
+    Pic12f6xx(char *vendor, char *spec, char *device);    /**< Constructor */
     ~Pic12f6xx();             /**< Destructor */
 
 protected:
@@ -554,7 +552,7 @@ protected:
 class Pic16f7x : public Pic16
 {
 public:
-    Pic16f7x(char *name); /**< Constructor */
+    Pic16f7x(char *vendor, char *spec, char *device); /**< Constructor */
     ~Pic16f7x();          /**< Destructor */
 
 protected:
@@ -620,7 +618,7 @@ public:
         COMMAND_TABLE_WRITE_START   = 0x0f  /**< Table Write, start program. */
     };
 
-    Pic18(char *name);    /**< Constructor */
+    Pic18(char *vendor, char *spec, char *device);    /**< Constructor */
     virtual ~Pic18();     /**< Destructor */
 
     virtual void erase(void);
@@ -668,7 +666,7 @@ protected:
      */
     virtual void write_id_memory (
         DataBuffer& buf,
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -688,7 +686,7 @@ protected:
      */
     virtual void write_data_memory (
         DataBuffer& buf,
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -708,7 +706,7 @@ protected:
      */
     virtual void write_config_memory (
         DataBuffer& buf,
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -729,8 +727,8 @@ protected:
      */
     virtual void read_memory (
         DataBuffer& buf,
-        unsigned long addr,
-        unsigned long len,
+        uint32_t addr,
+        uint32_t len,
         bool verify
     );
 
@@ -748,8 +746,8 @@ protected:
      */
     virtual void read_config_memory (
         DataBuffer& buf,
-        unsigned long addr,
-        unsigned long len,
+        uint32_t addr,
+        uint32_t len,
         bool verify
     );
 
@@ -769,7 +767,7 @@ protected:
      */
     virtual void read_data_memory (
         DataBuffer& buf,
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -806,7 +804,7 @@ protected:
      * contains the address of the current read/write operation.
      * \param addr The byte address within the PIC's address space.
      */
-    virtual void set_tblptr(unsigned long addr);
+    virtual void set_tblptr(uint32_t addr);
 
     /** Send a 4-bit command to the PIC.
      * \param command The 4-bit command to write.
@@ -838,13 +836,13 @@ protected:
     unsigned int config_masks[7];
     unsigned int config_deflt[7];
 
-    static const Instruction opcodes[];
+    static const Pic::Instruction opcodes[];
 };
 
 class Pic18fxx20 : public Pic18
 {
 public:
-    Pic18fxx20(char *name);
+    Pic18fxx20(char *vendor, char *spec, char *device);
     virtual ~Pic18fxx20();
 
     virtual void erase(void);
@@ -880,7 +878,7 @@ protected:
      */
     virtual void write_id_memory (
         DataBuffer& buf, 
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -900,7 +898,7 @@ protected:
      */
     virtual void write_data_memory (
         DataBuffer& buf, 
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -920,7 +918,7 @@ protected:
      */
     virtual void write_config_memory (
         DataBuffer& buf, 
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -940,7 +938,7 @@ protected:
      */
     virtual void read_data_memory (
         DataBuffer& buf, 
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -955,8 +953,8 @@ protected:
      */
     virtual bool load_write_buffer (
         DataBuffer& buf, 
-        unsigned long addr, 
-        unsigned long count
+        uint32_t addr, 
+        uint32_t count
     );
 
     /** Does a custom NOP/program wait. This will output
@@ -975,7 +973,7 @@ public:
     /**< Table Write, start programming, post-inc by 2 */
     const static int COMMAND_TABLE_WRITE_START_POSTINC=0x0e; 
 
-    Pic18f2xx0(char *name);
+    Pic18f2xx0(char *vendor, char *spec, char *device);
     virtual ~Pic18f2xx0();
 
     virtual void erase(void);
@@ -997,7 +995,7 @@ protected:
      */
     virtual void write_data_memory (
         DataBuffer& buf, 
-        unsigned long addr,
+        uint32_t addr,
         bool verify
     );
 
@@ -1017,7 +1015,7 @@ protected:
      */
     virtual void read_data_memory (
         DataBuffer& buf, 
-        unsigned long addr, bool verify
+        uint32_t addr, bool verify
     );
 };
 

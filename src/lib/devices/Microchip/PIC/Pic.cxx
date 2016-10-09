@@ -25,57 +25,57 @@ using namespace std;
 #include "IO.h"
 #include "Util.h"
 
-Device *Pic::load(char *name)
+Device *Pic::load(char *vendor, char *spec, char *device)
 {
     if(
-        Util::regexMatch("^PIC16F87[3467]A", name)
+        Util::regexMatch("^PIC16F87[3467]A", device)
     ) {
-        return new Pic16f87xA(name);
+        return new Pic16f87xA(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC16F8", name) ||
-        (strcmp(name, "PIC16C84") == 0)
+        Util::regexMatch("^PIC16F8", device) ||
+        (strcmp(device, "PIC16C84") == 0)
     ) {
-        return new Pic16f8xx(name);
+        return new Pic16f8xx(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC16F7[3467]$", name)
+        Util::regexMatch("^PIC16F7[3467]$", device)
     ) {
-        return new Pic16f7x(name);
+        return new Pic16f7x(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC16F6.*", name)
+        Util::regexMatch("^PIC16F6.*", device)
     ) {
-        return new Pic16f6xx(name);
+        return new Pic16f6xx(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC12F6.*", name)
+        Util::regexMatch("^PIC12F6.*", device)
     ) {
-        return new Pic12f6xx(name);
+        return new Pic12f6xx(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC16.*", name)
+        Util::regexMatch("^PIC16.*", device)
     ) {
-        return new Pic16(name);
+        return new Pic16(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC18F([124][23]20)", name)
+        Util::regexMatch("^PIC18F([124][23]20)", device)
     ) {
-        return new Pic18fxx20(name);
+        return new Pic18fxx20(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC18F((2..[05])|(2.21)|(4..[05])|(4.21))", name)
+        Util::regexMatch("^PIC18F((2..[05])|(2.21)|(4..[05])|(4.21))", device)
     ) {
-        return new Pic18f2xx0(name);
+        return new Pic18f2xx0(vendor, spec, device);
     } else if (
-        Util::regexMatch("^PIC18.*", name)
+        Util::regexMatch("^PIC18.*", device)
     ) {
-        return new Pic18(name);
+        return new Pic18(vendor, spec, device);
     } else {
         throw runtime_error (
             (const char *)Preferences::Name (
                 "Unknown PIC device %s",
-                name
+                device
             )
         );
     }
     return NULL;
 }
 
-Pic::Pic(char *name) : Microchip(name)
+Pic::Pic(char *vendor, char *spec, char *device) : Microchip(vendor, spec, device)
 {
 char memtypebuf[10];
 
@@ -145,6 +145,9 @@ char memtypebuf[10];
     /* read the write/erase buffer sizes with default for P18F4550 */
     config->get("writeBufferSize",(int &)write_buffer_size , 32);
     config->get("eraseBufferSize",(int &)erase_buffer_size , 64);
+
+    // set_flash_size (this->codesize);
+    // set_eeprom_size(this->eesize  );
 }
 
 Pic::~Pic()
@@ -176,7 +179,7 @@ void Pic::set_program_mode(void)
     this->io->usleep(1000);        /* Wait a bit */
 }
 
-void Pic::pic_off(void)
+void Pic::off(void)
 {
     /* Shut everything down */
     this->io->clock(false);
@@ -233,7 +236,7 @@ IntPairVector::iterator n = memmap.begin();
         addr  = start;
         put_separator = true;
         num_words = 0;
-        while (addr < (unsigned long)start+len) {
+        while (addr < (uint32_t)start+len) {
             writable = false;
             if (area==0) {
                 /* code area, need to disassemble */
@@ -262,7 +265,7 @@ IntPairVector::iterator n = memmap.begin();
                     if (area>0 || !buf.isblank(addr,this->get_clearvalue(addr))) {
                         writable = true;
                     }
-                    if (addr < (unsigned long)start+len) {
+                    if (addr < (uint32_t)start+len) {
                         buffer = buf[addr];
                         for (j=0; j<bufwordsize; j++) {
                             data = buffer & 0xff;
@@ -427,7 +430,7 @@ long opcode;
             if (value & 0x80) {
                 value = -((value ^ 0xff) + 1);
             }
-            DECODE_ARG1((unsigned long)(addr + value + 1) * 2); 
+            DECODE_ARG1((uint32_t)(addr + value + 1) * 2); 
             break;
         case INSN_CLASS_RBRA11:
             value = opcode  & 0x7ff;
@@ -435,7 +438,7 @@ long opcode;
             if (value & 0x400) {
                 value = -((value ^ 0x7ff) + 1);
             }      
-            DECODE_ARG1((unsigned long)(addr + value + 1) * 2); 
+            DECODE_ARG1((uint32_t)(addr + value + 1) * 2); 
             break;
         case INSN_CLASS_LIT20:
             {
@@ -606,13 +609,13 @@ uint32_t devid;
     try {
         this->set_program_mode();
         devid = read_deviceid();
-        this->pic_off();
+        this->off();
 
         /* Wait a bit to make sure program mode is off before continuing
          * with other operations on the device. */
         this->io->usleep(1000);
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
     if ((devid & this->deviceidmask) == (this->deviceid & this->deviceidmask)) {
@@ -620,7 +623,7 @@ uint32_t devid;
         this->deviceid = devid;
         printf (
             "Chip Rev: 0x%lx\n",
-            (unsigned long)(devid & ~this->deviceidmask)
+            (uint32_t)(devid & ~this->deviceidmask)
         );
         return true;
     }
@@ -629,9 +632,9 @@ uint32_t devid;
     throw runtime_error (
         (const char *)Preferences::Name (
             "Device ID 0x%lx is wrong (expected 0x%lx, mask 0x%lx)",
-            (unsigned long)devid,
-            (unsigned long)this->deviceid,
-            (unsigned long)this->deviceidmask
+            (uint32_t)devid,
+            (uint32_t)this->deviceid,
+            (uint32_t)this->deviceidmask
         )
     );
     return false;

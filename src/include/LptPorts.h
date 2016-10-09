@@ -18,7 +18,27 @@
 #ifndef LptPorts_H
 #define LptPorts_H
 
-#define MAX_LPTPORTS 5
+#define MAX_USERS_PARPORTS  8
+#define MAX_DEVFS_PARPORTS  8
+#define MAX_DIRECT_PARPORTS 3
+#define MAX_LPTPORTS MAX_USERS_PARPORTS+MAX_DEVFS_PARPORTS+MAX_DIRECT_PARPORTS
+
+class LptPort
+{
+public:
+    char* device ;
+    int   address;
+    int   regs   ;
+    int   access ;
+
+    enum { DIRECT, PPDEV };
+
+    LptPort();
+    LptPort(const char* dev, int acc=DIRECT, int adr=0, int reg=0);
+    ~LptPort();
+    LptPort& operator=(const LptPort& ref);
+    void clear();
+};
 
 class LptPorts
 {
@@ -26,10 +46,10 @@ public:
     LptPorts();
     ~LptPorts();
 
-    static char* device  [MAX_LPTPORTS];
-    static int   address [MAX_LPTPORTS];
-    static int   regs    [MAX_LPTPORTS];
-    static int   count;
+    LptPort ports[MAX_LPTPORTS];
+    int     count;
+
+    inline LptPort& operator[](int i) { return ports[i]; }
 
 private:
 

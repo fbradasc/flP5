@@ -25,7 +25,7 @@ using namespace std;
 #include "Util.h"
 
 
-Pic16f6xx::Pic16f6xx(char *name) : Pic16(name)
+Pic16f6xx::Pic16f6xx(char *vendor, char *spec, char *device) : Pic16(vendor, spec, device)
 {
 }
 
@@ -65,9 +65,9 @@ void Pic16f6xx::bulk_erase(void)
             this->write_command(COMMAND_BEGIN_PROG);
             this->io->usleep(this->erase_time);
         }
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }

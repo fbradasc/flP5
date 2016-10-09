@@ -17,43 +17,75 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #ifndef WIN32
 #  include <unistd.h>
 #  include <sys/io.h>
+#else
+#  include <windows.h>
 #endif
 #include <sys/types.h>
 #include <stdexcept>
 #include "LptPorts.h"
 #include "Util.h"
+#include "LinuxPPDevIO.h"
 
-char* LptPorts::device  [MAX_LPTPORTS] = { 0 };
-int   LptPorts::address [MAX_LPTPORTS] = { 0 };
-int   LptPorts::regs    [MAX_LPTPORTS] = { 0 };
-int   LptPorts::count                  = 0;
+LptPort::LptPort()
+{
+    device  = NULL;
+    address = 0;
+    regs    = 0;
+    access  = DIRECT;
+}
+
+LptPort::LptPort(const char* dev, int acc, int adr, int reg)
+{
+    device  = (dev) ? strdup(dev) : NULL;
+    address = adr;
+    regs    = reg;
+    access  = acc;
+}
+
+LptPort::~LptPort()
+{
+    if (device) {
+        delete device;
+    }
+}
+
+LptPort& LptPort::operator=(const LptPort& ref)
+{
+    if (NULL != device) {
+        free(device);
+    }
+    device  = (ref.device) ? strdup(ref.device) : NULL;
+    address = ref.address;
+    regs    = ref.regs;
+    access  = ref.access;
+
+    return *this;
+}
+void LptPort::clear()
+{
+    if (NULL != device) {
+        free(device);
+        device = NULL;
+    }
+    address = 0;
+    regs    = 0;
+    access  = DIRECT;
+}
 
 LptPorts::LptPorts()
 {
-#ifdef WIN32
-char str[8];
-#endif
-
-    if (count==0) {
-        for (int i=0; i<MAX_LPTPORTS; i++) {
-            device[i]  = 0;
-            address[i] = 0;
-            regs[i]    = 3;
-        }
-        detectPorts();
-    }
+    detectPorts();
 }
 
 LptPorts::~LptPorts()
 {
-    for (int i=0; i<count && i<MAX_LPTPORTS; i++) {
-        if (device[i]) {
-            free(device[i]);
-        }
+    for (int i=0; i<MAX_LPTPORTS; i++) {
+        ports[i].clear();
     }
 }
 
@@ -61,12 +93,37 @@ LptPorts::~LptPorts()
 
 void LptPorts::detectPorts()
 {
-    address[0] = 0x378;
-    address[1] = 0x278;
-    address[2] = 0x3BC;
-    count = 3;
-    for ( int i=0; i<count; i++ ) {
-        device[i]  = strdup(Preferences::Name("lp%d: address %X",i, address[i]));
+    int i;
+
+    for (i=0; i<MAX_LPTPORTS; i++) {
+        ports[i].clear();
+    }
+    count=0;
+    //
+    // Linux PPDev access
+    //
+    for (i=0; i<MAX_USERS_PARPORTS; i++) {
+        LptPort port(Preferences::Name("/dev/parport%d",i), LptPort::PPDEV);
+        if (LinuxPPDevIO::probe(port)) {
+            ports[count++] = port;
+        }
+    }
+    for (i=0; i<MAX_DEVFS_PARPORTS; i++) {
+        LptPort port(Preferences::Name("/dev/parports/%d",i), LptPort::PPDEV);
+        if (LinuxPPDevIO::probe(port)) {
+            ports[count++] = port;
+        }
+    }
+    //
+    // Direct PP access
+    //
+    int address[MAX_DIRECT_PARPORTS] = { 0x378, 0x278, 0x3BC };
+
+    for (i=0; i<MAX_DIRECT_PARPORTS; i++) {
+        LptPort port(Preferences::Name("Address: %0X",address[i]), LptPort::DIRECT, address[i], 3);
+        if (LinuxPPDevIO::probe(port)) {
+            ports[count++] = port;
+        }
     }
 }
 
@@ -77,8 +134,13 @@ void LptPorts::detectPorts()
 int RunningWinNT;
 OSVERSIONINFO os;
 
+    for (int i=0; i<MAX_LPTPORTS; i++) {
+        ports[i].clear();
+    }
+    count=0;
+
     // Are we running Windows NT?
-    memset(&os,NULL,sizeof(OSVERSIONINFO));
+    memset(&os,'\0',sizeof(OSVERSIONINFO));
     os.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx(&os);
     RunningWinNT=(os.dwPlatformId==VER_PLATFORM_WIN32_NT);
@@ -91,7 +153,7 @@ OSVERSIONINFO os;
         detectPorts9x(); // Win9x version
     }
     for (int i=0; i<count; i++) {
-         device[i] = strdup(Preferences::Name("LPT%d",i));
+            ports[i].device = strdup(Preferences::Name("LPT%d",i));
     }
 }
 
@@ -114,14 +176,6 @@ DWORD KeyCount;            // Count of the number of keys in KeyList
 
 DWORD index;
 
-    // Clear the port count
-    count = 0;
-
-    // Clear the LPT port array
-    for (index=0; index<MAX_LPTPORTS; index++) {
-        address[index] = 0;
-        regs[index] = 0;
-    }
     // Open the registry
     RegOpenKeyEx(HKEY_DYN_DATA, BASE_KEY, 0, KEY_PERMISSIONS, &CurKey);
 
@@ -284,14 +338,14 @@ DWORD index;
                                 PortNumber<=MAX_LPTPORTS
                             ) {
                                 // Found a port; add it to the list
-                                address[PortNumber-1] = Allocation[pos+1];
+                                ports[PortNumber-1].address = Allocation[pos+1];
                                 if (
                                     Allocation[pos+2] > 0 &&
                                     Allocation[pos+2] >= Allocation[pos+1]
                                 ) {
-                                    regs[PortNumber-1] = Allocation[pos+2] -
-                                                         Allocation[pos+1] +
-                                                         1;
+                                        ports[PortNumber-1].regs = Allocation[pos+2] -
+                                                                             Allocation[pos+1] +
+                                                                             1;
                                 }
                                 count++;
                                 break;
@@ -336,13 +390,6 @@ DWORD ValueCount;          // Count of the number of value names in ValueList
 
 DWORD index;
 
-    // Clear the port count
-    count = 0;
-    // Clear the LPT port array
-    for (index=0; index<=MAX_LPTPORTS; index++) {
-        address[index] = 0;
-        regs[index] = 0;
-    }
     // Open the registry
     if (
         RegOpenKeyEx (
@@ -468,8 +515,8 @@ DWORD index;
                 );
                 // Found a port; add it to the list
                 if (DataSize>0 && PortNumber<=MAX_LPTPORTS) {
-                    address[PortNumber-1] = Allocation[12];
-                    regs[PortNumber-1] = 8;
+                    ports[PortNumber-1].address = Allocation[12];
+                    ports[PortNumber-1].regs = 8;
                     count++;
                 }
             }

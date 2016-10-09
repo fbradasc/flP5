@@ -1,9 +1,16 @@
 
 INCLUDE_DIRECTORIES (
     ${FLP5_SOURCE_DIR}/src/include
+    ${FLP5_SOURCE_DIR}/src/include/devices/Atmel
+    ${FLP5_SOURCE_DIR}/src/include/devices/Microchip
     ${FLP5_SOURCE_DIR}/src/gui
+    ${FLP5_SOURCE_DIR}/src/gui/devices/Atmel
+    ${FLP5_SOURCE_DIR}/src/gui/devices/Microchip
     ${FLP5_SOURCE_DIR}/src/lib
     ${FLP5_SOURCE_DIR}/src/lib/devices
+    ${FLP5_SOURCE_DIR}/src/lib/devices/Atmel
+    ${FLP5_SOURCE_DIR}/src/lib/devices/Atmel/AVR
+    ${FLP5_SOURCE_DIR}/src/lib/devices/Atmel/AVR/vavrdisasm-1.4
     ${FLP5_SOURCE_DIR}/src/lib/devices/Microchip
     ${FLP5_SOURCE_DIR}/src/lib/devices/Microchip/PIC
 )
@@ -35,6 +42,12 @@ SET ( FLP5_SOURCES
 # Device definition & programming algorithms
 #
     lib/Device.cxx
+
+    lib/devices/Atmel/Atmel.cxx
+    lib/devices/Atmel/AVR/Avr.cxx
+    lib/devices/Atmel/AVR/vavrdisasm-1.4/avr_disasm.c
+    lib/devices/Atmel/AVR/vavrdisasm-1.4/avr_instructionset.c
+
     lib/devices/Microchip/Microchip.cxx
     lib/devices/Microchip/PIC/Pic.cxx
     lib/devices/Microchip/PIC/Pic16.cxx
@@ -58,6 +71,9 @@ SET ( FLP5_SOURCES
     gui/fl_call_main.c
     gui/main_flP5.cxx
     gui/flP5.cxx
+    gui/DeviceUI.cxx
+    gui/devices/Atmel/AvrUI.cxx
+    gui/devices/Microchip/PicUI.cxx
 )
 
 IF ( WIN32 )
@@ -66,4 +82,4 @@ ELSE ( WIN32 )
     ADD_EXECUTABLE ( flP5 ${FLP5_SOURCES} )
 ENDIF ( WIN32 )
 
-INSTALL_TARGETS( /bin flP5 )
+INSTALL_TARGETS( ${INSTALL_PREFIX}/bin flP5 )

@@ -19,6 +19,7 @@
 #define Fl_Tree_Browser_H
 
 #include <FL/Fl_Pixmap.H>
+#include <FL/Fl_Menu_Item.H>
 #include <FL/Fl_Browser_.H>
 
 class Fl_Tree_Browser;
@@ -43,6 +44,7 @@ protected:
     Fl_Color color_;
     int font_;
     int font_size_;
+    int flags_;
 
     char* label_;
     char* tooltip_;
@@ -59,6 +61,7 @@ public:
         Fl_Color         color     = FL_BLACK,
         int              font      = 0,
         int              font_size = 0,
+        int              flags     = 0,
         bool             can_open  = true,
         bool             opened    = true,
         Fl_Tree_Browser *parent    = 0,
@@ -69,16 +72,35 @@ public:
 
     ~Fl_Tree_Item();
 
+    int active()        const { return !(flags_&FL_MENU_INACTIVE); }
+    int activevisible() const { return !(flags_&0x11); }
+
     int height();
     int width();
     void draw(int X,int Y);
     void draw_connection_line(int X,int Y,int H);
 
     void prev(Fl_Tree_Item *p)   { prev_ = (Fl_Tree_Item *)p; }
-    Fl_Tree_Item *prev()         { return prev_  ; }
+    Fl_Tree_Item *prev()         { return prev_; }
+
+    Fl_Tree_Item *backward(int skip=0) {
+        if (prev_) {
+            return ( ! ( prev_->flags_ & skip ) ) ? prev_ : prev_->backward(skip);
+        } else {
+            return 0;
+        }
+    }
 
     void next(Fl_Tree_Item *p)   { next_ = (Fl_Tree_Item *)p; }
-    Fl_Tree_Item *next()         { return next_  ; }
+    Fl_Tree_Item *next()         { return next_; }
+
+    Fl_Tree_Item *forward(int skip=0) {
+        if (next_) {
+            return ( ! ( next_->flags_ & skip ) ) ? next_ : next_->forward(skip);
+        } else {
+            return 0;
+        }
+    }
 
     void father(Fl_Tree_Item *p) { father_ = (Fl_Tree_Item *)p; }
     Fl_Tree_Item *father()       { return father_; }
@@ -126,8 +148,10 @@ private:
 
     // required routines for Fl_Browser_ subclass:
     void *item_first() const ;
-    void *item_next(void *) const ;
-    void *item_prev(void *) const ;
+    void *item_next(void *, int skip) const ;
+    void *item_prev(void *, int skip) const ;
+    void *item_next(void *i) const { return item_next(i,0); }
+    void *item_prev(void *i) const { return item_prev(i,0); }
     int item_width(void *) const ;
     int item_height(void *) const ;
     void item_draw(void *,int,int,int,int) const ;

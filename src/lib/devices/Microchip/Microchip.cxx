@@ -23,7 +23,7 @@ using namespace std;
 #include "Microchip.h"
 #include "Util.h"
 
-Device *Microchip::load(char *name)
+Device *Microchip::load(char *vendor, char *name)
 {
 Device *d = NULL;
 char *spec, *device;
@@ -33,8 +33,8 @@ char *spec, *device;
     if (device) {
         *device='\0';
         device++;
-        if (strncasecmp(spec,"PIC",sizeof("PIC")) == 0) { 
-            d = Pic::load(device);
+        if (strncasecmp(spec,"PIC",sizeof("PIC")-1) == 0) { 
+            d = Pic::load(vendor,spec,device);
         } else {
             throw runtime_error (
                 (const char *)Preferences::Name (
@@ -50,7 +50,7 @@ char *spec, *device;
 }
 
 
-Microchip::Microchip(char *name) : Device(name)
+Microchip::Microchip(char *vendor, char *spec, char *name) : Device(vendor,spec,name)
 {
 }
 

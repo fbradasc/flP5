@@ -27,7 +27,7 @@ using namespace std;
 #define PANEL_SHIFT 13
 #define PANELSIZE (1 << PANEL_SHIFT) /* bytes */
 
-const Instruction Pic18::opcodes[] = {
+const Pic::Instruction Pic18::opcodes[] = {
     /* PIC 16-bit "Special" instruction set */
     { "clrc"   , 0xffff, 0x90d8, INSN_CLASS_IMPLICIT },
     { "clrdc"  , 0xffff, 0x92d8, INSN_CLASS_IMPLICIT },
@@ -156,7 +156,7 @@ const Instruction Pic18::opcodes[] = {
 #define EEPROM_ADDR    (0xf00000/2)
 #define EEPROM_WRDS    (this->eesize/2)
 
-Pic18::Pic18(char *name) : Pic(name)
+Pic18::Pic18(char *vendor, char *spec, char *device) : Pic(vendor, spec, device)
 {
 int i;
 
@@ -178,11 +178,22 @@ int i;
     }
     /* Create the memory map for this device. Note that these are 16-bit word
      * offsets and lengths which are 1/2 of their byte equivalents */
-    this->memmap.push_back(IntPair(PROG_MEM_ADDR,PROG_MEM_WRDS));
+    IntPair p(0,0);
+    this->code_extent = p;
+    this->data_extent = p;
+
+    p.first  = PROG_MEM_ADDR;
+    p.second = PROG_MEM_WRDS;
+    this->memmap.push_back(p);
+    this->code_extent = p;
+
     this->memmap.push_back(IntPair(ID_LOC_ADDR,ID_LOC_WRDS));
     this->memmap.push_back(IntPair(CFG_WORDS_ADDR,CFG_WORDS_WRDS));
     if (this->flags & PIC_FEATURE_EEPROM) {
-        this->memmap.push_back(IntPair(EEPROM_ADDR,EEPROM_WRDS));
+        p.first  = EEPROM_ADDR;
+        p.second = EEPROM_WRDS;
+        this->memmap.push_back(p);
+        this->data_extent = p;
     }
 }
 
@@ -210,9 +221,9 @@ void Pic18::erase(void)
     try {
         set_program_mode();
         chip_erase();
-        pic_off();
+        off();
     } catch (std::exception& e) {
-        pic_off();
+        off();
         throw;
     }
 }
@@ -325,9 +336,9 @@ void Pic18::program(DataBuffer& buf)
         }
         write_config_memory(buf, 0x300000, true);
         
-        pic_off();
+        off();
     } catch (std::exception& e) {
-        pic_off();
+        off();
         throw;
     }
 }
@@ -372,7 +383,7 @@ unsigned int npanels, panel, offset;
         throw runtime_error (
             (const char *)Preferences::Name (
                 "Couldn't write program memory at address 0x%06lx: %s",
-                (unsigned long)(panel << PANEL_SHIFT) + offset,
+                (uint32_t)(panel << PANEL_SHIFT) + offset,
                 e.what()
             )
         );
@@ -381,7 +392,7 @@ unsigned int npanels, panel, offset;
 
 void Pic18::write_id_memory (
     DataBuffer& buf,
-    unsigned long addr,
+    uint32_t addr,
     bool verify
 ) {
     progress(addr);
@@ -419,7 +430,7 @@ void Pic18::write_id_memory (
 
 void Pic18::write_data_memory (
     DataBuffer& buf,
-    unsigned long addr,
+    uint32_t addr,
     bool verify
 ) {
 uint32_t ins;
@@ -511,7 +522,7 @@ unsigned int offset;
 
 void Pic18::write_config_memory (
     DataBuffer& buf,
-    unsigned long addr,
+    uint32_t addr,
     bool verify
 ) {
 int i;
@@ -571,17 +582,17 @@ void Pic18::read(DataBuffer& buf, bool verify)
         if (flags & PIC_FEATURE_EEPROM) {
             read_data_memory(buf, 0xf00000, verify);
         }
-        pic_off();
+        off();
     } catch (std::exception& e) {
-        pic_off();
+        off();
         throw;
     }
 }
 
 void Pic18::read_memory (
     DataBuffer& buf,
-    unsigned long addr,     /* byte address */
-    unsigned long len,      /* word len */
+    uint32_t addr,     /* byte address */
+    uint32_t len,      /* word len */
     bool verify
 ) {
 unsigned int data;
@@ -621,12 +632,12 @@ unsigned int data;
 
 void Pic18::read_config_memory (
     DataBuffer& buf,
-    unsigned long addr,
-    unsigned long len,
+    uint32_t addr,
+    uint32_t len,
     bool verify
 ) {
 unsigned int data, cword_num;
-unsigned long i;
+uint32_t i;
 
     cword_num = 0;
     try {
@@ -668,7 +679,7 @@ unsigned long i;
 
 void Pic18::read_data_memory (
     DataBuffer& buf,
-    unsigned long addr,
+    uint32_t addr,
     bool verify
 ) {
 uint32_t ins;
@@ -742,7 +753,7 @@ void Pic18::load_write_buffer (
     unsigned int offset,
     bool last
 ) {
-unsigned long addr;
+uint32_t addr;
 int i;
 
     addr = (panel << PANEL_SHIFT) + offset;
@@ -772,7 +783,7 @@ void Pic18::program_delay(bool hold_clock_high)
     this->io->shift_bits_out(0x0000, 16);/* 16-bit payload (NOP) */
 }
 
-void Pic18::set_tblptr(unsigned long addr)
+void Pic18::set_tblptr(uint32_t addr)
 {
 uint32_t ins;
 

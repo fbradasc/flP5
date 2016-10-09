@@ -24,7 +24,7 @@ using namespace std;
 #include "Microchip.h"
 #include "Util.h"
 
-Pic16f87xA::Pic16f87xA(char *name) : Pic16(name)
+Pic16f87xA::Pic16f87xA(char *vendor, char *spec, char *device) : Pic16(vendor, spec, device)
 {
 }
 
@@ -47,9 +47,9 @@ void Pic16f87xA::disable_codeprotect(void)
         this->write_command(COMMAND_CHIP_ERASE);
         this->io->usleep(this->erase_time);
 
-        this->pic_off();
+        this->off();
     } catch(std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }

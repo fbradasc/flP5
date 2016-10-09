@@ -25,7 +25,7 @@
 
 /** \file */
 
-#define PINDECL(prefix) short prefix##Reg, prefix##Bit, prefix##Invert
+#define PARPORT_PINS 25
 
 /** This class contains methods and data elements that are common to all IO
  * implementation attached to a parallel port.
@@ -33,6 +33,20 @@
 class ParallelPort : public IO
 {
 public:
+    typedef enum PP_PINS {
+        OFF=0,
+        SCK,
+        SDI_MISO,
+        SDO_MOSI,
+        VDD_VCC,
+        VPP_RESET,
+        SEL_MIN_VDD,
+        SEL_PRG_VDD,
+        SEL_MAX_VDD,
+        SEL_VIHH_VPP,
+        LAST_PIN
+    } PpPins;
+
     /** This constructor is called right before a parallel port IO class is
      * created. It the responsibility of this function to read in the
      * configuration variables specific to parallel port programmers.
@@ -43,36 +57,34 @@ public:
     /** Frees all memory and resources associated with this object */
     virtual ~ParallelPort();
 
+    virtual void reset(bool state); // vpp((state) ? VPP_TO_GND : VPP_TO_VDD);
     virtual void clock(bool state);
     virtual void data(bool state);
     virtual bool data(void);
     virtual void vpp(VppMode mode);
     virtual void vdd(VddMode mode);
 
-    static LptPorts ports;
+    static  char getReg(int pin);
+    static  char getBit(int pin);
+    static  bool hwInvert(int pin);
+
+    static  LptPorts ports;
 
 protected:
+    void initialize();
+
     /** The parallel port number this object is using */
     int port;
 
-    PINDECL(icspDataIn);  /** Par. port pin data for the read data signal    */
-    PINDECL(icspDataOut); /** Par. port pin data for the write data signal   */
-    PINDECL(icspClock);   /** Par. port pin data for the clock signal        */
-    PINDECL(icspVppOn);   /** Par. port pin data for the Vpp enable signal   */
-    PINDECL(icspVddOn);   /** Par. port pin data for the Vdd enable signal   */
-    PINDECL(selMinVdd);   /** Par. port pin data for the Vdd Min sel. signal */
-    PINDECL(selProgVdd);  /** Par. port pin data for the Vdd Prg sel. signal */
-    PINDECL(selMaxVdd);   /** Par. port pin data for the Vdd Max sel. signal */
-    PINDECL(selVihhVpp);  /** Par. port pin data for the Vpp VIH sel. signal */
-
-    int vddMinCond;       /** Pins to activate to select Vdd Min value  */
-    int vddProgCond;      /** Pins to activate to select Vdd Prog value */
-    int vddMaxCond;       /** Pins to activate to select Vdd Max value  */
-    int vppOffCond;       /** True if the selVihhVpp pin has to be off before
-                           *  setting off the icspVppOn pin */
+    int pins[PARPORT_PINS]; /** parport pins settings                     */
+    int vddMinCond;         /** Pins to activate to select Vdd Min value  */
+    int vddProgCond;        /** Pins to activate to select Vdd Prog value */
+    int vddMaxCond;         /** Pins to activate to select Vdd Max value  */
+    int vppOffCond;         /** True if the selVihhVpp pin has to be off  *
+                             ** before setting off the icspVppOn pin      */
 
     virtual void set_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
@@ -80,29 +92,24 @@ protected:
     ) = 0;
 
     virtual bool get_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert
     ) = 0;
 
     void set_pin_state (
-        char *name,
-        short reg,
-        short bit,
-        short invert,
+        const char *name,
+        PpPins connection,
         bool state,
         struct signal_delays *delays
     );
 
     bool get_pin_state (
-        char *name,
-        short reg,
-        short bit,
-        short invert,
+        const char *name,
+        PpPins connection,
         struct signal_delays *delays
     );
-
 };
 
 #endif

@@ -290,6 +290,7 @@ Fl_Tree_Item *item=0, *first=0;
                 mi->labelsize()  ? mi->labelsize()
                                  : (parent) ? parent->textsize()
                                             : FL_NORMAL_SIZE,
+                mi->flags,
                 true, true,
                 tTree,
                 (Fl_Tree_Item *)father,
@@ -419,7 +420,7 @@ const Fl_Menu_Item *Fl_Sorted_Choice::prev_item(const Fl_Menu_Item *mi)
     mi = (!mi) ? menu() : mi;
     while (menu() && mi>menu()) {
         mi--;
-        if (mi->label() && !mi->submenu()) {
+        if (mi->label() && !mi->submenu() && mi->activevisible()) {
             return mi;
         }
     }
@@ -433,7 +434,7 @@ const Fl_Menu_Item *m = menu();
     mi = (!mi) ? m : mi;
     while (size()>0 && mi<&(m[size()-1])) {
         mi++;
-        if (mi->label() && !mi->submenu()) {
+        if (mi->label() && !mi->submenu() && mi->activevisible()) {
             return mi;
         }
     }

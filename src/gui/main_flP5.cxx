@@ -23,6 +23,8 @@
 #  include <sys/time.h>
 #  include <signal.h>
 #  include <unistd.h>
+#else
+#  include <windows.h>
 #endif
 #include <exception>
 #include <iterator>
@@ -33,7 +35,9 @@ using namespace std;
 #include <FL/Fl_Shared_Image.H>
 #include <FL/Fl_File_Chooser.H>
 #include <FL/filename.H>
+#include <FL/Fl_Tooltip.H>
 
+#include "DeviceUI.h"
 #include "Util.h"
 #include "ParallelPort.h"
 
@@ -49,7 +53,7 @@ Preferences app(Preferences::USER,"flP5","flP5");
 Preferences programmers(Preferences::USER,"flP5","programmers");
 Preferences devices(Preferences::USER,"flP5","devices");
 
-char *copyrightText =
+const char *copyrightText =
 "<HTML><BODY><CENTER>"
 "<B>flP5 1.1.3</B><BR>"
 "the Fast Light Parallel Port Production PIC Programmer.<BR>"
@@ -70,27 +74,6 @@ char *copyrightText =
 "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA<P>"
 "</P>"
 "<CENTER>Please report bugs to fbradasc@yahoo.it.</CENTER></BODY></HTML>";
-
-typedef struct NamedSettings {
-    const char *name;
-    const void *defv;
-} t_NamedSettings;
-
-static t_NamedSettings scfgWords[] = {
-    "cw_mask", (void *)"0xffff",
-    "cw_save", (void *)"0x0000",
-    "cw_defs", (void *)"0xffff",
-    "cp_mask", (void *)"0x0000",
-    "cp_all_", (void *)"0x0000",
-    "cp_none", (void *)"0x0000",
-    "dp_mask", (void *)"0x0000",
-    "dp_on__", (void *)"0x0000",
-    "dp_off_", (void *)"0x0000",
-    "bd_mask", (void *)"0x0000",
-    "bd_on__", (void *)"0x0000",
-    "bd_off_", (void *)"0x0000"
-};
-#define CONFIG_WORD_SETTINGS sizeof(scfgWords) / sizeof(t_NamedSettings)
 
 static t_NamedSettings spropDly[] = {
     "signalDelay.default"               , (void *)0,
@@ -115,51 +98,32 @@ static t_NamedSettings spropDly[] = {
     "signalDelay.write.vdd.low_to_high" , (void *)0
 };
 
-static t_NamedSettings sparams[] = {
-    "wordSize"       , (void *)0,
-    "codeSize"       , (void *)0,
-    "eepromSize"     , (void *)0,
-    "progCount"      , (void *)0,
-    "progMult"       , (void *)0,
-    "progTime"       , (void *)0,
-    "eraseTime"      , (void *)0,
-    "writeBufferSize", (void *)32,
-    "eraseBufferSize", (void *)64,
-    "deviceID"       , (void *)"0x0000",
-    "deviceIDMask"   , (void *)"0x0000",
-    "vppMin"         , (void *)0,
-    "vppMax"         , (void *)0,
-    "vddMin"         , (void *)0,
-    "vddMax"         , (void *)0,
-    "vddpMin"        , (void *)0,
-    "vddpMax"        , (void *)0
-};
-
 static t_NamedSettings spins[] = {
     "icspClock"  , (void *)0,
     "icspDataIn" , (void *)0,
     "icspDataOut", (void *)0,
     "icspVddOn"  , (void *)0,
     "icspVppOn"  , (void *)0,
+
     "selMinVdd"  , (void *)0,
     "selProgVdd" , (void *)0,
     "selMaxVdd"  , (void *)0,
-    "selVihhVpp" , (void *)0
+    "selVihhVpp" , (void *)0,
+
+    "ispVcc"     , (void *)0,
+    "ispReset"   , (void *)0,
+    "ispMiso"    , (void *)0,
+    "ispMosi"    , (void *)0,
+    "ispSck"     , (void *)0,
 };
 
-static char *portAccess[] = { "DirectPP", "LinuxPPDev" };
+static const char *portAccess[] = { "DirectPP", "LinuxPPDev" };
 
 bool verifyDeviceConfig(bool verbose)
 {
 const char *name;
-int i, v;
-double d[6];
+int i;
 bool ok = true;
-const char *voltageNames[] = {
-    "Vpp Min" , "Vpp Max" ,
-    "Vdd Min" , "Vdd Max" ,
-    "Vddp Min", "Vddp Max"
-};
 
     name = tx_devName->value();
     if (!name || strlen(name)==0) {
@@ -179,44 +143,10 @@ const char *voltageNames[] = {
         }
         tx_devName->value(&name[i]);
     }
-    for (v=0,i=LAST_PARAM-6;verbose && i<LAST_PARAM;i++,v++) {
-        tx_devParam[i]->color(FL_WHITE);
-        if (sscanf(tx_devParam[i]->value(),"%lf",&d[v])!=1 || d[v]<1.0) {
-            ok = false;
-            fl_alert (
-                "The %s value must be a positive (>0) float.",
-                voltageNames[v]
-            );
-            tx_devParam[i]->color(FL_YELLOW);
-        }
-        tx_devParam[i]->redraw();
-    }
-    if (ok) {
-        for (v=0;v<3;v++) {
-            if (d[(2*v)]>d[(2*v)+1]) {
-                fl_alert (
-                    "The %s value must be greater or equal to the %s value.",
-                    voltageNames[(2*v)+1],voltageNames[(2*v)]
-                );
-                tx_devParam[(2*v)+LAST_PARAM-6]->color(FL_YELLOW);
-                tx_devParam[(2*v)+LAST_PARAM-6+1]->color(FL_YELLOW);
-                ok = false;
-            }
-        }
-    }
-    for (i=0;verbose && i<LAST_PARAM-8;i++) {
-        tx_devParam[i]->color(FL_WHITE);
-        if (sscanf(tx_devParam[i]->value(),"%d",&v)!=1 || v<0) {
-            ok = false;
-            fl_alert (
-                "The %s value must be a non negative (>=0) integer.",
-                tx_devParam[i]->label()
-            );
-            tx_devParam[i]->color(FL_YELLOW);
-        }
-        tx_devParam[i]->redraw();
-    }
-    return ok;
+    const Fl_Menu_Item *mitem = ch_devProgSpec->mvalue();
+    const char         *mdata = (const char *)mitem->user_data();
+
+    return DeviceUI::verifyConfig(mdata,verbose);
 }
 
 void initDevicesSettings(void)
@@ -232,75 +162,18 @@ char buf[FL_PATH_MAX];
             for (int device=0;device<specs.groups();device++) {
                 Preferences dev(specs,specs.group(device));
 
-                dev.get("experimental",v,1);
-                dev.set("experimental",v);
-
-                dev.get("memType",buf,"rom",sizeof(buf)-1);
-                dev.set("memType",buf);
-
-                for (i=0;i<LAST_PARAM-8;i++) {
-                    dev.get(sparams[i].name,v,(int)sparams[i].defv);
-                    dev.set(sparams[i].name,v);
-                }
-                for (;i<LAST_PARAM-6;i++) { /* device id & mask */
-                    dev.get (
-                        sparams[i].name,
-                        buf,
-                        (char *)sparams[i].defv,
-                        sizeof(buf)-1
-                    );
-                    dev.set(sparams[i].name,buf);
-                }
-                for (;i<LAST_PARAM;i++) {
-                    dev.get(sparams[i].name,d,(double)((int)sparams[i].defv));
-                    dev.set(sparams[i].name,d);
-                }
-
-                dev.get("configWords",v,0);
-                dev.set("configWords",v);
-
-                for (i=0;i<v;i++) {
-                    for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
-                        dev.get (
-                            Preferences::Name (
-                                "%s_%02d",
-                                scfgWords[j].name,i
-                            ),
-                            buf,
-                            (char*)scfgWords[j].defv,
-                            sizeof(buf)-1
-                        );
-                        dev.set (
-                            Preferences::Name (
-                                "%s_%02d",
-                                scfgWords[j].name,i
-                            ),
-                            buf
-                        );
-                    }
-                }
+                DeviceUI::initDevicesSettings(devices.group(vendor),vendors.group(spec),dev);
             }
         }
     }
 }
+
 bool loadDevicesSettings(const char *fname)
 {
-int i,j,k,level;
-int v[CONFIG_WORD_SETTINGS],v1[CONFIG_WORD_SETTINGS];
-double d, d1;
-const Fl_Menu_Item *mitem;
-char *mdata;
-char buf[FL_PATH_MAX];
-char buf1[FL_PATH_MAX];
-char report[1024];
 const char *pext, *pfname;
 char path[FL_PATH_MAX];
 char application[FL_PATH_MAX];
-int settings;
 bool loaded = false;
-bool compare = false;
-bool different = false;
-bool store = false;
 
     if (fname && strlen(fname)) {
         pext   = fl_filename_ext(fname);
@@ -327,269 +200,12 @@ bool store = false;
                         specs.group(device)
                     );
                     Preferences from(specs,specs.group(device));
-                    //
-                    // check if it's a valid device settings group
-                    //
-                    settings = 0;
-                    /* - Optional -
-                    settings += from.get("experimental",v[0],1) ? 1 : 0;
-                    */
-                    settings += from.get (
-                        "memType",buf,"rom",sizeof(buf)-1
-                    ) ? 1 : 0;
-                    for (i=0;i<LAST_PARAM-8;i++) {
-                        settings += from.get(sparams[i].name,v[0],(int)sparams[i].defv) ? 1 : 0;
-                    }
-                    for (;i<LAST_PARAM-6;i++) { /* device id & mask */
-                        settings += from.get (
-                            sparams[i].name,
-                            buf,
-                            (char*)sparams[i].defv,
-                            sizeof(buf)-1
-                        ) ? 1 : 0;
-                    }
-                    for (;i<LAST_PARAM;i++) {
-                        settings += from.get(sparams[i].name,d,(double)((int)sparams[i].defv)) ? 1 : 0;
-                    }
-                    settings += from.get("configWords",v[0],0) ? 1 : 0;
-                    for (i=0;i<v[0];i++) {
-                        for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
-                            settings += from.get (
-                                Preferences::Name (
-                                    "%s_%02d",
-                                    scfgWords[j].name,i
-                                ),
-                                buf,
-                                (char*)scfgWords[j].defv,
-                                sizeof(buf)-1
-                            ) ? 1 : 0;
-                        }
-                    }
-                    store = false;
-                    if (settings==(/* 1+ */ 1+LAST_PARAM+1+(CONFIG_WORD_SETTINGS*v[0]))) {
-                        compare = false;
-                        if (!devices.groupExists(path)) {
-                            j = ch_devices->add (
-                                path,
-                                (const char *)0,
-                                (Fl_Callback *)0,
-                                (void *)strdup(path),
-                                0
-                            );
-                            ch_devices->value(j);
-                            ch_devices->set_changed();
-                            if ((mitem = ch_devices->mvalue())) {
-                                ((Fl_Menu_Item*)mitem)->labelcolor (
-                                    tb_devExperimental->value() ? FL_BLUE
-                                                                : FL_BLACK
-                                );
-                            }
-                            ch_devices->redraw();
-                        } else {
-                            compare = true;
-                        }
-                        while (!devices.groupExists(path)) {
-                            Preferences to(devices,path);
-                        }
-                        Preferences to(devices,path);
-                        if (compare) {
-                            different = false;
-                            ls_report->clear();
 
-                            from.get("experimental",v[0],1);
-                              to.get("experimental",v1[0],1);
-
-                            if (v[0] != v1[0]) {
-                                ls_report->add("@bexperimental:");
-                                sprintf(report,"  cur=%d",v1[0]);
-                                ls_report->add(report);
-                                sprintf(report,"@_  new=%d",v[0]);
-                                ls_report->add(report);
-                                different = true;
-                            }
-                            from.get("memType",buf,"rom",sizeof(buf)-1);
-                              to.get("memType",buf1,"rom",sizeof(buf1)-1);
-
-                            if (strcmp(buf,buf1)) {
-                                ls_report->add("@bmemType:");
-                                sprintf(report,"  cur=%s",buf1);
-                                ls_report->add(report);
-                                sprintf(report,"@_  new=%s",buf);
-                                ls_report->add(report);
-                                different = true;
-                            }
-                            for (i=0;i<LAST_PARAM-8;i++) {
-                                from.get(sparams[i].name,v[0],(int)sparams[i].defv);
-                                  to.get(sparams[i].name,v1[0],(int)sparams[i].defv);
-
-                                if (v[0] != v1[0]) {
-                                    sprintf(report,"@b%s:",sparams[i].name);
-                                    ls_report->add(report);
-                                    sprintf(report,"  cur=%d",v1[0]);
-                                    ls_report->add(report);
-                                    sprintf(report,"@_  new=%d",v[0]);
-                                    ls_report->add(report);
-                                    different = true;
-                                }
-                            }
-                            for (;i<LAST_PARAM-6;i++) { /* device id & mask */
-                                from.get (
-                                    sparams[i].name,
-                                    buf,
-                                    (char*)sparams[i].defv,
-                                    sizeof(buf)-1
-                                );
-                                to.get (
-                                    sparams[i].name,
-                                    buf1,
-                                    (char*)sparams[i].defv,
-                                    sizeof(buf1)-1
-                                );
-                                if (strcmp(buf,buf1)) {
-                                    sprintf(report,"@b%s:",sparams[i].name);
-                                    ls_report->add(report);
-                                    sprintf(report,"  cur=%s",buf1);
-                                    ls_report->add(report);
-                                    sprintf(report,"@_  new=%s",buf);
-                                    ls_report->add(report);
-                                    different = true;
-                                }
-                            }
-                            for (;i<LAST_PARAM;i++) {
-                                from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
-                                  to.get(sparams[i].name,d1,(double)((int)sparams[i].defv));
-
-                                if (d != d1) {
-                                    sprintf(report,"@b%s:",sparams[i].name);
-                                    ls_report->add(report);
-                                    sprintf(report,"  cur=%lf",d1);
-                                    ls_report->add(report);
-                                    sprintf(report,"@_  new=%lf",d);
-                                    ls_report->add(report);
-                                    different = true;
-                                }
-                            }
-                            from.get("configWords",v[0],0);
-                              to.get("configWords",v1[0],0);
-
-                            if (v[0] != v1[0]) {
-                                ls_report->add("@bconfigWords:");
-                                sprintf(report,"  cur=%d",v1[0]);
-                                ls_report->add(report);
-                                sprintf(report,"@_  new=%d",v[0]);
-                                ls_report->add(report);
-                                different = true;
-                            }
-                            for (i=0;i<v[0];i++) {
-                                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
-                                    from.get (
-                                        Preferences::Name (
-                                            "%s_%02d",
-                                            scfgWords[j].name,i
-                                        ),
-                                        buf,
-                                        (char*)scfgWords[j].defv,
-                                        sizeof(buf)-1
-                                    );
-                                    to.get (
-                                        Preferences::Name (
-                                            "%s_%02d",
-                                            scfgWords[j].name,i
-                                        ),
-                                        buf1,
-                                        (char*)scfgWords[j].defv,
-                                        sizeof(buf1)-1
-                                    );
-                                    if (strcmp(buf,buf1)) {
-                                        ls_report->add (
-                                            Preferences::Name (
-                                                "@b%s_%02d:",
-                                                scfgWords[j].name,i
-                                            )
-                                        );
-                                        sprintf(report,"  cur=%s",buf1);
-                                        ls_report->add(report);
-                                        sprintf(report,"@_  new=%s",buf);
-                                        ls_report->add(report);
-                                        different = true;
-                                    }
-                                }
-                            }
-                            sprintf(report,"Device: %s",path);
-                            if (different && show_report_window(report)) {
-                                store = true;
-                            }
-                        }
-                        if (store || !compare) {
-                            from.get("experimental",v[0],1);
-                                to.set("experimental",v[0]);
-                            from.get("memType",buf,"rom",sizeof(buf)-1);
-                                to.set("memType",buf);
-                            for (i=0;i<LAST_PARAM-8;i++) {
-                                from.get(sparams[i].name,v[0],(int)sparams[i].defv);
-                                    to.set(sparams[i].name,v[0]);
-                            }
-                            for (;i<LAST_PARAM-6;i++) { /* device id & mask */
-                                from.get (
-                                    sparams[i].name,
-                                    buf,
-                                    (char*)sparams[i].defv,
-                                    sizeof(buf)-1
-                                );
-                                    to.set(sparams[i].name,buf);
-                            }
-                            for (;i<LAST_PARAM;i++) {
-                                from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
-                                    to.set(sparams[i].name,d);
-                            }
-                            from.get("configWords",v[0],0);
-                                to.set("configWords",v[0]);
-                            for (i=0;i<v[0];i++) {
-                                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
-                                    from.get (
-                                        Preferences::Name (
-                                            "%s_%02d",
-                                            scfgWords[j].name,i
-                                        ),
-                                        buf,
-                                        (char*)scfgWords[j].defv,
-                                        sizeof(buf)-1
-                                    );
-                                        to.set (
-                                            Preferences::Name (
-                                                "%s_%02d",
-                                                scfgWords[j].name,i
-                                            ),
-                                            buf
-                                        );
-                                }
-                            }
-                            for (
-                                level = 0, mitem = ch_devices->menu();
-                                // null label at level 0 means end of menu:
-                                level || mitem->label();
-                                mitem++
-                            ) {
-                                if (mitem->submenu()) {
-                                    // submenu: down one level
-                                    level++;
-                                } else if (!mitem->label()) {
-                                    // null label: up one level
-                                    level--;
-                                } else {
-                                    if ((mdata =
-                                         (char *)mitem->user_data()
-                                    )) {
-                                        Preferences dev(devices,mdata);
-                                        dev.get("experimental",v[0],1);
-                                        ((Fl_Menu_Item*)mitem)->labelcolor (
-                                            v[0] ? FL_BLUE : FL_BLACK
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    DeviceUI::loadSettings (
+                        imports.group(vendor),
+                        vendors.group(spec),
+                        path,from
+                    );
                 }
             }
         }
@@ -597,11 +213,11 @@ bool store = false;
     }
     return loaded;
 }
+
 bool deviceConfigCB(CfgOper oper)
 {
 static int lastOper=-1;
 int i,j,k,selected;
-int v[CONFIG_WORD_SETTINGS];
 double d;
 const Fl_Menu_Item *mitem;
 char *mdata;
@@ -627,16 +243,6 @@ char path[FL_PATH_MAX];
     }
     if (oper==CFG_LOAD || oper==CFG_NEW || oper==CFG_DELETE) {
         tx_devName->value("");
-        ch_devMemType->value(0);
-        for (i=0;i<LAST_PARAM-8;i++) {
-            tx_devParam[i]->value("0");
-        }
-        for (;i<LAST_PARAM-6;i++) {
-            tx_devParam[i]->value("0x0000");
-        }
-        for (;i<LAST_PARAM;i++) {
-            tx_devParam[i]->value("0");
-        }
         if (
             oper==CFG_DELETE &&
             (
@@ -661,17 +267,7 @@ char path[FL_PATH_MAX];
 
             delete mdata;
         }
-        for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-            tx_devCfgWord[i]->value("");
-        }
-        for (i=0;i<LAST_PARAM;i++) {
-            tx_devParam[i]->color(FL_WHITE);
-        }
-        for (i=ls_devConfigWords->size();i>1;i--) {
-            ls_devConfigWords->remove(i);
-        }
-        ls_devConfigWords->do_callback();
-        tb_devExperimental->value(1);
+        DeviceUI::cleanConfigFields();
     }
     if (oper==CFG_LOAD || oper==CFG_DELETE) {
         if (
@@ -682,47 +278,6 @@ char path[FL_PATH_MAX];
         ) {
             Preferences device(devices,(const char *)mdata);
             tx_devName->value(ch_devices->text());
-            for (i=0;i<LAST_PARAM-8;i++) {
-                device.get(sparams[i].name,v[0],(int)sparams[i].defv);
-                    sprintf(buf,"%d",v[0]);
-                    tx_devParam[i]->value(buf);
-            }
-            for (;i<LAST_PARAM-6;i++) {
-                device.get (
-                    sparams[i].name,
-                    buf,
-                    (char*)sparams[i].defv,
-                    sizeof(buf)-1
-                );
-                tx_devParam[i]->value(buf);
-            }
-            for (;i<LAST_PARAM;i++) {
-                device.get(sparams[i].name,d,(double)((int)sparams[i].defv));
-                    sprintf(buf,"%.2lf",d);
-                    tx_devParam[i]->value(buf);
-            }
-            device.get("configWords",v[0],0);
-            for (i=0;i<v[0];i++) {
-                ls_devConfigWords->add("");
-                ls_devConfigWords->select(ls_devConfigWords->size());
-                selected=ls_devConfigWords->value();
-                sprintf(buf," %02d ",selected-2);
-                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
-                    device.get (
-                        Preferences::Name("%s_%02d",scfgWords[j].name,i),
-                        path,
-                        (char*)scfgWords[j].defv,
-                        sizeof(path)-1
-                    );
-                    sprintf(buf,"%s| %s ",buf,path);
-                    tx_devCfgWord[j]->value("");
-                }
-                ls_devConfigWords->text(selected,buf);
-            }
-            ls_devConfigWords->do_callback();
-
-            device.get("experimental",v[0],1);
-            tb_devExperimental->value(v[0] ? 1 : 0);
 
             strcpy(path,mdata);
             pfname = fl_filename_name((const char *)mdata);
@@ -738,20 +293,13 @@ char path[FL_PATH_MAX];
                      (mdata=(char*)mitem->user_data()) &&
                      !strcmp(buf,mdata)
                  ) {
+                     mitem->do_callback(ch_devProgSpec);
                      break;
                  }
             }
-            device.get("memType",buf,"rom",sizeof(buf)-1);
-            for (i=0;i<ch_devMemType->size();i++) {
-                 ch_devMemType->value(i);
-                 if (
-                     (mitem=ch_devMemType->mvalue()) &&
-                     (mdata=(char*)mitem->user_data()) &&
-                     !strcmp(buf,mdata)
-                 ) {
-                     break;
-                 }
-            }
+
+            bool reset = DeviceUI::resetConfigFields(device, buf, path);
+
             if (chip) {
                 delete chip;
                 chip = NULL;
@@ -790,11 +338,14 @@ char path[FL_PATH_MAX];
         mitem = ch_devProgSpec->mvalue();
         mdata = (char *)mitem->user_data();
         sprintf(buf,"%s/%s",mdata,tx_devName->value());
+
+        bool isExperimental = DeviceUI::isExperimental(mdata);
+
         if (lastOper==CFG_EDIT) {
             ch_devices->replace(ch_devices->value(),tx_devName->value());
             if ((mitem = ch_devices->mvalue())) {
                 ((Fl_Menu_Item*)mitem)->labelcolor (
-                    tb_devExperimental->value() ? FL_BLUE : FL_BLACK
+                    isExperimental ? FL_BLUE : FL_BLACK
                 );
                 mdata = (char *)((Fl_Menu_Item*)mitem)->user_data();
                 if (mdata) {
@@ -816,59 +367,13 @@ char path[FL_PATH_MAX];
             ch_devices->set_changed();
             if ((mitem = ch_devices->mvalue())) {
                 ((Fl_Menu_Item*)mitem)->labelcolor (
-                    tb_devExperimental->value() ? FL_BLUE : FL_BLACK
+                    isExperimental ? FL_BLUE : FL_BLACK
                 );
             }
         }
-        while (!devices.groupExists(buf)) {
-            Preferences device(devices,buf);
-        }
-        Preferences device(devices,buf);
 
-        device.set("experimental",tb_devExperimental->value() ? 1 : 0);
+        DeviceUI::saveConfig(mdata, buf);
 
-        device.set (
-            "memType",
-            (const char*)ch_devMemType->mvalue()->user_data()
-        );
-        for (i=0;i<LAST_PARAM-8;i++) {
-            if (sscanf(tx_devParam[i]->value(),"%d",&v[0])) {
-                device.set(sparams[i].name,v[0]);
-            }
-        }
-        for (;i<LAST_PARAM-6;i++) { /* device id & mask  */
-            if (sscanf(tx_devParam[i]->value(),"%x",&v[0])) {
-                device.set (
-                    sparams[i].name,
-                    Preferences::Name("0x%04x",v[0])
-                );
-            }
-        }
-        for (;i<LAST_PARAM;i++) {
-            if (sscanf(tx_devParam[i]->value(),"%lf",&d)) {
-                device.set(sparams[i].name,d);
-            }
-        }
-        device.set("configWords",ls_devConfigWords->size()-1);
-        for (i=2;i<=ls_devConfigWords->size();i++) {
-            if (
-                sscanf(
-                    strcpy(buf,ls_devConfigWords->text(i)),
-                    " %d | %x | %x | %x | %x | %x | %x |"
-                         " %x | %x | %x | %x | %x | %x ",
-                    &j,
-                    &v[ 0],&v[ 1],&v[ 2],&v[ 3],&v[ 4],&v[ 5],
-                    &v[ 6],&v[ 7],&v[ 8],&v[ 9],&v[10],&v[11]
-                ) == CONFIG_WORD_SETTINGS + 1
-            ) {
-                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
-                    device.set (
-                        Preferences::Name("%s_%02d",scfgWords[j].name,i-2),
-                        Preferences::Name("0x%04x",v[j])
-                    );
-                }
-            }
-        }
         ch_devices->sort();
 
     } else if (oper!=CFG_NEW) {
@@ -895,7 +400,6 @@ bool verifyProgrammerConfig(bool verbose)
 {
 const char *name;
 int i;
-char pins[26];
 bool ok = true;
 
     name = tx_programmerName->value();
@@ -916,42 +420,25 @@ bool ok = true;
         }
         tx_programmerName->value(&name[i]);
     }
-    for (i=0;i<26;i++) {
-        pins[i] = -1;
-    }
-    for (i=0;i<LAST_PIN;i++) {
-        bx_pinName[i]->color(FL_WHITE);
-        if (
-            ch_pinNumber[i]->value() &&
-            pins[ch_pinNumber[i]->value()] >= 0
-        ) {
-            if (verbose) {
-                fl_alert (
-                    "The pin #%d connected to %s\nis already connected to %s",
-                    ch_pinNumber[i]->value(),
-                    bx_pinName[i]->label(),
-                    bx_pinName[pins[ch_pinNumber[i]->value()]]->label()
-                );
-            }
-            bx_pinName[i]->color(FL_YELLOW);
-        } else {
-            pins[ch_pinNumber[i]->value()] = i;
-        }
-        bx_pinName[i]->redraw();
-    }
     if (verbose) {
-        i=0;
-        i += (ch_pinNumber[ICSP_CLOCK]->value()) ? 1 : 0;
-        i += (ch_pinNumber[ICSP_DATA_IN]->value()) ? 1 : 0;
-        i += (ch_pinNumber[ICSP_DATA_OUT]->value()) ? 1 : 0;
-        i += (ch_pinNumber[ICSP_VPP_ON]->value()) ? 1 : 0;
-
-        if (i<4) {
+        int j=0, k=0;
+        for (i=0;i<PARPORT_PINS;i++) {
+            if ( ch_pinConnection[i]->value() == ParallelPort::SCK       ||
+                 ch_pinConnection[i]->value() == ParallelPort::SDI_MISO  ||
+                 ch_pinConnection[i]->value() == ParallelPort::SDO_MOSI  ||
+                 ch_pinConnection[i]->value() == ParallelPort::VDD_VCC   ||
+                 ch_pinConnection[i]->value() == ParallelPort::VPP_RESET  )
+            {
+                j++;
+            }
+        }
+        if (j<5) {
             fl_alert (
-                "ICSP Clock\n"
-                "ICSP Data In\n"
-                "ICSP Data Out\n"
-                "ICSP Vpp On\n"
+                "CLK/SCK\n"
+                "DIN/MISO\n"
+                "DOUT/MOSI\n"
+                "VDD/VCC\n"
+                "VPP/RESET\n"
                 "must be connected."
             );
             return false;
@@ -992,18 +479,30 @@ bool store = false;
             // check if it's a valid programmer settings group
             //
             settings = 0;
-            for (j=0;j<LAST_PIN;j++) {
-                settings += from.get(spins[j].name,v[0],(int)spins[j].defv)? 1 : 0;
+            settings += from.get("vddMinCond" ,v[0],0)? 1 : 0;
+            settings += from.get("vddProgCond",v[0],0)? 1 : 0;
+            settings += from.get("vddMaxCond" ,v[0],0)? 1 : 0;
+            settings += from.get("vppOffCond" ,v[0],0)? 1 : 0;
+
+            for (j=0;j<PARPORT_PINS;j++) {
+                settings += from.get(Preferences::Name("parportPin_%02d",j),v[0],0)? 1 : 0;
+                // make sure all pins exist
+                from.set(Preferences::Name("parportPin_%02d",j),v[0]);
             }
-            settings += from.get("vddMinCond"              ,v[0],0)? 1 : 0;
-            settings += from.get("vddProgCond"             ,v[0],0)? 1 : 0;
-            settings += from.get("vddMaxCond"              ,v[0],0)? 1 : 0;
-            settings += from.get("vppOffCond"              ,v[0],0)? 1 : 0;
+            if (settings<PARPORT_PINS) {
+                for (j=1;j<ParallelPort::LAST_PIN;j++) {
+                    from.get(spins[j-1].name,v[0],(int)spins[j-1].defv);
+                    if (v[0]!=0) {
+                        from.set(Preferences::Name("parportPin_%02d", abs(v[0])-1),
+                                 (v[0]<0)? j+ParallelPort::LAST_PIN : j);
+                    }
+                }
+            }
             /* - Optional -
             settings += from.get("independentVddVppControl",v[0],0)? 1 : 0;
             */
             store = false;
-            if (settings==(4 /* 5 */ + LAST_PIN)) {
+            if (settings==(4 /* 5 */ + PARPORT_PINS)) {
                 compare = false;
                 if (!programmers.groupExists(gname)) {
                     j = ch_programmers->add(gname);
@@ -1021,14 +520,14 @@ bool store = false;
                     different = false;
                     ls_report->clear();
 
-                    for (j=0;j<LAST_PIN;j++) {
-                        from.get(spins[j].name,v[0] ,(int)spins[j].defv);
-                          to.get(spins[j].name,v1[0],(int)spins[j].defv);
+                    for (j=0;j<PARPORT_PINS;j++) {
+                        from.get(Preferences::Name("parportPin_%02d",j),v[0],ParallelPort::OFF);
+                          to.get(Preferences::Name("parportPin_%02d",j),v1[0],ParallelPort::OFF);
                         if (v[0] != v1[0]) {
                             sprintf (
                                 report,
-                                "@b%s:",
-                                spins[j].name
+                                "@bparportPin_%d:",
+                                j
                             );
                             ls_report->add(report);
                             sprintf(report,"  cur=%d",v1[0]);
@@ -1099,9 +598,9 @@ bool store = false;
                     }
                 }
                 if (store || !compare) {
-                    for (j=0;j<LAST_PIN;j++) {
-                        from.get(spins[j].name   ,v[0],(int)spins[j].defv);
-                          to.set(spins[j].name   ,v[0]  );
+                    for (j=0;j<PARPORT_PINS;j++) {
+                        from.get(Preferences::Name("parportPin_%02d",j),v[0],ParallelPort::OFF);
+                          to.get(Preferences::Name("parportPin_%02d",j),v1[0],ParallelPort::OFF);
                     }
                     from.get("vddMinCond"              ,v[0],0);
                       to.set("vddMinCond"              ,v[0]  );
@@ -1120,12 +619,25 @@ bool store = false;
     }
     return loaded;
 }
+
+int searchPin(ParallelPort::PpPins connection)
+{
+    int pin=-1;
+    for (int i=0; i<PARPORT_PINS; i++) {
+        if ((ch_pinConnection[i]->value() == connection) ||
+            (ch_pinConnection[i]->value() == connection+ParallelPort::LAST_PIN)) {
+            pin = i;
+            break;
+        }
+    }
+    return pin;
+}
+
 bool programmerConfigCB(CfgOper oper)
 {
 static int lastOper=-1;
 int i,j;
 int v[3];
-char pins[26];
 
     if (oper==CFG_DELETE) {
         if (lastOper==CFG_NEW || lastOper==CFG_EDIT || lastOper==CFG_COPY) {
@@ -1147,20 +659,20 @@ char pins[26];
     }
     if (oper==CFG_LOAD || oper==CFG_NEW || oper==CFG_DELETE) {
         tx_programmerName->value("");
-        for (i=0;i<LAST_PIN;i++) {
+        for (i=0;i<PARPORT_PINS;i++) {
             tb_pinInvert[i]->value(0);
-            ch_pinNumber[i]->value(0);
+            ch_pinConnection[i]->value(0);
         }
         for (i=0;i<3;i++) {
-            tb_vddMinCond [i]->value(0);
-            tb_vddProgCond[i]->value(0);
-            tb_vddMaxCond [i]->value(0);
-            tb_vddMinCond [i]->deactivate();
-            tb_vddProgCond[i]->deactivate();
-            tb_vddMaxCond [i]->deactivate();
-            tb_vddMinCond [i]->redraw();
-            tb_vddProgCond[i]->redraw();
-            tb_vddMaxCond [i]->redraw();
+            tb_vddMinCond[i]->value(0);
+            tb_vddPrgCond[i]->value(0);
+            tb_vddMaxCond[i]->value(0);
+            tb_vddMinCond[i]->deactivate();
+            tb_vddPrgCond[i]->deactivate();
+            tb_vddMaxCond[i]->deactivate();
+            tb_vddMinCond[i]->redraw();
+            tb_vddPrgCond[i]->redraw();
+            tb_vddMaxCond[i]->redraw();
         }
         tb_vppOffCond->value(0);
         tb_vppOffCond->deactivate();
@@ -1183,10 +695,6 @@ char pins[26];
             ch_programmers->set_changed();
             ch_programmers->redraw();
         }
-        for (i=0;i<LAST_PIN;i++) {
-            bx_pinName[i]->color(FL_WHITE);
-            bx_pinName[i]->redraw();
-        }
     }
     if (oper==CFG_LOAD || oper==CFG_DELETE) {
         if (
@@ -1198,19 +706,44 @@ char pins[26];
             tx_programmerName->value(ch_programmers->text());
             // to format the name of the programmer:
             verifyProgrammerConfig(false);
-            for (i=0;i<LAST_PIN;i++) {
-                programmer.get(spins[i].name,v[0],(int)spins[i].defv);
-                    tb_pinInvert[i]->value(v[0]<0);
-                    ch_pinNumber[i]->value(abs(v[0]));
-                    ch_pinNumber[i]->set_changed();
+
+            // check whether all new parport settings have been set
+            i=0;
+            for (j=0;j<PARPORT_PINS;j++) {
+                i += programmer.get(Preferences::Name("parportPin_%02d",j),v[0],0)? 1 : 0;
+                // make sure all pins exist
+                programmer.set(Preferences::Name("parportPin_%02d",j),v[0]);
+            }
+            if (i<PARPORT_PINS) {
+                // not all new settings vave been set, load deprecated parport configuration
+                for (j=1;j<ParallelPort::LAST_PIN;j++) {
+                    programmer.get(spins[j-1].name,v[0],(int)spins[j-1].defv);
+                    if (v[0]!=0) {
+                        programmer.set(Preferences::Name("parportPin_%02d", abs(v[0])-1),
+                                       (v[0]<0)? j+ParallelPort::LAST_PIN : j);
+                    }
+                }
+            }
+            // remove deprecated configuration settings
+            for (j=1;j<ParallelPort::LAST_PIN;j++) {
+                programmer.deleteEntry(spins[j-1].name);
+            }
+            // new parport configuration overrides old configuration
+            for (i=0;i<PARPORT_PINS;i++) {
+                if (programmer.get(Preferences::Name("parportPin_%02d",i),
+                                   v[0],(int)ch_pinConnection[i]->value())) {
+                    tb_pinInvert[i]->value((v[0]>=ParallelPort::LAST_PIN));
+                    ch_pinConnection[i]->value((v[0]>=ParallelPort::LAST_PIN)?(v[0]-ParallelPort::LAST_PIN):(v[0]));
+                    ch_pinConnection[i]->set_changed();
+                }
             }
             programmer.get("vddMinCond" ,v[0],0);
             programmer.get("vddProgCond",v[1],0);
             programmer.get("vddMaxCond" ,v[2],0);
                 for (i=0;i<3;i++) {
-                    tb_vddMinCond [i]->value((v[0]>>i) & 0x01);
-                    tb_vddProgCond[i]->value((v[1]>>i) & 0x01);
-                    tb_vddMaxCond [i]->value((v[2]>>i) & 0x01);
+                    tb_vddMinCond[i]->value((v[0]>>i) & 0x01);
+                    tb_vddPrgCond[i]->value((v[1]>>i) & 0x01);
+                    tb_vddMaxCond[i]->value((v[2]>>i) & 0x01);
                 }
             programmer.get("vppOffCond",v[0],0);
                 tb_vppOffCond->value(v[0]>0);
@@ -1218,34 +751,64 @@ char pins[26];
             programmer.get("independentVddVppControl",v[0],0);
                 tb_saVddVppControl->value(v[0]>0);
 
-            if (ch_pinNumber[SEL_MIN_VDD]->value()) {
-                tb_vddMinCond [0]->deactivate();
-                tb_vddProgCond[0]->activate();
-                tb_vddMaxCond [0]->activate();
+#if 0
+            if (searchPin(ParallelPort::SEL_MIN_VDD)>=0) {
+                tb_vddMinCond[0]->deactivate();
+                tb_vddPrgCond[0]->activate();
+                tb_vddMaxCond[0]->activate();
             } else {
-                tb_vddMinCond [0]->deactivate();
-                tb_vddProgCond[0]->deactivate();
-                tb_vddMaxCond [0]->deactivate();
+                tb_vddMinCond[0]->deactivate();
+                tb_vddPrgCond[0]->deactivate();
+                tb_vddMaxCond[0]->deactivate();
             }
-            if (ch_pinNumber[SEL_PRG_VDD]->value()) {
-                tb_vddMinCond [1]->activate();
-                tb_vddProgCond[1]->deactivate();
-                tb_vddMaxCond [1]->activate();
+            if (searchPin(ParallelPort::SEL_PRG_VDD)>=0) {
+                tb_vddMinCond[1]->activate();
+                tb_vddPrgCond[1]->deactivate();
+                tb_vddMaxCond[1]->activate();
             } else {
-                tb_vddMinCond [1]->deactivate();
-                tb_vddProgCond[1]->deactivate();
-                tb_vddMaxCond [1]->deactivate();
+                tb_vddMinCond[1]->deactivate();
+                tb_vddPrgCond[1]->deactivate();
+                tb_vddMaxCond[1]->deactivate();
             }
-            if (ch_pinNumber[SEL_MAX_VDD]->value()) {
-                tb_vddMinCond [2]->activate();
-                tb_vddProgCond[2]->activate();
-                tb_vddMaxCond [2]->deactivate();
+            if (searchPin(ParallelPort::SEL_MAX_VDD)>=0) {
+                tb_vddMinCond[2]->activate();
+                tb_vddPrgCond[2]->activate();
+                tb_vddMaxCond[2]->deactivate();
             } else {
-                tb_vddMinCond [2]->deactivate();
-                tb_vddProgCond[2]->deactivate();
-                tb_vddMaxCond [2]->deactivate();
+                tb_vddMinCond[2]->deactivate();
+                tb_vddPrgCond[2]->deactivate();
+                tb_vddMaxCond[2]->deactivate();
             }
-            if (ch_pinNumber[SEL_VIHH_VPP]->value()) {
+#else
+            if (searchPin(ParallelPort::SEL_MIN_VDD)>=0) {
+                tb_vddMinCond[0]->activate();
+                tb_vddPrgCond[0]->activate();
+                tb_vddMaxCond[0]->activate();
+            } else {
+                tb_vddMinCond[0]->deactivate();
+                tb_vddPrgCond[0]->deactivate();
+                tb_vddMaxCond[0]->deactivate();
+            }
+            if (searchPin(ParallelPort::SEL_PRG_VDD)>=0) {
+                tb_vddMinCond[1]->activate();
+                tb_vddPrgCond[1]->activate();
+                tb_vddMaxCond[1]->activate();
+            } else {
+                tb_vddMinCond[1]->deactivate();
+                tb_vddPrgCond[1]->deactivate();
+                tb_vddMaxCond[1]->deactivate();
+            }
+            if (searchPin(ParallelPort::SEL_MAX_VDD)>=0) {
+                tb_vddMinCond[2]->activate();
+                tb_vddPrgCond[2]->activate();
+                tb_vddMaxCond[2]->activate();
+            } else {
+                tb_vddMinCond[2]->deactivate();
+                tb_vddPrgCond[2]->deactivate();
+                tb_vddMaxCond[2]->deactivate();
+            }
+#endif
+            if (searchPin(ParallelPort::SEL_VIHH_VPP)>=0) {
                 tb_vppOffCond->activate();
             } else {
                 tb_vppOffCond->deactivate();
@@ -1253,12 +816,21 @@ char pins[26];
             verifyProgrammerConfig(false);
 
             app.get("portNumber",i,0);
+#if 0
             app.get("portAccessMethod",j,0);
+#else
+            j = ParallelPort::ports[i].access;
+#endif
             if (io) {
                 delete io;
                 io = NULL;
             }
             try {
+printf("port device : %s\n", ParallelPort::ports[i].device);
+printf("port access : %s\n", portAccess[j]);
+printf("port address: %0X\n", ParallelPort::ports[i].address);
+printf("port regs   : %d\n", ParallelPort::ports[i].regs);
+fflush(stdout);
                 io = IO::acquire(&programmer,portAccess[j],i);
             } catch (std::exception& e) {
                 fl_alert("I/O init: %s", e.what());
@@ -1301,16 +873,15 @@ char pins[26];
             programmers,
             ch_programmers->text(ch_programmers->value())
         );
-        for (i=0;i<LAST_PIN;i++) {
-            v[0] = abs(ch_pinNumber[i]->value()) *
-                   ((tb_pinInvert[i]->value())?-1:1);
-            programmer.set(spins[i].name,v[0]);
+        for (i=0;i<PARPORT_PINS;i++) {
+            v[0] = ch_pinConnection[i]->value() + ((tb_pinInvert[i]->value())?ParallelPort::LAST_PIN:0);
+            programmer.set(Preferences::Name("parportPin_%02d",i),v[0]);
         }
         v[0] = v[1] = v[2] = 0;
         for (i=0;i<3;i++) {
-            v[0] |= ((tb_vddMinCond [i]->value() & 0x01)<<i);
-            v[1] |= ((tb_vddProgCond[i]->value() & 0x01)<<i);
-            v[2] |= ((tb_vddMaxCond [i]->value() & 0x01)<<i);
+            v[0] |= ((tb_vddMinCond[i]->value() & 0x01)<<i);
+            v[1] |= ((tb_vddPrgCond[i]->value() & 0x01)<<i);
+            v[2] |= ((tb_vddMaxCond[i]->value() & 0x01)<<i);
         }
         programmer.set("vddMinCond" ,v[0]);
         programmer.set("vddProgCond",v[1]);
@@ -1390,6 +961,7 @@ bool different = false;
     }
     return loaded;
 }
+
 bool generalSettingsCB(CfgOper oper)
 {
 static int lastOper=-1;
@@ -1478,17 +1050,17 @@ const char *mdata, *cfgFile;
 
     for (i=0; i<ParallelPort::ports.count; i++) {
          ch_parports->add (
-             ParallelPort::ports.ports[i].device,
+             ParallelPort::ports[i].device,
              (const char *)0,
              (Fl_Callback *)0,
-             (void *)strdup(ParallelPort::ports.ports[i].device),
+             (void *)strdup(ParallelPort::ports[i].device),
              0
          );
     }
     app.get("portNumber",i,0);
     ch_parports->value(i);
 
-#if defined(linux) && defined(ENABLE_LINUX_PPDEV)
+#if 0 && defined(linux) && defined(ENABLE_LINUX_PPDEV)
     g_ppAccessMethod->show();
     linux_pp_dev->show();
     app.get("portAccessMethod",i,0);
@@ -1593,123 +1165,6 @@ const char *mdata, *cfgFile;
         ch_devices->redraw();
         ch_devices->do_callback();
     }
-}
-
-bool cfgWordsCB(CfgOper oper)
-{
-char line[105];
-int i, j, selected;
-unsigned int cfgWords[CONFIG_WORD_SETTINGS];
-const char *lsel;
-const char *cfgWordNames[] = {
-    "Configuration Word Mask",
-    "Configuration Word Base",
-    "Configuration Word Default",
-    "Code Protection Mask",
-    "Code Protection On",
-    "Code Protection Off",
-    "Data Protection Mask",
-    "Data Protection On",
-    "Data Protection Off",
-    "Background Debug Mask",
-    "Background Debug On",
-    "Background Debug Off"
-};
-bool ok=true;
-static CfgOper lastOper=CFG_NEW;
-
-    if (oper==CFG_SAVE){
-        if (lastOper!=CFG_SAVE && lastOper!=CFG_DELETE) {
-            for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-                //
-                // elimino i caratteri non alfanumerici
-                //
-                strncpy(line,tx_devCfgWord[i]->value(),sizeof(line)-1);
-                line[sizeof(line)-1]='\0';
-                for (j=0;j<strlen(line);j++) {
-                    if (!isxdigit(line[j]) && line[j]!='x' && line[j]!='X') {
-                        line[0]='\0';
-                        break;
-                    }
-                }
-                if (sscanf(line,"%x",&cfgWords[i])!=1 || cfgWords[i]>0xffff) {
-                    fl_alert (
-                        "Please insert a valid 4 digit hexadecimal number"
-                        " for the field:\n%s.",
-                        cfgWordNames[i]
-                    );
-                    ok = false;
-                    tx_devCfgWord[i]->color(FL_YELLOW);
-                } else {
-                    tx_devCfgWord[i]->color(FL_WHITE);
-                }
-            }
-            if (ok) {
-                if (lastOper==CFG_NEW || lastOper==CFG_COPY) {
-                    ls_devConfigWords->add("");
-                    ls_devConfigWords->select(ls_devConfigWords->size());
-                }
-                if ((selected=ls_devConfigWords->value())>1) {
-                    sprintf(line," %02d ",selected-2);
-                    for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-                        sprintf(line,"%s| 0x%04x ",line,cfgWords[i]);
-                        tx_devCfgWord[i]->value("");
-                    }
-                    ls_devConfigWords->text(selected,line);
-                } else {
-                    ok = false;
-                }
-            }
-        } else {
-            ok = false;
-        }
-    } else if (
-        (oper==CFG_LOAD || oper==CFG_EDIT || oper==CFG_COPY) &&
-        (selected = ls_devConfigWords->value())
-    ) {
-        if (selected>1) {
-            lsel = ls_devConfigWords->text(selected);
-            if (
-                sscanf (
-                    lsel,
-                    " %d | %x | %x | %x | %x | %x | %x |"
-                         " %x | %x | %x | %x | %x | %x ",
-                    &i,
-                    &cfgWords[ 0],&cfgWords[ 1],&cfgWords[ 2],
-                    &cfgWords[ 3],&cfgWords[ 4],&cfgWords[ 5],
-                    &cfgWords[ 6],&cfgWords[ 7],&cfgWords[ 8],
-                    &cfgWords[ 9],&cfgWords[10],&cfgWords[11]
-                ) == CONFIG_WORD_SETTINGS + 1
-            ) {
-                for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-                    sprintf(line,"0x%04x",cfgWords[i]);
-                    tx_devCfgWord[i]->value(line);
-                    tx_devCfgWord[i]->color(FL_WHITE);
-                }
-            }
-        } else {
-            for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-                tx_devCfgWord[i]->value("");
-            }
-            ls_devConfigWords->deselect();
-            ok = false;
-        }
-    } else if (oper==CFG_DELETE && ls_devConfigWords->size()>1) {
-        for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-            tx_devCfgWord[i]->value("");
-        }
-        ls_devConfigWords->remove(ls_devConfigWords->size());
-    } else if (oper==CFG_NEW) {
-        for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
-            tx_devCfgWord[i]->value("");
-        }
-    }
-    if (ok) {
-        lastOper = oper;
-    }
-    g_devcfgwords->redraw();
-
-    return ok;
 }
 
 bool showMemoryDumpCB(void *data,const char *line,int progress)
@@ -1833,7 +1288,7 @@ double vppMin, vppMax;
 double vddMin, vddMax;
 double vddpMin, vddpMax;
 bool proceed = true, forceCalibration = true;
-char *soper[] = {
+const char *soper[] = {
     /* CHIP_READ           */ "Read",
     /* CHIP_ERASE          */ "Erase",
     /* CHIP_BLANCK_CHECK   */ "Blank Chk",
@@ -1857,13 +1312,13 @@ char *soper[] = {
         io
     ) {
         if (oper == CHIP_TEST_RESET) {
-            io->vpp(IO::VPP_TO_GND);
+            io->reset(true);
             io->usleep(100000);     // 0.1" reset time
-            io->vpp(IO::VPP_TO_VDD);
+            io->reset(false);
         } else if (oper == CHIP_TEST_RESET_ON) {
-            io->vpp(IO::VPP_TO_GND);
+            io->reset(true);
         } else if (oper == CHIP_TEST_RESET_OFF) {
-            io->vpp(IO::VPP_TO_VDD);
+            io->reset(false);
         } else if (oper == CHIP_TEST_OFF) {
             io->vpp(IO::VPP_TO_GND);
             io->vdd(IO::VDD_TO_OFF);
@@ -1889,16 +1344,21 @@ char *soper[] = {
                 currentProgrammer != lastProgrammer
             );
             if (forceCalibration || oper == CHIP_CALIBRATE) {
-               proceed = make_calibration_window (
-                   forceCalibration,
-                   chip->get_name().c_str(),
-                   atof(tx_devParam[PAR_VPP_MIN]->value()),
-                   atof(tx_devParam[PAR_VPP_MAX]->value()),
-                   atof(tx_devParam[PAR_VDDP_MIN]->value()),
-                   atof(tx_devParam[PAR_VDDP_MAX]->value()),
-                   atof(tx_devParam[PAR_VDD_MIN]->value()),
-                   atof(tx_devParam[PAR_VDD_MAX]->value())
+               proceed = DeviceUI::getVoltageRanges (
+                   chip->get_fullname().c_str(),
+                   vppMin , vppMax ,
+                   vddpMin, vddpMax,
+                   vddMin , vddMax
                );
+               if ( proceed ) {
+                   proceed = make_calibration_window (
+                       forceCalibration,
+                       chip->get_name().c_str(),
+                       vppMin , vppMax ,
+                       vddpMin, vddpMax,
+                       vddMin , vddMax
+                   );
+               }
             }
             if (!proceed) {
                 return false;
@@ -1945,11 +1405,21 @@ char *soper[] = {
                     fl_message("Device is blank.");
                 } break;
                 case CHIP_WRITE:
+                    proceed = true;
                     buf.set_wordsize(chip->get_wordsize());
-                    try {
-                        chip->program(buf);
-                    } catch(std::exception& e) {
-                        fl_alert("%s: %s",chip->get_name().c_str(),e.what());
+
+                    if (chip->get_spec() == "AVR") {
+                        proceed = show_avr_fuses_window();
+                        if (proceed) {
+                            AvrUI::initFusesAndLocks((Avr*)chip,buf);
+                        }
+                    }
+                    if (proceed) {
+                        try {
+                            chip->program(buf);
+                        } catch(std::exception& e) {
+                            fl_alert("%s: %s",chip->get_name().c_str(),e.what());
+                        }
                     }
                 break;
                 case CHIP_VERIFY: {
@@ -1975,10 +1445,10 @@ char *soper[] = {
                 } break;
                 case CHIP_TEST_ON:
                     io->vdd(IO::VDD_TO_PRG);
-                    io->vpp(IO::VPP_TO_GND);
+                    io->reset(true);
                     io->vdd(IO::VDD_TO_ON);
                     io->usleep(100000);      // 0.1" reset time
-                    io->vpp(IO::VPP_TO_VDD); // let's go
+                    io->reset(false);        // let's go
                 break;
                 default:
                 break;
@@ -1993,38 +1463,95 @@ void loadHexFile(void)
 {
 char *fname;
 
-    if (hexFile) {
-        delete hexFile;
-    }
-    hexFile = 0;
-
-    fname = fl_file_chooser (
-        "HEX file selection",
-        "*.hex",
-        NULL,
-        0
-    );
-    if (fname && strlen(fname)) {
-        try {
-            /* Read the hex file into the data buffer */
-            hexFile = HexFile::load(fname);
-        } catch (std::exception& e) {
-            fl_message("%s: %s\n",fname,e.what());
-            hexFile = 0;
-            return;
-        }
-        if (chip) {
+    if (chip && chip->get_spec() == "AVR") {
+        if (show_open_avr_window()) {
             /* Clear the data buffer */
             buf.clear();
-            /* reads the hex file into memory */
+
+            if (strlen(tx_flash_hex_file->value())) {
+                if (hexFile) {
+                    delete hexFile;
+                }
+                hexFile = 0;
+
+                try {
+                    /* Read the hex file into the data buffer */
+                    hexFile = HexFile::load(fname);
+                    if (chip) {
+                        /* reads the hex file into memory */
+                        try {
+                            IntPair p(0,0);
+                            p = chip->get_code_extent();
+                            hexFile->read(buf,p.first,p.second);
+                        } catch (std::exception& e) {
+                            fl_message("%s\n",e.what());
+                        }
+                    }
+                } catch (std::exception& e) {
+                    fl_message("%s: %s\n",fname,e.what());
+                    hexFile = 0;
+                }
+            }
+            if (strlen(tx_eeprom_hex_file->value())) {
+                if (hexFile) {
+                    delete hexFile;
+                }
+                hexFile = 0;
+
+                try {
+                    /* Read the hex file into the data buffer */
+                    hexFile = HexFile::load(fname);
+                    if (chip) {
+                        /* reads the hex file into memory */
+                        try {
+                            IntPair p(0,0);
+                            p = chip->get_data_extent();
+                            hexFile->read(buf,p.first,p.second);
+                        } catch (std::exception& e) {
+                            fl_message("%s\n",e.what());
+                        }
+                    }
+                } catch (std::exception& e) {
+                    fl_message("%s: %s\n",fname,e.what());
+                    hexFile = 0;
+                }
+            }
+            dumpHexFile();
+        }
+    } else {
+        if (hexFile) {
+            delete hexFile;
+        }
+        hexFile = 0;
+
+        fname = fl_file_chooser (
+            "HEX file selection",
+            "*.hex",
+            NULL,
+            0
+        );
+        if (fname && strlen(fname)) {
             try {
-                hexFile->read(buf);
+                /* Read the hex file into the data buffer */
+                hexFile = HexFile::load(fname);
             } catch (std::exception& e) {
-                fl_message("%s\n",e.what());
+                fl_message("%s: %s\n",fname,e.what());
+                hexFile = 0;
                 return;
             }
+            if (chip) {
+                /* Clear the data buffer */
+                buf.clear();
+                /* reads the hex file into memory */
+                try {
+                    hexFile->read(buf);
+                } catch (std::exception& e) {
+                    fl_message("%s\n",e.what());
+                    return;
+                }
+            }
+            dumpHexFile();
         }
-        dumpHexFile();
     }
 }
 
@@ -2125,6 +1652,8 @@ int main(int argc, char **argv)
 #endif
 
     Util::setProgramPath(argv[0]);
+
+    Fl_Tooltip::font(FL_SCREEN);
 
     fl_register_images();
     Fl::add_handler(handle);

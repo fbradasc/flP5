@@ -58,7 +58,7 @@ public:
      * \throws logic_error If the hex file was opened for writing.
      * \throws runtime_error Contains a textual description of the error.
      */
-    virtual void read(DataBuffer& buf) = 0;
+    virtual void read(DataBuffer& buf, long start=0, long len=0) = 0;
 
     /** Writes data to the hex file.
      * \param buf The DataBuffer containing the data to write.
@@ -112,7 +112,7 @@ public:
      * just closes the file. */
     ~HexFile_ihx16();
 
-    void read(DataBuffer& buf);
+    void read(DataBuffer& buf, long start=0, long len=0);
     void write(DataBuffer& buf, long start, long len);
 
 private:
@@ -143,7 +143,7 @@ public:
      * just closes the file. */
     ~HexFile_ihx8();
 
-    void read(DataBuffer& buf);
+    void read(DataBuffer& buf, long start=0, long len=0);
     void write(DataBuffer& buf, long start, long len);
 
 private:

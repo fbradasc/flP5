@@ -19,7 +19,7 @@
 #include "Microchip.h"
 
 
-Pic16f7x::Pic16f7x(char *name) : Pic16(name)
+Pic16f7x::Pic16f7x(char *vendor, char *spec, char *device) : Pic16(vendor, spec, device)
 {
 }
 

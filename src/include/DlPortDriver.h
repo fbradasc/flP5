@@ -18,6 +18,12 @@
 #ifndef DlPortDriver_H
 #define DlPortDriver_H
 
+#include <windows.h>
+
+#ifndef _WINSVC_H
+#include <winsvc.h>
+#endif
+
 class DlPortDriver
 {
 private:

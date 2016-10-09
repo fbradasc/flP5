@@ -24,6 +24,11 @@
 #include "Device.h"
 #include "IO.h"
 
+typedef struct NamedSettings {
+    const char *name;
+    const void *defv;
+} t_NamedSettings;
+
 typedef enum PROPAGATION_DELAYS {
     PD_DEFAULT=0,
     PD_ADDITIONAL,
@@ -47,27 +52,6 @@ typedef enum PROPAGATION_DELAYS {
     PD_HL_WR_VDD,
     LAST_PROP_DLY
 } PropagationDelays;
-
-typedef enum DEV_PARAM {
-    PAR_WORD_SIZE=0,
-    PAR_CODE_SIZE,
-    PAR_EEPROM_SIZE,
-    PAR_PROG_COUNT,
-    PAR_PROG_MULT,
-    PAR_PROG_TIME,
-    PAR_ERASE_TIME,
-    PAR_WRITE_BUF_SIZE,
-    PAR_ERASE_BUF_SIZE,
-    PAR_DEVICE_ID,
-    PAR_DEVICE_ID_MASK,
-    PAR_VPP_MIN,
-    PAR_VPP_MAX,
-    PAR_VDD_MIN,
-    PAR_VDD_MAX,
-    PAR_VDDP_MIN,
-    PAR_VDDP_MAX,
-    LAST_PARAM
-} DevParam;
 
 typedef enum CONFIG_WORDS {
     CW_MASK=0,
@@ -128,20 +112,6 @@ typedef enum CHIP_OPER {
     CHIP_NONE
 } ChipOper;
 
-#define PP_PINS_FIRST 0
-typedef enum PP_PINS {
-    ICSP_CLOCK=PP_PINS_FIRST,
-    ICSP_DATA_IN,
-    ICSP_DATA_OUT,
-    ICSP_VDD_ON,
-    ICSP_VPP_ON,
-    SEL_MIN_VDD,
-    SEL_PRG_VDD,
-    SEL_MAX_VDD,
-    SEL_VIHH_VPP,
-    LAST_PIN
-} PpPins;
-
 extern bool verifyDeviceConfig(bool verbose);
 extern bool loadDevicesSettings(const char *fname);
 extern bool deviceConfigCB(CfgOper oper);
@@ -151,7 +121,6 @@ extern bool programmerConfigCB(CfgOper oper);
 extern bool loadGeneralSettings(const char *fname);
 extern bool generalSettingsCB(CfgOper oper);
 extern void loadPreferences(void);
-extern bool cfgWordsCB(CfgOper oper);
 extern bool showMemoryDumpCB(void *data,const char *line,int progress);
 extern void dumpHexFile(bool set_wordsize);
 extern bool processOperation(ChipOper oper);
@@ -172,6 +141,6 @@ extern Preferences app;
 extern Preferences programmers;
 extern Preferences devices;
 
-extern char *copyrightText;
+extern const char *copyrightText;
 
 #endif

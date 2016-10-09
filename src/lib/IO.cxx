@@ -39,7 +39,7 @@ using namespace std;
 
 Preferences *IO::config = NULL;
 
-IO *IO::acquire(Preferences *cfg, char *name, int port)
+IO *IO::acquire(Preferences *cfg, const char *name, int port)
 {
 IO *io;
 
@@ -55,6 +55,7 @@ IO *io;
     } else {
         throw runtime_error("Unknown IO driver selected");
     }
+    io->initialize();
     io->off();
 
     return io;
@@ -171,7 +172,7 @@ LARGE_INTEGER i1, i2;
     QueryPerformanceCounter(&i1);
     do {
         QueryPerformanceCounter(&i2);
-    } while ( (unsigned long)(i2.QuadPart - i1.QuadPart) < us );
+    } while ( (uint32_t)(i2.QuadPart - i1.QuadPart) < us );
 
 #else
 
@@ -202,6 +203,24 @@ struct timeval now, later;
         }
     }
 
+#endif
+}
+
+microtime_t IO::now()
+{
+#ifdef WIN32
+
+LARGE_INTEGER i;
+
+    QueryPerformanceCounter(&i);
+
+    return (microtime_t)i.QuadPart;
+#else
+
+struct timeval now;
+
+    gettimeofday(&now, NULL);
+    return (now.tv_sec * 1000000) + now.tv_usec;
 #endif
 }
 
@@ -259,6 +278,49 @@ uint32_t data, mask;
         numbits--;
     }
     this->data(false);
+    return data;
+}
+
+uint32_t IO::shift_bits_out_in (
+    uint32_t bits,
+    int numbits,
+    microtime_t tset,
+    microtime_t thold
+) {
+bool hold_clock = false;
+uint32_t data, mask;
+
+    data = 0;
+    mask = 0x00000001;
+
+    if (numbits<0) {
+        hold_clock  = true;
+        numbits    *= -1;
+    }
+    while (numbits > 0) {
+        this->data(bits & 0x01); // set output bit
+
+        this->clock(true);
+
+        /* Delay for data setup time */
+        this->usleep(tset);
+
+        if (this->data()) { // get input bit
+            data |= mask;
+        }
+
+        /* if hld_clock==true, keep the clock high after the last data bit */
+        if (numbits>1 || !hold_clock) {
+           /* Falling edge */
+           this->clock(false);
+        }
+        /* Delay for data hold time */
+        this->usleep(thold);
+
+        mask <<= 1;
+        bits >>= 1;
+        numbits--;
+    }
     return data;
 }
 

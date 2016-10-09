@@ -25,7 +25,7 @@ using namespace std;
 #include "Util.h"
 
 
-Pic16f8xx::Pic16f8xx(char *name) : Pic16(name)
+Pic16f8xx::Pic16f8xx(char *vendor, char *spec, char *device) : Pic16(vendor,spec,device)
 {
     this->program_time += 100;
 }
@@ -63,9 +63,9 @@ void Pic16f8xx::bulk_erase(void)
             this->write_command(0x01);
             this->write_command(0x07);
         }
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }
@@ -88,9 +88,9 @@ void Pic16f8xx::disable_codeprotect(void)
         this->write_command(0x01);
         this->write_command(0x07);
 
-        this->pic_off();
+        this->off();
     } catch (std::exception& e) {
-        this->pic_off();
+        this->off();
         throw;
     }
 }

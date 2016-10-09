@@ -45,17 +45,18 @@ DlPortDriver DirectPPIO::dlPortDriver;
 
 DirectPPIO::DirectPPIO(int port) : ParallelPort(port)
 {
-    if ((port > ports.count) ||
-        (port < 0)           ||
-        !ports.address[port] ||
-        !ports.device[port]
+    if ((port > ports.count)                    ||
+        (port < 0)                              ||
+        (ports[port].access != LptPort::DIRECT) ||
+        !ports[port].address                    ||
+        !ports[port].device
     ) {
         throw runtime_error("Invalid DirectPP port number");
     }
 #ifdef WIN32
     //Test if port is already in use
     this->hCom = CreateFile (
-        ports.device[port],
+        ports[port].device,
         GENERIC_READ | GENERIC_WRITE,
         0,             /* comm devices must be opened w/exclusive-access */
         NULL,          /* no security attrs                              */
@@ -68,8 +69,8 @@ DirectPPIO::DirectPPIO(int port) : ParallelPort(port)
     }
 #endif
     /* Turn port access on */
-    this->ioport = ports.address[port];
-    this->regs   = ports.regs[port];
+    this->ioport = ports[port].address;
+    this->regs   = ports[port].regs;
 #ifndef WIN32
     /* Set UID to root if running setuid */
     Util::setUser(0);
@@ -128,7 +129,7 @@ DirectPPIO::~DirectPPIO()
 }
 
 void DirectPPIO::set_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert,
@@ -150,7 +151,7 @@ unsigned int val;
 }
 
 bool DirectPPIO::get_pin_state (
-    char *name, 
+    const char *name, 
     short reg,
     short bit,
     short invert
@@ -162,4 +163,61 @@ unsigned int val;
         val ^= 0x01;
     }
     return val;
+}
+
+bool DirectPPIO::probe(LptPort &port)
+{
+#ifdef WIN32
+
+    if (NULL == port.device) {
+        return false;
+    }
+    //Test if port is already in use
+    HANDLE hCom = CreateFile (
+        port.device,
+        GENERIC_READ | GENERIC_WRITE,
+        0,             /* comm devices must be opened w/exclusive-access */
+        NULL,          /* no security attrs                              */
+        OPEN_EXISTING, /* comm devices must use OPEN_EXISTING            */
+        0,             /* not overlapped I/O                             */
+        NULL           /* hTemplate must be NULL for comm devices        */
+    );
+    if (hCom == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+    CloseHandle(hCom);
+
+#else
+
+    if ((0==port.address) || (0==port.regs)) {
+        return false;
+    }
+
+    /* Set UID to root if running setuid */
+    Util::setUser(0);
+
+    int error = 0;
+
+    if (ioperm(port.address, port.regs, 1) < 0) {
+        error = errno;
+    } 
+
+    /* Set UID back to user if running setuid */
+    Util::setUser(getuid());
+
+    if (error != 0) {
+        return false;
+    }
+
+    /* Set UID to root if running setuid */
+    Util::setUser(0);
+
+    /* Turn port access off */
+    ioperm(port.address, port.regs, 0);
+
+    /* Set UID back to user if running setuid */
+    Util::setUser(getuid());
+#endif
+
+    return true;
 }
