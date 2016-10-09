@@ -1,3 +1,11 @@
+flP5 1.1.9:
+  * Added support for the following defices:
+    - PIC16F882, PIC16F883, PIC16F884, PIC16F886, PIC16F887
+    Thanks to Edward A. Hildum.
+
+  * Upgraded the building system to support CMake up to the version 2.6.
+    Thanks to Edward A. Hildum.
+
 flP5 1.1.8:
   * Fixed reading of the deviceID and deviceIDMask from the defices.prefs
     configuraton file.

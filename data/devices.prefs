@@ -43,6 +43,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16LF627A]
 
@@ -76,6 +78,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F628A]
 
@@ -109,6 +113,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16LF628A]
 
@@ -142,6 +148,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16LF628]
 
@@ -175,6 +183,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F628]
 
@@ -208,6 +218,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16LF627]
 
@@ -241,6 +253,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F627]
 
@@ -274,6 +288,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC12F675]
 
@@ -307,6 +323,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC12F629]
 
@@ -375,6 +393,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C62]
 
@@ -408,6 +428,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C62A]
 
@@ -441,6 +463,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C62B]
 
@@ -474,6 +498,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C63]
 
@@ -507,6 +533,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C63A]
 
@@ -540,6 +568,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C64]
 
@@ -573,6 +603,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C64A]
 
@@ -606,6 +638,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C65]
 
@@ -639,6 +673,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C65A]
 
@@ -672,6 +708,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C65B]
 
@@ -705,6 +743,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C66]
 
@@ -738,6 +778,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C67]
 
@@ -771,6 +813,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C71]
 
@@ -804,6 +848,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C72]
 
@@ -837,6 +883,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C72A]
 
@@ -870,6 +918,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C73]
 
@@ -903,6 +953,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C73A]
 
@@ -936,6 +988,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C73B]
 
@@ -969,6 +1023,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C74]
 
@@ -1002,6 +1058,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C74A]
 
@@ -1035,6 +1093,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C74B]
 
@@ -1068,6 +1128,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C76]
 
@@ -1101,6 +1163,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C77]
 
@@ -1134,6 +1198,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C620]
 
@@ -1167,6 +1233,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C620A]
 
@@ -1200,6 +1268,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C621]
 
@@ -1233,6 +1303,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C621A]
 
@@ -1266,6 +1338,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C622]
 
@@ -1299,6 +1373,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C622A]
 
@@ -1332,6 +1408,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C623]
 
@@ -1365,6 +1443,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C624]
 
@@ -1398,6 +1478,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C625]
 
@@ -1431,6 +1513,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C710]
 
@@ -1464,6 +1548,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C711]
 
@@ -1497,6 +1583,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C712]
 
@@ -1530,6 +1618,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C716]
 
@@ -1563,6 +1653,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C745]
 
@@ -1596,6 +1688,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C765]
 
@@ -1629,6 +1723,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C773]
 
@@ -1662,6 +1758,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C774]
 
@@ -1695,6 +1793,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C923]
 
@@ -1728,6 +1828,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C924]
 
@@ -1761,6 +1863,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F73]
 
@@ -1794,6 +1898,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F74]
 
@@ -1827,6 +1933,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F76]
 
@@ -1860,6 +1968,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F77]
 
@@ -1893,6 +2003,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16CR83]
 
@@ -1926,6 +2038,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F83]
 
@@ -1959,6 +2073,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16C84]
 
@@ -2027,6 +2143,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F84]
 
@@ -2060,6 +2178,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F84A]
 
@@ -2128,6 +2248,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F871]
 
@@ -2161,6 +2283,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F872]
 
@@ -2194,6 +2318,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F873]
 
@@ -2227,6 +2353,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F874]
 
@@ -2260,6 +2388,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F876]
 
@@ -2293,6 +2423,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F877]
 
@@ -2326,6 +2458,243 @@ bd_off__00:0x0800
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
+
+[./Microchip/PIC/PIC16F882]
+
+experimental:1
+memType:flashe
+wordSize:14
+codeSize:2048
+eepromSize:128
+progCount:1
+progMult:0
+progTime:2500
+eraseTime:6500
+vppMin:10
+vppMax:12
+vddMin:2
+vddMax:5.5
+vddpMin:4.5
+vddpMax:5.5
+configWords:2
+cw_mask_00:0x3fff
+cw_save_00:0x0000
+cp_mask_00:0x0040
+cp_all__00:0x0000
+cp_none_00:0x0040
+dp_mask_00:0x0080
+dp_on___00:0x0000
+dp_off__00:0x0080
+bd_mask_00:0x0000
+bd_on___00:0x0000
+bd_off__00:0x0000
+cw_mask_01:0x0700
+cw_save_01:0x0000
+deviceID:0x2000
+deviceIDMask:0x3fe0
+writeBufferSize:4
+eraseBufferSize:64
+cw_defs_00:0xffff
+cw_defs_01:0xffff
+cp_mask_01:0x0000
+cp_all__01:0x0000
+cp_none_01:0x0000
+dp_mask_01:0x0000
+dp_on___01:0x0000
+dp_off__01:0x0000
+bd_mask_01:0x0000
+bd_on___01:0x0000
+bd_off__01:0x0000
+
+[./Microchip/PIC/PIC16F883]
+
+experimental:0
+memType:flashe
+wordSize:14
+codeSize:4096
+eepromSize:256
+progCount:1
+progMult:0
+progTime:2500
+eraseTime:6500
+vppMin:10
+vppMax:12
+vddMin:2
+vddMax:5.5
+vddpMin:4.5
+vddpMax:5.5
+configWords:2
+cw_mask_00:0x3fff
+cw_save_00:0x0000
+cp_mask_00:0x0040
+cp_all__00:0x0000
+cp_none_00:0x0040
+dp_mask_00:0x0080
+dp_on___00:0x0000
+dp_off__00:0x0080
+bd_mask_00:0x0000
+bd_on___00:0x0000
+bd_off__00:0x0000
+cw_mask_01:0x0700
+cw_save_01:0x0000
+deviceID:0x2020
+deviceIDMask:0x3fe0
+writeBufferSize:4
+eraseBufferSize:64
+cw_defs_00:0xffff
+cw_defs_01:0xffff
+cp_mask_01:0x0000
+cp_all__01:0x0000
+cp_none_01:0x0000
+dp_mask_01:0x0000
+dp_on___01:0x0000
+dp_off__01:0x0000
+bd_mask_01:0x0000
+bd_on___01:0x0000
+bd_off__01:0x0000
+
+[./Microchip/PIC/PIC16F884]
+
+experimental:1
+memType:flashe
+wordSize:14
+codeSize:4096
+eepromSize:256
+progCount:1
+progMult:0
+progTime:2500
+eraseTime:6500
+vppMin:10
+vppMax:12
+vddMin:2
+vddMax:5.5
+vddpMin:4.5
+vddpMax:5.5
+configWords:2
+cw_mask_00:0x3fff
+cw_save_00:0x0000
+cp_mask_00:0x0040
+cp_all__00:0x0000
+cp_none_00:0x0040
+dp_mask_00:0x0080
+dp_on___00:0x0000
+dp_off__00:0x0080
+bd_mask_00:0x0000
+bd_on___00:0x0000
+bd_off__00:0x0000
+cw_mask_01:0x0700
+cw_save_01:0x0000
+deviceID:0x2040
+deviceIDMask:0x3fe0
+writeBufferSize:4
+eraseBufferSize:64
+cw_defs_00:0xffff
+cw_defs_01:0xffff
+cp_mask_01:0x0000
+cp_all__01:0x0000
+cp_none_01:0x0000
+dp_mask_01:0x0000
+dp_on___01:0x0000
+dp_off__01:0x0000
+bd_mask_01:0x0000
+bd_on___01:0x0000
+bd_off__01:0x0000
+
+[./Microchip/PIC/PIC16F886]
+
+experimental:1
+memType:flashe
+wordSize:14
+codeSize:8192
+eepromSize:256
+progCount:1
+progMult:0
+progTime:2500
+eraseTime:6500
+vppMin:10
+vppMax:12
+vddMin:2
+vddMax:5.5
+vddpMin:4.5
+vddpMax:5.5
+configWords:2
+cw_mask_00:0x3fff
+cw_save_00:0x0000
+cp_mask_00:0x0040
+cp_all__00:0x0000
+cp_none_00:0x0040
+dp_mask_00:0x0080
+dp_on___00:0x0000
+dp_off__00:0x0080
+bd_mask_00:0x0000
+bd_on___00:0x0000
+bd_off__00:0x0000
+cw_mask_01:0x0700
+cw_save_01:0x0000
+deviceID:0x2060
+deviceIDMask:0x3fe0
+writeBufferSize:4
+eraseBufferSize:64
+cw_defs_00:0xffff
+cw_defs_01:0xffff
+cp_mask_01:0x0000
+cp_all__01:0x0000
+cp_none_01:0x0000
+dp_mask_01:0x0000
+dp_on___01:0x0000
+dp_off__01:0x0000
+bd_mask_01:0x0000
+bd_on___01:0x0000
+bd_off__01:0x0000
+
+[./Microchip/PIC/PIC16F887]
+
+experimental:1
+memType:flashe
+wordSize:14
+codeSize:8192
+eepromSize:256
+progCount:1
+progMult:0
+progTime:2500
+eraseTime:6500
+vppMin:10
+vppMax:12
+vddMin:2
+vddMax:5.5
+vddpMin:4.5
+vddpMax:5.5
+configWords:2
+cw_mask_00:0x3fff
+cw_save_00:0x0000
+cp_mask_00:0x0040
+cp_all__00:0x0000
+cp_none_00:0x0040
+dp_mask_00:0x0080
+dp_on___00:0x0000
+dp_off__00:0x0080
+bd_mask_00:0x0000
+bd_on___00:0x0000
+bd_off__00:0x0000
+cw_mask_01:0x0700
+cw_save_01:0x0000
+deviceID:0x2080
+deviceIDMask:0x3fe0
+writeBufferSize:4
+eraseBufferSize:64
+cw_defs_00:0xffff
+cw_defs_01:0xffff
+cp_mask_01:0x0000
+cp_all__01:0x0000
+cp_none_01:0x0000
+dp_mask_01:0x0000
+dp_on___01:0x0000
+dp_off__01:0x0000
+bd_mask_01:0x0000
+bd_on___01:0x0000
+bd_off__01:0x0000
 
 [./Microchip/PIC/PIC18F242]
 
@@ -2431,6 +2800,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F248]
 
@@ -2536,6 +2907,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F252]
 
@@ -2641,6 +3014,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F258]
 
@@ -2853,6 +3228,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F448]
 
@@ -2958,6 +3335,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F452]
 
@@ -3063,6 +3442,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F458]
 
@@ -3168,6 +3549,8 @@ cw_defs_03:0xffff
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F877A]
 
@@ -3201,6 +3584,8 @@ bd_off__00:0x0800
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F876A]
 
@@ -3234,6 +3619,8 @@ bd_off__00:0x0800
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F874A]
 
@@ -3267,6 +3654,8 @@ bd_off__00:0x0800
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16F873A]
 
@@ -3300,6 +3689,8 @@ bd_off__00:0x0800
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC18F1220]
 

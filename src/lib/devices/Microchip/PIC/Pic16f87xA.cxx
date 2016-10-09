@@ -109,7 +109,7 @@ void Pic16f87xA::write_config_word(uint32_t data)
     this->io->usleep(this->program_time);
 
     if (
-        (read_prog_data() & this->config_mask) != (data & this->config_mask)
+        (read_prog_data() & this->config_mask[0]) != (data & this->config_mask[0])
     ) {
         throw runtime_error("Couldn't write the configuration word");
     }

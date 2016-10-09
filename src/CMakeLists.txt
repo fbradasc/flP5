@@ -8,7 +8,7 @@ INCLUDE_DIRECTORIES (
     ${FLP5_SOURCE_DIR}/src/lib/devices/Microchip/PIC
 )
 
-SOURCE_FILES ( FLP5_SOURCES
+SET ( FLP5_SOURCES
 #
 # Micellaneus & utility sources
 #
@@ -42,6 +42,7 @@ SOURCE_FILES ( FLP5_SOURCES
     lib/devices/Microchip/PIC/Pic16f6xx.cxx
     lib/devices/Microchip/PIC/Pic16f7x.cxx
     lib/devices/Microchip/PIC/Pic16f8xx.cxx
+    lib/devices/Microchip/PIC/Pic16f88x.cxx
     lib/devices/Microchip/PIC/Pic16f87xA.cxx
     lib/devices/Microchip/PIC/Pic18.cxx
     lib/devices/Microchip/PIC/Pic18fxx20.cxx
@@ -61,9 +62,9 @@ SOURCE_FILES ( FLP5_SOURCES
 )
 
 IF ( WIN32 )
-    ADD_EXECUTABLE ( flP5 WIN32 FLP5_SOURCES )
+    ADD_EXECUTABLE ( flP5 WIN32 ${FLP5_SOURCES} )
 ELSE ( WIN32 )
-    ADD_EXECUTABLE ( flP5 FLP5_SOURCES )
+    ADD_EXECUTABLE ( flP5 ${FLP5_SOURCES} )
 ENDIF ( WIN32 )
 
-INSTALL_TARGETS( /bin flP5 )
+INSTALL_TARGETS( ${INSTALL_PREFIX}/bin flP5 )

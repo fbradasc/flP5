@@ -20,6 +20,7 @@
 
 #include "Util.h"
 
+#include <stdlib.h>
 #include <sys/stat.h>
 
 string Util::programPath="";
@@ -27,7 +28,7 @@ string Util::programPath="";
 bool Util::regexMatch(char *regex, char *string)
 {
 RegularExpression re(regex);
-        
+
     return re.find((const char *)string);
 }
 
@@ -48,7 +49,7 @@ bool Util::fileExists(string filename)
 }
 
 bool Util::fileIsDirectory(const char* name)
-{ 
+{
 struct stat fs;
 
     if(stat(name, &fs) == 0) {

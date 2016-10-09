@@ -26,6 +26,11 @@
 #endif
 #include <exception>
 #include <iterator>
+#include </usr/include/math.h>
+#include <math.h>	// The header /usr/include/FL/math.h was renamed to
+						//	Fl_math.h.  It includes some constants after 
+						//	including <math.h>.  Renaming the FLTK math.h
+						//	prevents its recursive inclusion.
 #include <cmath>
 
 using namespace std;
@@ -51,7 +56,7 @@ Preferences devices(Preferences::USER,"flP5","devices");
 
 char *copyrightText =
 "<HTML><BODY><CENTER>"
-"<B>flP5 1.1.3</B><BR>"
+"<B>flP5 1.1.8</B><BR>"
 "the Fast Light Parallel Port Production PIC Programmer.<BR>"
 "Copyright (C) 2003 by Francesco Bradascio</CENTER><P>"
 "</P>"
@@ -1785,8 +1790,8 @@ double rsec, esec, ssec;
             remaining = fabs( (double)(now.QuadPart - last.QuadPart) );
 #else
             gettimeofday(&now, NULL);
-            elaphsed  = fabs( (double)(now.tv_usec - start.tv_usec) );
-            remaining = fabs( (double)(now.tv_usec - last.tv_usec) );
+            elaphsed  = fabs( (long double)(now.tv_usec - start.tv_usec) );
+            remaining = fabs( (long double)(now.tv_usec - last.tv_usec) );
 #endif
             if (percent>last_percent) {
                 remaining /= (double)(percent-last_percent);
@@ -1795,15 +1800,15 @@ double rsec, esec, ssec;
 
             remaining *= (double)(100 - percent);
             rmin = abs( (int)( remaining / 60 ) );
-            rsec = fabs( (double)( remaining - (double)( rmin * 60 ) ) );
+            rsec = fabs( (long double)( remaining - (double)( rmin * 60 ) ) );
 
             elaphsed  /= (double)freq;
             emin = abs( (int)( elaphsed / 60 ) );
-            esec = fabs( (double)( elaphsed - (double)( emin * 60 ) ) );
+            esec = fabs( (long double)( elaphsed - (double)( emin * 60 ) ) );
 
             estimated = ( elaphsed / ( (percent>0) ? percent : 1 ) ) * 100;
             smin = abs( (int)( estimated / 60 ) );
-            ssec = fabs( (double)( estimated - (double)( smin * 60 ) ) );
+            ssec = fabs( (long double)( estimated - (double)( smin * 60 ) ) );
 
             sprintf (
                 msg,

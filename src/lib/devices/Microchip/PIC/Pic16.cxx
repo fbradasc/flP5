@@ -73,10 +73,16 @@ int tmp;
     this->popcodes = this->opcodes;
 
     /* Read configuration word bits */
-    config->getHex("cw_mask_00",(int &)config_mask,this->wordmask);
-    config->getHex("cw_save_00",(int &)persistent_config_mask,0);
-    config->getHex("cw_defs_00",(int &)default_config_word,0xffff);
-    default_config_word &= config_mask;
+    config->getHex("cw_mask_00",(int &)config_mask[0],this->wordmask);
+    config->getHex("cw_save_00",(int &)persistent_config_mask[0],0);
+    config->getHex("cw_defs_00",(int &)default_config_word[0],0xffff);
+    default_config_word[0] &= config_mask[0];
+    if (this->config_words > 1) {
+    	config->getHex("cw_mask_00",(int &)config_mask[1],this->wordmask);
+    	config->getHex("cw_save_00",(int &)persistent_config_mask[1],0);
+    	config->getHex("cw_defs_00",(int &)default_config_word[1],0xffff);
+    	default_config_word[1] &= config_mask[1];
+    }
 
     config->getHex("cp_mask_00",(int &)cp_mask, 0);
     config->getHex("cp_all__00",(int &)cp_all,  0);
@@ -92,7 +98,7 @@ int tmp;
     this->memmap.push_back (
         IntPair (0x2000,(this->flags & PIC_FEATURE_BKBUG) ? 5 : 4)
     );
-    this->memmap.push_back(IntPair (0x2007, 1));
+    this->memmap.push_back(IntPair (0x2007, this->config_words));
     if (this->flags & PIC_FEATURE_EEPROM) {
         this->memmap.push_back(IntPair (0x2100, this->eesize));
     }
@@ -149,6 +155,7 @@ void Pic16::erase(void)
     } else {
         this->bulk_erase();
     }
+    
     /* Check if we need to restore some state. */
     if ((this->persistent_config_mask != 0) || (this->flags & PIC_HAS_OSCAL)) {
         /* Wait a bit after exiting program mode */
@@ -186,15 +193,15 @@ void Pic16::erase(void)
                         this->write_command(COMMAND_INC_ADDRESS);
                     }
                     write_config_word (
-                        (cword & this->persistent_config_mask) |
-                        (this->wordmask & ~this->persistent_config_mask)
+                        (cword & this->persistent_config_mask[0]) |
+                        (this->wordmask & ~this->persistent_config_mask[0])
                     );
                 } catch(std::exception& e) {
                     throw runtime_error (
                         (const char *)Preferences::Name (
                             "Couldn't restore configuration bits."
                             " Values 0x%04lx",
-                            cword & this->persistent_config_mask
+                            cword & this->persistent_config_mask[0]
                         )
                     );
                 }
@@ -218,7 +225,8 @@ uint32_t data;
         default:
             throw runtime_error("Unsupported memory type in device");
     }
-    this->progress_total = this->codesize + this->eesize + 4;
+    this->progress_total = this->codesize + this->eesize + 
+    						this->config_words + 4;
     this->progress_count = 0;
 
     try {
@@ -251,11 +259,14 @@ uint32_t data;
             this->write_command(COMMAND_INC_ADDRESS);
         }
         /* Program the config word, keeping the persistent bits. */
-        progress(0x2007);
-        data = buf[0x2007] & ~this->persistent_config_mask;
-        data |= (read_config_word() & this->persistent_config_mask);
-        this->write_config_word(data);
-        this->progress_count++;
+        for (int i=0; i < this->config_words; i++) {
+        	data = buf[0x2007 + i] & ~this->persistent_config_mask[i];
+        	data |= (read_config_word() & this->persistent_config_mask[i]);
+        	this->write_config_word(data);
+            this->write_command(COMMAND_INC_ADDRESS);
+        	this->progress_count++;
+	        progress(0x2007 + i);
+        }
 
         this->pic_off();
     } catch (std::exception& e) {
@@ -297,17 +308,22 @@ void Pic16::read(DataBuffer& buf, bool verify)
                 buf[0x2004] = this->read_prog_data();
             }
         }
-        /* Skip past the next 3 addresses */
-        for (int i=4; i < 7; i++) {
-            this->write_command(COMMAND_INC_ADDRESS);
-        }
+
+        /* Skip past 3 addresses */
+       	this->write_command(COMMAND_INC_ADDRESS);
+        this->write_command(COMMAND_INC_ADDRESS);
+        this->write_command(COMMAND_INC_ADDRESS);
+        
         progress(0x2007);
-        if (verify) {
-            this->read_config_word(true, buf[0x2007]);
-        } else {
-            buf[0x2007] = this->read_config_word();
+        for (int i = 0; i < this->config_words; i++) {
+        	if (verify) {
+        	    this->read_config_word(true, buf[0x2007 + i]);
+        	} else {
+        	    buf[0x2007 + i] = this->read_config_word();
+        	}
+        	this->progress_count++;
+        	this->write_command(COMMAND_INC_ADDRESS);
         }
-        this->progress_count++;
 
         this->pic_off();
     } catch (std::exception& e) {
@@ -606,7 +622,7 @@ int count;
     /* Now do it! */
     bool ok = false;
     while (count > 0) {
-        ok=this->program_cycle(data, this->config_mask);
+        ok=this->program_cycle(data, this->config_mask[0]);
         count--;
     }
     if (!ok) {
@@ -622,7 +638,8 @@ uint32_t data;
         data = read_prog_data();
         if (verify) {
             /* We don't include persistent config bits in a verify */
-            uint32_t mask = this->config_mask & ~this->persistent_config_mask;
+            uint32_t mask = 
+            			this->config_mask[0] & ~this->persistent_config_mask[0];
             if ((verify_data & mask) != (data & mask)) {
                 throw runtime_error("");
             }
@@ -685,7 +702,7 @@ unsigned int Pic16::get_clearvalue(size_t addr)
 {
     if (addr == 0x2007) {        // config word
         // TODO: check if we need to use config_mask instead of wordmask
-        return this->wordmask & ~this->persistent_config_mask;
+        return this->wordmask & ~this->persistent_config_mask[0];
     } else if (addr == 0x2000) { // ID memory
         return this->wordmask;
     } else if (addr < 0x2100) {  // program memory

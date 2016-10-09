@@ -57,13 +57,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Updated: DLS 03/22/91  New lite version
 //
 
-#include "RegularExpression.h"  // Include class specification 
+#include "RegularExpression.h"  // Include class specification
 #include <stdio.h>
+#include <string.h>
 
 // RegularExpression -- Copies the given regular expression.
 RegularExpression::RegularExpression (const RegularExpression& rxp)
 {
-int ind; 
+int ind;
 
     this->progsize = rxp.progsize;              // Copy regular expression size
     this->program = new char[this->progsize];   // Allocate storage
@@ -104,12 +105,12 @@ bool RegularExpression::operator== (const RegularExpression& rxp) const
         while (ind-- != 0) {
             // If regexp are different
             if (this->program[ind] != rxp.program[ind]) {
-                // Return failure           
+                // Return failure
                 return false;
             }
         }
     }
-    return true;                                  // Else same, return success  
+    return true;                                  // Else same, return success
 }
 
 
@@ -128,22 +129,22 @@ int ind = this->progsize;
     }
     // Else while still characters
     while (ind-- != 0) {
-        // If regexp are different    
+        // If regexp are different
         if (this->program[ind] != rxp.program[ind]) {
-            // Return failure             
+            // Return failure
             return false;
         }
     }
     // Else if same start/end ptrs, Return true
     return (this->startp[0] == rxp.startp[0] && this->endp[0] == rxp.endp[0]);
-}   
+}
 
 // The remaining code in this file is derived from the  regular expression code
 // whose  copyright statement appears  below.  It has been  changed to work
 // with the class concepts of C++ and COOL.
 
 /*
- * compile and find 
+ * compile and find
  *
  *      Copyright (c) 1986 by University of Toronto.
  *      Written by Henry Spencer.  Not derived from licensed software.
@@ -369,15 +370,15 @@ register unsigned long  len;
     }
     this->startp[0] = this->endp[0] = this->searchstring = NULL;
 
-    // Small enough for pointer-storage convention? 
-    if (regsize >= 32767L) {    // Probably could be 65535L. 
+    // Small enough for pointer-storage convention?
+    if (regsize >= 32767L) {    // Probably could be 65535L.
         throw runtime_error (
             "RegularExpression::compile(): Expression too big.\n"
         );
     }
-    // Allocate space. 
+    // Allocate space.
     if (this->program != NULL) {
-        delete [] this->program;  
+        delete [] this->program;
     }
     this->program = new char[regsize];
     this->progsize = (int) regsize;
@@ -385,7 +386,7 @@ register unsigned long  len;
     if (this->program == NULL) {
         throw runtime_error (
             "RegularExpression::compile(): Out of memory.\n"
-        ); 
+        );
     }
     // Second pass: emit code.
     regparse = exp;
@@ -415,7 +416,7 @@ register unsigned long  len;
         // ties in favor of later strings, since the regstart check works
         // with the beginning of the r.e. and avoiding duplication
         // strengthens checking.  Not a strong reason, but sufficient in the
-        // absence of others. 
+        // absence of others.
         //
         if (flags & SPSTART) {
             longest = NULL;
@@ -858,9 +859,9 @@ static void regoptail (char* p, const char* val)
 }
 
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 //  find and friends
-// 
+//
 ////////////////////////////////////////////////////////////////////////
 
 /*
@@ -884,7 +885,7 @@ void         regdump ();
 static char* regprop ();
 #endif
 
-bool RegularExpression::find (string const& s) 
+bool RegularExpression::find (string const& s)
 {
     return find(s.c_str());
 }
@@ -933,7 +934,7 @@ register const char* s;
             if (regtry(s, this->startp, this->endp, this->program))
                 return (1);
             s++;
-          
+
         }
     } else {
         // We don't -- general case.
@@ -1073,7 +1074,7 @@ register const char* scan;  // Current node.
                 if (regmatch(next)) {
                     //
                     // Don't set startp if some later invocation of the
-                    // same parentheses already has. 
+                    // same parentheses already has.
                     //
                     if (regstartp[no] == NULL) {
                         regstartp[no] = save;
@@ -1082,7 +1083,7 @@ register const char* scan;  // Current node.
                 } else {
                     return (0);
                 }
-            } 
+            }
             case CLOSE + 1:
             case CLOSE + 2:
             case CLOSE + 3:
@@ -1101,7 +1102,7 @@ register const char* scan;  // Current node.
                 if (regmatch(next)) {
                     //
                     // Don't set endp if some later invocation of the
-                    // same parentheses already has. 
+                    // same parentheses already has.
                     //
                     if (regendp[no] == NULL) {
                         regendp[no] = save;
@@ -1138,7 +1139,7 @@ register const char* scan;  // Current node.
                 register int         min_no;
                 //
                 // Lookahead to avoid useless match attempts when we know
-                // what character comes next. 
+                // what character comes next.
                 //
                 nextch = '\0';
                 if (OP(next) == EXACTLY) {
@@ -1171,10 +1172,10 @@ register const char* scan;  // Current node.
         }
         scan = next;
     }
-    // 
+    //
     //  We get here only if there's trouble -- normally "case END" is the
-    //  terminating point. 
-    // 
+    //  terminating point.
+    //
     throw runtime_error (
         "RegularExpression::find(): Internal error -- corrupted pointers.\n"
     );

@@ -32,6 +32,10 @@ Device *Pic::load(char *name)
     ) {
         return new Pic16f87xA(name);
     } else if (
+        Util::regexMatch("^PIC16F88[23467]", name)
+    ) {
+    	return new Pic16f88x(name);
+    } else if (
         Util::regexMatch("^PIC16F8", name) ||
         (strcmp(name, "PIC16C84") == 0)
     ) {
@@ -85,7 +89,7 @@ char memtypebuf[10];
     /* Fill in this PIC's common attributes */
     if (!config->get("memType",memtypebuf,"rom",10)) {
         throw runtime_error (
-            "PIC device is missing memtype configuration parameter"
+            "PIC device is missing memtype configuration entry"
         );
     }
     if (strcmp(memtypebuf, "eprom") == 0) {
@@ -100,10 +104,17 @@ char memtypebuf[10];
         throw runtime_error("PIC device has an unknown memory type");
     }
     if (!config->get("wordSize",(int &)this->wordsize,0)) {
-        throw runtime_error("PIC device has incomplete configuration entry");
+        throw runtime_error(
+        	"PIC device is missing wordSize configuration entry");
     }
     if (!config->get("codeSize",(int &)this->codesize,0)) {
-        throw runtime_error("PIC device has incomplete configuration entry");
+        throw runtime_error(
+        	"PIC device is missing codeSize configuration entry");
+    }
+    if (!config->get("configWords",(int &)this->config_words,1)) {
+        throw runtime_error(
+        	"PIC device is missing configWords configuration entry"
+        );
     }
     if (config->get("eepromSize",(int &)this->eesize,0) && (this->eesize>0)) {
         this->flags |= PIC_FEATURE_EEPROM;

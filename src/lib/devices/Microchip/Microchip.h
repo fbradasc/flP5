@@ -254,6 +254,9 @@ protected:
 
     /** Number of words of code this PIC has. */
     unsigned int codesize;
+    
+    /** Number of configuration words for this PIC. */
+    unsigned int config_words;
 
     /** Number of bytes of data EEPROM this PIC has. Only valid if
      * \c PIC_FEATURE_EEPROM is set. */
@@ -341,7 +344,7 @@ protected:
      *        If this parameter isn't specified, it defaults to 0.
      * \pre The PIC should have it's program counter set to the beginning of
      *      program memory.
-     * \post The program counter is pointing to the address immediatly after
+     * \post The program counter is pointing to the address immediately after
      *       the last program memory address.
      * \throws runtime_error Contains a description of the error along with
      *         the address at which the error occurred.
@@ -465,13 +468,13 @@ protected:
 
 /* Protected data: */
     /** The default value of the configuration bits after an erase */
-    unsigned int default_config_word;
+    unsigned int default_config_word[2];
 
     /** Bitmask for valid bits in the configuration word. */
-    unsigned int config_mask;
+    unsigned int config_mask[2];
 
     /** A bitmask for configuration bits that must be preserved. */
-    unsigned int persistent_config_mask;
+    unsigned int persistent_config_mask[2];
 
     /** Code protection config bits. */
     unsigned int cp_mask, cp_all, cp_none;
@@ -482,6 +485,81 @@ protected:
     static const Instruction opcodes[];
 };
 
+/** Implement functions specific to Pic16f88[23467] chips, programming spec.
+ * DS41287D.
+ */
+class Pic16f88x : public Pic16
+{
+public:
+    /* PIC commands */
+    // const static int
+    enum Commands_List {
+        COMMAND_LOAD_CONFIG    = 0x00, /**< Load Configuration            */
+        COMMAND_LOAD_PROG_DATA = 0x02, /**< Load Data for Program Memory  */
+        COMMAND_LOAD_DATA_DATA = 0x03, /**< Load Data for Data Memory     */
+        COMMAND_READ_PROG_DATA = 0x04, /**< Read Data from Program Memory */
+        COMMAND_READ_DATA_DATA = 0x05, /**< Read Data from Data Memory    */
+        COMMAND_INC_ADDRESS    = 0x06, /**< Increment Address             */
+        COMMAND_BEGIN_PROG     = 0x08, /**< Begin Erase/Programming       */
+        COMMAND_ERASE_PROG_MEM = 0x09, /**< Bulk Erase Program Memory     */
+        COMMAND_END_PROG       = 0x0a, /**< End Programming               */
+        COMMAND_ERASE_DATA_MEM = 0x0b, /**< Bulk Erase Data Memory        */
+        COMMAND_ERASE_PROG_ROW = 0x11, /**< Erase Program memory row      */
+        COMMAND_BEGIN_PROG_EXT = 0x18  /**< Begin Programming, ext timing */
+    };
+
+    Pic16f88x(char *name);    /**< Constructor */
+    ~Pic16f88x();             /**< Destructor */
+
+protected:
+	virtual void	erase(void);
+
+    /** Program the entire contents of program memory to the PIC device.
+     * \param buf A DataBuffer containing the data to program.
+     * \param base The offset within the data buffer to start retrieving data.
+     *        If this parameter isn't specified, it defaults to 0.
+     * \pre The PIC should have it's program counter set to the beginning of
+     *      program memory.
+     * \post The program counter is pointing to the address immediately after
+     *       the last program memory address.
+     * \throws runtime_error Contains a description of the error along with
+     *         the address at which the error occurred.
+     */
+    virtual void write_program_memory(DataBuffer& buf, long base=0);
+
+    /* Implement 4- or 8- word algorithm for program memory.  Program 4 or 8
+     * words at the current PC location.  PC is assumed to be 0 modulo 4 or 8,
+     * depending on the value of write_buffer_size.  Afterward, the PC has
+     * been advanced to the next 4 or 8 word boundary.	*/
+	virtual void program_mult_prog_loc(DataBuffer& buf, long base);
+	
+    /** Program the data EEPROM contents to the PIC device.
+     * \param buf A DataBuffer containing the data to program.
+     * \param base The offset within the data buffer to start retrieving data.
+     * \throws runtime_error Contains a description of the error along with
+     *         the address at which the error occurred.
+     */
+	virtual void write_data_memory(DataBuffer& buf, long base=0x2100);
+	
+    /** Perform a single program cycle for program memory. The following steps
+     * are performed:
+     *   - The data is written to the PIC with write_prog_data().
+     *   - The BEGIN_PROG command is sent.
+     *   - A delay of program_time is initiated.
+     *   - If the PIC requires it, the END_PROG command is sent.
+     *   - A delay of 100us discharge time is performed.
+     *   - A readback is performed and is compared with the original data.
+     * \param data The data word to program into program memory at the PIC's
+     *        program counter.
+     * \param mask A mask which is used when verifying the data. The read back
+     *             data and the data parameter are both masked with this mask
+     *             before being compared. This is required for properly
+     *             verifying the configuration word.
+     * \returns A boolean value indicating if the data read back matches the
+     *          data parameter.
+     */
+	virtual bool program_cycle(uint32_t data, uint32_t mask);
+};
 
 /** A class which implements device-specific functions for PIC16F8xx devices.
  */
