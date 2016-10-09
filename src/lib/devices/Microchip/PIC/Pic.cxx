@@ -125,10 +125,14 @@ char memtypebuf[10];
         }
     }
     /* Read programming parameters with defaults for an EPROM device */
-    config->get("progCount",(int &)program_count     , 25);
-    config->get("progMult" ,(int &)program_multiplier,  3);
-    config->get("progTime" ,(int &)program_time      ,100);
-    config->get("eraseTime",(int &)erase_time        ,  0);
+    config->get("progCount"      ,(int &)program_count     , 25);
+    config->get("progMult"       ,(int &)program_multiplier,  3);
+    config->get("progTime"       ,(int &)program_time      ,100);
+    config->get("eraseTime"      ,(int &)erase_time        ,  0);
+
+    /* read the write/erase buffer sizes with default for P18F4550 */
+    config->get("writeBufferSize",(int &)write_buffer_size , 32);
+    config->get("eraseBufferSize",(int &)erase_buffer_size , 64);
 }
 
 Pic::~Pic()

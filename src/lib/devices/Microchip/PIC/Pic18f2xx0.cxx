@@ -74,7 +74,7 @@ void Pic18f2xx0::write_program_memory(DataBuffer& buf, bool verify)
         while(address < this->codesize)
         {
             set_tblptr(2*address);
-            for (offset=0; offset < WRITE_BUFFER_SIZE-2; offset+=2) {
+            for (offset=0; offset < this->write_buffer_size-2; offset+=2) {
                 /* Give byte addresses to progress() to match datasheet. */
                 progress(2*address);
                 /* Step 2, 3: Load write buffer */

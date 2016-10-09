@@ -1,3 +1,16 @@
+flP5 1.1.6:
+  * Added the autoupdate of the devices.prefs config file
+    - the user's devices.prefs will be automatically updated with the 
+      new configuration settings
+
+  * Added the following new configuration settings to the GUI:
+    - Default value for the configuration words (defaulted to 0xffff)
+    - Write buffer size (defaulted to 32)
+    - Erase buffer size (defaulted to 64)
+
+flP5 1.1.5:
+  * Porting the implementation of Pic18 programming code from odyssey-0.4vasco
+
 flP5 1.1.4:
   * Aligned the PIC programming library to odyssey-0.3.1
     - Added finer-grained signal timing parameters

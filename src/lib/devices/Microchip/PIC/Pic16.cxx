@@ -75,6 +75,8 @@ int tmp;
     /* Read configuration word bits */
     config->getHex("cw_mask_00",(int &)config_mask,this->wordmask);
     config->getHex("cw_save_00",(int &)persistent_config_mask,0);
+    config->getHex("cw_defs_00",(int &)default_config_word,0xffff);
+    default_config_word &= config_mask;
 
     config->getHex("cp_mask_00",(int &)cp_mask, 0);
     config->getHex("cp_all__00",(int &)cp_all,  0);

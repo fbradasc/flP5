@@ -26,6 +26,7 @@
 #endif
 #include <exception>
 #include <iterator>
+#include <cmath>
 
 using namespace std;
 
@@ -70,55 +71,78 @@ char *copyrightText =
 "</P>"
 "<CENTER>Please report bugs to fbradasc@yahoo.it.</CENTER></BODY></HTML>";
 
-static char *cwNames[] = {
-    "cw_mask", "cw_save",
-    "cp_mask", "cp_all_", "cp_none",
-    "dp_mask", "dp_on__", "dp_off_",
-    "bd_mask", "bd_on__", "bd_off_"
+typedef struct NamedSettings {
+    const char *name;
+    const void *defv;
+} t_NamedSettings;
+
+static t_NamedSettings scfgWords[] = {
+    "cw_mask", (void *)"0xffff",
+    "cw_save", (void *)"0x0000",
+    "cw_defs", (void *)"0xffff",
+    "cp_mask", (void *)"0x0000",
+    "cp_all_", (void *)"0x0000",
+    "cp_none", (void *)"0x0000",
+    "dp_mask", (void *)"0x0000",
+    "dp_on__", (void *)"0x0000",
+    "dp_off_", (void *)"0x0000",
+    "bd_mask", (void *)"0x0000",
+    "bd_on__", (void *)"0x0000",
+    "bd_off_", (void *)"0x0000"
+};
+#define CONFIG_WORD_SETTINGS sizeof(scfgWords) / sizeof(t_NamedSettings)
+
+static t_NamedSettings spropDly[] = {
+    "signalDelay.default"               , (void *)0,
+    "signalDelay.additional"            , (void *)0,
+    "signalDelay.read"                  , (void *)0,
+    "signalDelay.read.clk"              , (void *)0,
+    "signalDelay.read.data"             , (void *)0,
+    "signalDelay.read.vpp"              , (void *)0,
+    "signalDelay.read.vdd"              , (void *)0,
+    "signalDelay.write"                 , (void *)0,
+    "signalDelay.write.clk"             , (void *)0,
+    "signalDelay.write.data"            , (void *)0,
+    "signalDelay.write.vpp"             , (void *)0,
+    "signalDelay.write.vdd"             , (void *)0,
+    "signalDelay.write.clk.high_to_low" , (void *)0,
+    "signalDelay.write.data.high_to_low", (void *)0,
+    "signalDelay.write.vpp.high_to_low" , (void *)0,
+    "signalDelay.write.vdd.high_to_low" , (void *)0,
+    "signalDelay.write.clk.low_to_high" , (void *)0,
+    "signalDelay.write.data.low_to_high", (void *)0,
+    "signalDelay.write.vpp.low_to_high" , (void *)0,
+    "signalDelay.write.vdd.low_to_high" , (void *)0
 };
 
-static char *propDlyNames[] = {
-    "signalDelay.default",
-    "signalDelay.additional",
-    "signalDelay.read",
-    "signalDelay.read.clk",
-    "signalDelay.read.data",
-    "signalDelay.read.vpp",
-    "signalDelay.read.vdd",
-    "signalDelay.write",
-    "signalDelay.write.clk",
-    "signalDelay.write.data",
-    "signalDelay.write.vpp",
-    "signalDelay.write.vdd",
-    "signalDelay.write.clk.high_to_low",
-    "signalDelay.write.data.high_to_low",
-    "signalDelay.write.vpp.high_to_low",
-    "signalDelay.write.vdd.high_to_low",
-    "signalDelay.write.clk.low_to_high",
-    "signalDelay.write.data.low_to_high",
-    "signalDelay.write.vpp.low_to_high",
-    "signalDelay.write.vdd.low_to_high"
+static t_NamedSettings sparams[] = {
+    "wordSize"       , (void *)0,
+    "codeSize"       , (void *)0,
+    "eepromSize"     , (void *)0,
+    "progCount"      , (void *)0,
+    "progMult"       , (void *)0,
+    "progTime"       , (void *)0,
+    "eraseTime"      , (void *)0,
+    "writeBufferSize", (void *)32,
+    "eraseBufferSize", (void *)64,
+    "vppMin"         , (void *)0,
+    "vppMax"         , (void *)0,
+    "vddMin"         , (void *)0,
+    "vddMax"         , (void *)0,
+    "vddpMin"        , (void *)0,
+    "vddpMax"        , (void *)0
 };
 
-static char *paramNames[] = {
-    "wordSize" , "codeSize" , "eepromSize",
-    "progCount", "progMult" ,
-    "progTime" , "eraseTime",
-    "vppMin"   , "vppMax"   ,
-    "vddMin"   , "vddMax"   ,
-    "vddpMin"  , "vddpMax"
-};
-
-static char *pinNames[] = {
-    "icspClock",
-    "icspDataIn",
-    "icspDataOut",
-    "icspVddOn",
-    "icspVppOn",
-    "selMinVdd",
-    "selProgVdd",
-    "selMaxVdd",
-    "selVihhVpp"
+static t_NamedSettings spins[] = {
+    "icspClock"  , (void *)0,
+    "icspDataIn" , (void *)0,
+    "icspDataOut", (void *)0,
+    "icspVddOn"  , (void *)0,
+    "icspVppOn"  , (void *)0,
+    "selMinVdd"  , (void *)0,
+    "selProgVdd" , (void *)0,
+    "selMaxVdd"  , (void *)0,
+    "selVihhVpp" , (void *)0
 };
 
 static char *portAccess[] = { "DirectPP", "LinuxPPDev" };
@@ -193,10 +217,66 @@ const char *voltageNames[] = {
     return ok;
 }
 
+void initDevicesSettings(void)
+{
+int i,j,v;
+double d;
+char buf[FL_PATH_MAX];
+
+    for (int vendor=0;vendor<devices.groups();vendor++) {
+        Preferences vendors(devices,devices.group(vendor));
+        for (int spec=0;spec<vendors.groups();spec++) {
+            Preferences specs(vendors,vendors.group(spec));
+            for (int device=0;device<specs.groups();device++) {
+                Preferences dev(specs,specs.group(device));
+
+                dev.get("experimental",v,1);
+                dev.set("experimental",v);
+
+                dev.get("memType",buf,"rom",sizeof(buf)-1);
+                dev.set("memType",buf);
+
+                for (i=0;i<LAST_PARAM-6;i++) {
+                    dev.get(sparams[i].name,v,(int)sparams[i].defv);
+                    dev.set(sparams[i].name,v);
+                }
+
+                for (;i<LAST_PARAM;i++) {
+                    dev.get(sparams[i].name,d,(double)((int)sparams[i].defv));
+                    dev.set(sparams[i].name,d);
+                }
+
+                dev.get("configWords",v,0);
+                dev.set("configWords",v);
+
+                for (i=0;i<v;i++) {
+                    for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
+                        dev.get (
+                            Preferences::Name (
+                                "%s_%02d",
+                                scfgWords[j].name,i
+                            ),
+                            buf,
+                            (char*)scfgWords[j].defv,
+                            sizeof(buf)-1
+                        );
+                        dev.set (
+                            Preferences::Name (
+                                "%s_%02d",
+                                scfgWords[j].name,i
+                            ),
+                            buf
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
 bool loadDevicesSettings(const char *fname)
 {
 int i,j,k,level;
-int v[12],v1[12];
+int v[CONFIG_WORD_SETTINGS],v1[CONFIG_WORD_SETTINGS];
 double d, d1;
 const Fl_Menu_Item *mitem;
 char *mdata;
@@ -248,27 +328,27 @@ bool store = false;
                         "memType",buf,"rom",sizeof(buf)-1
                     ) ? 1 : 0;
                     for (i=0;i<LAST_PARAM-6;i++) {
-                        settings += from.get(paramNames[i],v[0],0) ? 1 : 0;
+                        settings += from.get(sparams[i].name,v[0],(int)sparams[i].defv) ? 1 : 0;
                     }
                     for (;i<LAST_PARAM;i++) {
-                        settings += from.get(paramNames[i],d,0.0) ? 1 : 0;
+                        settings += from.get(sparams[i].name,d,(double)((int)sparams[i].defv)) ? 1 : 0;
                     }
                     settings += from.get("configWords",v[0],0) ? 1 : 0;
                     for (i=0;i<v[0];i++) {
-                        for (j=0;j<11;j++) {
+                        for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
                             settings += from.get (
                                 Preferences::Name (
                                     "%s_%02d",
-                                    cwNames[j],i
+                                    scfgWords[j].name,i
                                 ),
                                 buf,
-                                "0x0000",
+                                (char*)scfgWords[j].defv,
                                 sizeof(buf)-1
                             ) ? 1 : 0;
                         }
                     }
                     store = false;
-                    if (settings==(/* 1+ */ 1+LAST_PARAM+1+(11*v[0]))) {
+                    if (settings==(/* 1+ */ 1+LAST_PARAM+1+(CONFIG_WORD_SETTINGS*v[0]))) {
                         compare = false;
                         if (!devices.groupExists(path)) {
                             j = ch_devices->add (
@@ -321,11 +401,11 @@ bool store = false;
                                 different = true;
                             }
                             for (i=0;i<LAST_PARAM-6;i++) {
-                                from.get(paramNames[i],v[0],0);
-                                  to.get(paramNames[i],v1[0],0);
+                                from.get(sparams[i].name,v[0],(int)sparams[i].defv);
+                                  to.get(sparams[i].name,v1[0],(int)sparams[i].defv);
 
                                 if (v[0] != v1[0]) {
-                                    sprintf(report,"@b%s:",paramNames[i]);
+                                    sprintf(report,"@b%s:",sparams[i].name);
                                     ls_report->add(report);
                                     sprintf(report,"  cur=%d",v1[0]);
                                     ls_report->add(report);
@@ -335,11 +415,11 @@ bool store = false;
                                 }
                             }
                             for (;i<LAST_PARAM;i++) {
-                                from.get(paramNames[i],d,0.0);
-                                  to.get(paramNames[i],d1,0.0);
+                                from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
+                                  to.get(sparams[i].name,d1,(double)((int)sparams[i].defv));
 
                                 if (d != d1) {
-                                    sprintf(report,"@b%s:",paramNames[i]);
+                                    sprintf(report,"@b%s:",sparams[i].name);
                                     ls_report->add(report);
                                     sprintf(report,"  cur=%lf",d1);
                                     ls_report->add(report);
@@ -360,30 +440,30 @@ bool store = false;
                                 different = true;
                             }
                             for (i=0;i<v[0];i++) {
-                                for (j=0;j<11;j++) {
+                                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
                                     from.get (
                                         Preferences::Name (
                                             "%s_%02d",
-                                            cwNames[j],i
+                                            scfgWords[j].name,i
                                         ),
                                         buf,
-                                        "0x0000",
+                                        (char*)scfgWords[j].defv,
                                         sizeof(buf)-1
                                     );
                                     to.get (
                                         Preferences::Name (
                                             "%s_%02d",
-                                            cwNames[j],i
+                                            scfgWords[j].name,i
                                         ),
                                         buf1,
-                                        "0x0000",
+                                        (char*)scfgWords[j].defv,
                                         sizeof(buf1)-1
                                     );
                                     if (strcmp(buf,buf1)) {
                                         ls_report->add (
                                             Preferences::Name (
                                                 "@b%s_%02d:",
-                                                cwNames[j],i
+                                                scfgWords[j].name,i
                                             )
                                         );
                                         sprintf(report,"  cur=%s",buf1);
@@ -405,30 +485,30 @@ bool store = false;
                             from.get("memType",buf,"rom",sizeof(buf)-1);
                                 to.set("memType",buf);
                             for (i=0;i<LAST_PARAM-6;i++) {
-                                from.get(paramNames[i],v[0],0);
-                                    to.set(paramNames[i],v[0]);
+                                from.get(sparams[i].name,v[0],(int)sparams[i].defv);
+                                    to.set(sparams[i].name,v[0]);
                             }
                             for (;i<LAST_PARAM;i++) {
-                                from.get(paramNames[i],d,0.0);
-                                    to.set(paramNames[i],d);
+                                from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
+                                    to.set(sparams[i].name,d);
                             }
                             from.get("configWords",v[0],0);
                                 to.set("configWords",v[0]);
                             for (i=0;i<v[0];i++) {
-                                for (j=0;j<11;j++) {
+                                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
                                     from.get (
                                         Preferences::Name (
                                             "%s_%02d",
-                                            cwNames[j],i
+                                            scfgWords[j].name,i
                                         ),
                                         buf,
-                                        "0x0000",
+                                        (char*)scfgWords[j].defv,
                                         sizeof(buf)-1
                                     );
                                         to.set (
                                             Preferences::Name (
                                                 "%s_%02d",
-                                                cwNames[j],i
+                                                scfgWords[j].name,i
                                             ),
                                             buf
                                         );
@@ -471,7 +551,7 @@ bool deviceConfigCB(CfgOper oper)
 {
 static int lastOper=-1;
 int i,j,k,selected;
-int v[12];
+int v[CONFIG_WORD_SETTINGS];
 double d;
 const Fl_Menu_Item *mitem;
 char *mdata;
@@ -481,13 +561,14 @@ char path[FL_PATH_MAX];
 
     if (oper==CFG_DELETE) {
         if (lastOper==CFG_NEW || lastOper==CFG_EDIT || lastOper==CFG_COPY) {
-            i = fl_ask (
-                "Are you sure you want to revert the current device settings ?"
+            i = fl_choice (
+                "Are you sure you want to revert the current device settings ?",
+                "Cancel", "Revert", NULL
             );
         } else {
-            i = fl_ask (
-                "Are you sure you want to delete the current device"
-                " configuration ?"
+            i = fl_choice (
+                "Are you sure you want to delete the current device",
+                "Cancel", "Delete", "No op"
             );
         }
         if (!i) {
@@ -524,7 +605,7 @@ char path[FL_PATH_MAX];
 
             delete mdata;
         }
-        for (i=0;i<11;i++) {
+        for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
             tx_devCfgWord[i]->value("");
         }
         for (i=0;i<LAST_PARAM;i++) {
@@ -549,12 +630,12 @@ char path[FL_PATH_MAX];
             Preferences device(devices,(const char *)mdata);
             tx_devName->value(ch_devices->text());
             for (i=0;i<LAST_PARAM-6;i++) {
-                device.get(paramNames[i],v[0],0);
+                device.get(sparams[i].name,v[0],(int)sparams[i].defv);
                     sprintf(buf,"%d",v[0]);
                     tx_devParam[i]->value(buf);
             }
             for (;i<LAST_PARAM;i++) {
-                device.get(paramNames[i],d,0.0);
+                device.get(sparams[i].name,d,(double)((int)sparams[i].defv));
                     sprintf(buf,"%.2lf",d);
                     tx_devParam[i]->value(buf);
             }
@@ -564,11 +645,11 @@ char path[FL_PATH_MAX];
                 ls_devConfigWords->select(ls_devConfigWords->size());
                 selected=ls_devConfigWords->value();
                 sprintf(buf," %02d ",selected-2);
-                for (j=0;j<11;j++) {
+                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
                     device.get (
-                        Preferences::Name("%s_%02d",cwNames[j],i),
+                        Preferences::Name("%s_%02d",scfgWords[j].name,i),
                         path,
-                        "0x0000",
+                        (char*)scfgWords[j].defv,
                         sizeof(path)-1
                     );
                     sprintf(buf,"%s| %s ",buf,path);
@@ -721,12 +802,12 @@ char path[FL_PATH_MAX];
         );
         for (i=0;i<LAST_PARAM-6;i++) {
             if (sscanf(tx_devParam[i]->value(),"%d",&v[0])) {
-                device.set(paramNames[i],v[0]);
+                device.set(sparams[i].name,v[0]);
             }
         }
         for (;i<LAST_PARAM;i++) {
             if (sscanf(tx_devParam[i]->value(),"%lf",&d)) {
-                device.set(paramNames[i],d);
+                device.set(sparams[i].name,d);
             }
         }
         device.set("configWords",ls_devConfigWords->size()-1);
@@ -734,16 +815,16 @@ char path[FL_PATH_MAX];
             if (
                 sscanf(
                     strcpy(buf,ls_devConfigWords->text(i)),
-                    " %d | %x | %x | %x | %x | %x |"
-                    " %x | %x | %x | %x | %x | %x ",
+                    " %d | %x | %x | %x | %x | %x | %x |"
+                         " %x | %x | %x | %x | %x | %x ",
                     &j,
-                    &v[0],&v[1],&v[2],&v[3],&v[4],&v[5],
-                    &v[6],&v[7],&v[8],&v[9],&v[10]
-                ) == 12
+                    &v[ 0],&v[ 1],&v[ 2],&v[ 3],&v[ 4],&v[ 5],
+                    &v[ 6],&v[ 7],&v[ 8],&v[ 9],&v[10],&v[11]
+                ) == CONFIG_WORD_SETTINGS + 1
             ) {
-                for (j=0;j<11;j++) {
+                for (j=0;j<CONFIG_WORD_SETTINGS;j++) {
                     device.set (
-                        Preferences::Name("%s_%02d",cwNames[j],i-2),
+                        Preferences::Name("%s_%02d",scfgWords[j].name,i-2),
                         Preferences::Name("0x%04x",v[j])
                     );
                 }
@@ -873,7 +954,7 @@ bool store = false;
             //
             settings = 0;
             for (j=0;j<LAST_PIN;j++) {
-                settings += from.get(pinNames[j]           ,v[0],0)? 1 : 0;
+                settings += from.get(spins[j].name,v[0],(int)spins[j].defv)? 1 : 0;
             }
             settings += from.get("vddMinCond"              ,v[0],0)? 1 : 0;
             settings += from.get("vddProgCond"             ,v[0],0)? 1 : 0;
@@ -902,13 +983,13 @@ bool store = false;
                     ls_report->clear();
 
                     for (j=0;j<LAST_PIN;j++) {
-                        from.get(pinNames[j],v[0] ,0);
-                          to.get(pinNames[j],v1[0],0);
+                        from.get(spins[j].name,v[0] ,(int)spins[j].defv);
+                          to.get(spins[j].name,v1[0],(int)spins[j].defv);
                         if (v[0] != v1[0]) {
                             sprintf (
                                 report,
                                 "@b%s:",
-                                pinNames[j]
+                                spins[j].name
                             );
                             ls_report->add(report);
                             sprintf(report,"  cur=%d",v1[0]);
@@ -980,8 +1061,8 @@ bool store = false;
                 }
                 if (store || !compare) {
                     for (j=0;j<LAST_PIN;j++) {
-                        from.get(pinNames[j]   ,v[0],0);
-                          to.set(pinNames[j]   ,v[0]  );
+                        from.get(spins[j].name   ,v[0],(int)spins[j].defv);
+                          to.set(spins[j].name   ,v[0]  );
                     }
                     from.get("vddMinCond"              ,v[0],0);
                       to.set("vddMinCond"              ,v[0]  );
@@ -1009,14 +1090,16 @@ char pins[26];
 
     if (oper==CFG_DELETE) {
         if (lastOper==CFG_NEW || lastOper==CFG_EDIT || lastOper==CFG_COPY) {
-            i = fl_ask (
+            i = fl_choice (
                 "Are you sure you want to revert the current programmer"
-                " settings ?"
+                " settings ?",
+                "Cancel", "Revert", NULL
             );
         } else {
-            i = fl_ask (
+            i = fl_choice (
                 "Are you sure you want to delete the current programmer"
-                " configuration ?"
+                " configuration ?",
+                "Cancel", "Delete", NULL
             );
         }
         if (!i) {
@@ -1077,7 +1160,7 @@ char pins[26];
             // to format the name of the programmer:
             verifyProgrammerConfig(false);
             for (i=0;i<LAST_PIN;i++) {
-                programmer.get(pinNames[i],v[0],0);
+                programmer.get(spins[i].name,v[0],(int)spins[i].defv);
                     tb_pinInvert[i]->value(v[0]<0);
                     ch_pinNumber[i]->value(abs(v[0]));
                     ch_pinNumber[i]->set_changed();
@@ -1182,7 +1265,7 @@ char pins[26];
         for (i=0;i<LAST_PIN;i++) {
             v[0] = abs(ch_pinNumber[i]->value()) *
                    ((tb_pinInvert[i]->value())?-1:1);
-            programmer.set(pinNames[i],v[0]);
+            programmer.set(spins[i].name,v[0]);
         }
         v[0] = v[1] = v[2] = 0;
         for (i=0;i<3;i++) {
@@ -1242,13 +1325,13 @@ bool different = false;
         ls_report->clear();
 
         for (i=0;i<LAST_PROP_DLY;i++) {
-            imports.get(propDlyNames[i],v[0] ,0);
-                app.get(propDlyNames[i],v1[0],0);
+            imports.get(spropDly[i].name,v[0] ,(int)spropDly[i].defv);
+                app.get(spropDly[i].name,v1[0],(int)spropDly[i].defv);
             if (v[0] != v1[0]) {
                 sprintf (
                     report,
                     "@b%s:",
-                    propDlyNames[i]
+                    spropDly[i].name
                 );
                 ls_report->add(report);
                 sprintf(report,"  cur=%d",v1[0]);
@@ -1260,8 +1343,8 @@ bool different = false;
         }
         if (different && show_report_window("General Settings")) {
             for (i=0;i<LAST_PROP_DLY;i++) {
-                imports.get(propDlyNames[i],v[0],0);
-                    app.set(propDlyNames[i],v[0]);
+                imports.get(spropDly[i].name,v[0],(int)spropDly[i].defv);
+                    app.set(spropDly[i].name,v[0]);
             }
         }
         loaded = true;
@@ -1277,14 +1360,16 @@ char buf[FL_PATH_MAX];
 
     if (oper==CFG_DELETE) {
         if (lastOper==CFG_NEW || lastOper==CFG_EDIT || lastOper==CFG_COPY) {
-            i = fl_ask (
+            i = fl_choice (
                 "Are you sure you want to revert the current general"
-                " settings ?"
+                " settings ?",
+                "Cancel", "Revert", NULL
             );
         } else {
-            i = fl_ask (
+            i = fl_choice (
                 "Are you sure you want to reset the current general"
-                " settings ?"
+                " settings ?",
+                "Cancel", "Reset", NULL
             );
         }
         if (!i) {
@@ -1300,13 +1385,13 @@ char buf[FL_PATH_MAX];
             (lastOper!=CFG_NEW && lastOper!=CFG_EDIT && lastOper!=CFG_COPY)
         ) {
             for (i=0;i<LAST_PROP_DLY;i++) {
-                app.set(propDlyNames[i],0);
+                app.set(spropDly[i].name,(int)spropDly[i].defv);
             }
         }
     }
     if (oper==CFG_LOAD || oper==CFG_DELETE) {
         for (i=0;i<LAST_PROP_DLY;i++) {
-            app.get(propDlyNames[i],j,0);
+            app.get(spropDly[i].name,j,(int)spropDly[i].defv);
                 sprintf(buf,"%d",j);
                 tx_propDelay[i]->value(buf);
         }
@@ -1329,7 +1414,7 @@ char buf[FL_PATH_MAX];
     } else if (oper==CFG_SAVE) {
         for (i=0;i<LAST_PROP_DLY;i++) {
             if (sscanf(tx_propDelay[i]->value(),"%d",&j)) {
-                app.set(propDlyNames[i],j);
+                app.set(spropDly[i].name,j);
             }
         }
     } else if (oper!=CFG_NEW) {
@@ -1380,7 +1465,7 @@ const char *mdata, *cfgFile;
     sm_ppAccessMethod[i+1].setonly();
 
     for (i=0;i<LAST_PROP_DLY;i++) {
-        app.get(propDlyNames[i],j,0);
+        app.get(spropDly[i].name,j,(int)spropDly[i].defv);
             sprintf(buf,"%d",j);
             tx_propDelay[i]->value(buf);
     }
@@ -1409,6 +1494,8 @@ const char *mdata, *cfgFile;
         available += loadDevicesSettings (
             Util::getDistFile("/data/devices.prefs")
         ) ? 1 : 0;
+    } else {
+        initDevicesSettings();
     }
     for (i=0;i<vendors;i++) {
         Preferences vendor(devices,devices.group(i));
@@ -1476,11 +1563,12 @@ bool cfgWordsCB(CfgOper oper)
 {
 char line[105];
 int i, j, selected;
-unsigned int cfgWords[11];
+unsigned int cfgWords[CONFIG_WORD_SETTINGS];
 const char *lsel;
 const char *cfgWordNames[] = {
     "Configuration Word Mask",
     "Configuration Word Base",
+    "Configuration Word Default",
     "Code Protection Mask",
     "Code Protection On",
     "Code Protection Off",
@@ -1496,7 +1584,7 @@ static CfgOper lastOper=CFG_NEW;
 
     if (oper==CFG_SAVE){
         if (lastOper!=CFG_SAVE && lastOper!=CFG_DELETE) {
-            for (i=0;i<11;i++) {
+            for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
                 //
                 // elimino i caratteri non alfanumerici
                 //
@@ -1527,7 +1615,7 @@ static CfgOper lastOper=CFG_NEW;
                 }
                 if ((selected=ls_devConfigWords->value())>1) {
                     sprintf(line," %02d ",selected-2);
-                    for (i=0;i<11;i++) {
+                    for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
                         sprintf(line,"%s| 0x%04x ",line,cfgWords[i]);
                         tx_devCfgWord[i]->value("");
                     }
@@ -1548,35 +1636,35 @@ static CfgOper lastOper=CFG_NEW;
             if (
                 sscanf (
                     lsel,
-                    " %d | %x | %x | %x | %x | %x |"
-                    " %x | %x | %x | %x | %x | %x ",
+                    " %d | %x | %x | %x | %x | %x | %x |"
+                         " %x | %x | %x | %x | %x | %x ",
                     &i,
-                    &cfgWords[0],&cfgWords[1],&cfgWords[2],
-                    &cfgWords[3],&cfgWords[4],&cfgWords[5],
-                    &cfgWords[6],&cfgWords[7],&cfgWords[8],
-                    &cfgWords[9],&cfgWords[10]
-                ) == 12
+                    &cfgWords[ 0],&cfgWords[ 1],&cfgWords[ 2],
+                    &cfgWords[ 3],&cfgWords[ 4],&cfgWords[ 5],
+                    &cfgWords[ 6],&cfgWords[ 7],&cfgWords[ 8],
+                    &cfgWords[ 9],&cfgWords[10],&cfgWords[11]
+                ) == CONFIG_WORD_SETTINGS + 1
             ) {
-                for (i=0;i<11;i++) {
+                for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
                     sprintf(line,"0x%04x",cfgWords[i]);
                     tx_devCfgWord[i]->value(line);
                     tx_devCfgWord[i]->color(FL_WHITE);
                 }
             }
         } else {
-            for (i=0;i<11;i++) {
+            for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
                 tx_devCfgWord[i]->value("");
             }
             ls_devConfigWords->deselect();
             ok = false;
         }
     } else if (oper==CFG_DELETE && ls_devConfigWords->size()>1) {
-        for (i=0;i<11;i++) {
+        for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
             tx_devCfgWord[i]->value("");
         }
         ls_devConfigWords->remove(ls_devConfigWords->size());
     } else if (oper==CFG_NEW) {
-        for (i=0;i<11;i++) {
+        for (i=0;i<CONFIG_WORD_SETTINGS;i++) {
             tx_devCfgWord[i]->value("");
         }
     }
@@ -1747,11 +1835,12 @@ char *soper[] = {
             make_regcheck_window();
             if (
                 ( oper == CHIP_ERASE || oper == CHIP_WRITE ) && 
-                !fl_ask (
+                !fl_choice (
                     "Are you sure you want to %s the memory of the %s ?",
+                    "Cancel",
+                    (oper == CHIP_ERASE) ? "Erase" : "Overwrite", NULL,
                     (oper == CHIP_ERASE) ? "erase" : "overwrite",
-                    chip->get_name().c_str()
-                )
+                    chip->get_name().c_str() )
             ) {
                 return false;
             }

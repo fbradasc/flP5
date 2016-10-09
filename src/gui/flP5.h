@@ -31,6 +31,7 @@ extern Fl_Check_Button *tb_pinInvert[9];
 extern Fl_Box *bx_pinName[9];
 extern Fl_Input *tx_devParam[LAST_PARAM];
 extern Fl_Input *tx_propDelay[LAST_PROP_DLY];
+extern Fl_Input *tx_devCfgWord[LAST_CONFIG_WORD];
 #include <FL/Fl_RaiseButton.H>
 #include <FL/Fl_Double_Window.H>
 extern Fl_Double_Window *flP5;
@@ -49,7 +50,6 @@ extern Fl_Group *g_devgencfg;
 extern Fl_Sorted_Choice *ch_devMemType;
 extern Fl_Group *g_devcfgwords;
 extern Fl_Group *g_devConfigWordsEdit;
-extern Fl_Input *tx_devCfgWord[11];
 extern Fl_Group *g_devConfigWordsToolBar;
 extern Fl_Group *g_devConfigWordsNewEditCopy;
 #include <FL/Fl_Hold_Browser.H>

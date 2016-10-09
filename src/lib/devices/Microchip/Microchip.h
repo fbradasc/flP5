@@ -276,10 +276,13 @@ protected:
      * erasable device. */
     unsigned int erase_time;
 
-
     /** Expected device ID value and mask for which bits to care about.
      * These are only valid if the PIC_HAS_DEVICEID flag is set. */
-    uint32_t deviceid, deviceidmask;
+    unsigned int deviceid;
+    unsigned int deviceidmask;
+
+    unsigned int write_buffer_size;
+    unsigned int erase_buffer_size;
 
     const Instruction *popcodes;
 };
@@ -461,6 +464,9 @@ protected:
     virtual uint32_t read_deviceid(void);
 
 /* Protected data: */
+    /** The default value of the configuration bits after an erase */
+    unsigned int default_config_word;
+
     /** Bitmask for valid bits in the configuration word. */
     unsigned int config_mask;
 
@@ -836,8 +842,6 @@ class Pic18f2xx0 : public Pic18
 {
 public:
     const static int COMMAND_TABLE_WRITE_START_POSTINC=0x0e; /**< Table Write, start programming, post-inc by 2 */
-    const static unsigned long WRITE_BUFFER_SIZE=32; /* TODO generalize to a pic.conf parameter : 32 is for 18f4550 */
-    const static unsigned long ERASE_BUFFER_SIZE=64; /* TODO idem */
 
     Pic18f2xx0(char *name);
     virtual ~Pic18f2xx0();

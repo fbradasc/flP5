@@ -163,24 +163,17 @@ int i;
 
     /* Read in config bits */
     for (i=0; i<CFG_WORDS_WRDS; i++) {
-        if (
-            !config->getHex (
-                Preferences::Name("cw_mask_%02d", i),
-                (int &)config_masks[i],
-                0
-            )
-        ) {
-            config_masks[i] = 0xffff;
-        }
-        if (
-            !config->getHex (
-                Preferences::Name("cw_defs_%02d", i),
-                (int &)config_deflt[i],
-                0
-            )
-        ) {
-            config_deflt[i] = 0xffff;
-        }
+        config->getHex (
+            Preferences::Name("cw_mask_%02d", i), 
+            (int &)config_masks[i], 
+            0xffff
+        );
+        config->getHex (
+            Preferences::Name("cw_defs_%02d", i), 
+            (int &)config_deflt[i], 
+            0xffff
+        );
+        config_deflt[i] &= config_masks[i];
     }
     /* Create the memory map for this device. Note that these are 16-bit word
      * offsets and lengths which are 1/2 of their byte equivalents */

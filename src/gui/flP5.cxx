@@ -24,6 +24,7 @@ Fl_Check_Button *tb_pinInvert[9];
 Fl_Box *bx_pinName[9];
 Fl_Input *tx_devParam[LAST_PARAM];
 Fl_Input *tx_propDelay[LAST_PROP_DLY];
+Fl_Input *tx_devCfgWord[LAST_CONFIG_WORD];
 #include "pixmaps/mini_folder.xpm"
 static Fl_Pixmap *mini_folder = new Fl_Pixmap(mini_folder_xpm);
 #include "pixmaps/mini_device.xpm"
@@ -1612,8 +1613,6 @@ Fl_Menu_Item menu_ch_devMemType[] = {
 Fl_Group *g_devcfgwords=(Fl_Group *)0;
 
 Fl_Group *g_devConfigWordsEdit=(Fl_Group *)0;
-
-Fl_Input *tx_devCfgWord[11]={(Fl_Input *)0};
 
 Fl_Group *g_devConfigWordsToolBar=(Fl_Group *)0;
 
@@ -4963,12 +4962,17 @@ n. To be on the safe side, the maximum value from the datasheet should be used\
                 { Fl_Group* o = new Fl_Group(375, 165, 240, 20);
                 o->box(FL_BORDER_BOX);
                 o->color((Fl_Color)41);
-                { Fl_Box* o = new Fl_Box(505, 165, 55, 20, "Mask");
+                { Fl_Box* o = new Fl_Box(450, 165, 55, 20, "Mask");
                 o->box(FL_BORDER_FRAME);
                 o->color(FL_FOREGROUND_COLOR);
                 o->labelcolor(FL_BACKGROUND2_COLOR);
                 }
-                { Fl_Box* o = new Fl_Box(560, 165, 55, 20, "Save");
+                { Fl_Box* o = new Fl_Box(505, 165, 55, 20, "Save");
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(560, 165, 55, 20, "Default");
+                o->box(FL_BORDER_FRAME);
                 o->color(FL_FOREGROUND_COLOR);
                 o->labelcolor(FL_BACKGROUND2_COLOR);
                 }
@@ -4977,20 +4981,27 @@ n. To be on the safe side, the maximum value from the datasheet should be used\
                 { Fl_Group* o = new Fl_Group(375, 185, 240, 20);
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
-                { Fl_Input* o = tx_devCfgWord[0] = new Fl_Input(505, 185, 55, 20);
+                { Fl_Box* o = new Fl_Box(375, 185, 75, 20, "Conf. word");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+                }
+                { Fl_Input* o = new Fl_Input(450, 185, 55, 20);
                 o->tooltip("A bitmask of all valid (non-reserved) configuration bits.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_MASK]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[1] = new Fl_Input(560, 185, 55, 20);
+                { Fl_Input* o = new Fl_Input(505, 185, 55, 20);
                 o->tooltip("A bitmask of persistent bits in  the  configuration word.  These bits will be\
  saved before and restored after a chip erase. They will also not  be  modifia\
 ble when programming the device.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_SAVE]=o;
                 }
-                { Fl_Box* o = new Fl_Box(375, 185, 130, 20, "Configuration word");
-                o->box(FL_BORDER_FRAME);
-                o->color(FL_FOREGROUND_COLOR);
-                o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+                { Fl_Input* o = new Fl_Input(560, 185, 55, 20);
+                o->tooltip("The default value of the configuration bits after an erase.");
+                o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_DEFV]=o;
                 }
                 o->end();
                 }
@@ -5024,17 +5035,20 @@ ble when programming the device.");
                 o->color(FL_FOREGROUND_COLOR);
                 o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
                 }
-                { Fl_Input* o = tx_devCfgWord[2] = new Fl_Input(450, 230, 55, 20);
+                { Fl_Input* o = new Fl_Input(450, 230, 55, 20);
                 o->tooltip("A bitmask of all the code protection bits.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_CP_MASK]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[3] = new Fl_Input(505, 230, 55, 20);
+                { Fl_Input* o = new Fl_Input(505, 230, 55, 20);
                 o->tooltip("The value of the code protection bits when all memory is code protected.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_CP_ALL]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[4] = new Fl_Input(560, 230, 55, 20);
+                { Fl_Input* o = new Fl_Input(560, 230, 55, 20);
                 o->tooltip("The value of the code protection bits when no memory is code protected.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_CP_NONE]=o;
                 }
                 o->end();
                 }
@@ -5046,19 +5060,22 @@ ble when programming the device.");
                 o->color(FL_FOREGROUND_COLOR);
                 o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
                 }
-                { Fl_Input* o = tx_devCfgWord[5] = new Fl_Input(450, 250, 55, 20);
+                { Fl_Input* o = new Fl_Input(450, 250, 55, 20);
                 o->tooltip("A bitmask of the bit(s) that enable data memory code protection.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_DP_MASK]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[6] = new Fl_Input(505, 250, 55, 20);
+                { Fl_Input* o = new Fl_Input(505, 250, 55, 20);
                 o->tooltip("The value of the data memory code protection bit(s) when data code protection\
  is enabled.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_DP_ON]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[7] = new Fl_Input(560, 250, 55, 20);
+                { Fl_Input* o = new Fl_Input(560, 250, 55, 20);
                 o->tooltip("The value of the data memory code protection bit(s) when data code protection\
  is disabled.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_DP_OFF]=o;
                 }
                 o->end();
                 }
@@ -5070,17 +5087,20 @@ ble when programming the device.");
                 o->color(FL_FOREGROUND_COLOR);
                 o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
                 }
-                { Fl_Input* o = tx_devCfgWord[8] = new Fl_Input(450, 270, 55, 20);
+                { Fl_Input* o = new Fl_Input(450, 270, 55, 20);
                 o->tooltip("A bitmask for the bit(s) which enable the on-chip background debugger.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_BD_MASK]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[9] = new Fl_Input(505, 270, 55, 20);
+                { Fl_Input* o = new Fl_Input(505, 270, 55, 20);
                 o->tooltip("The value of the background debugger bits when the debugger is enabled.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_BD_ON]=o;
                 }
-                { Fl_Input* o = tx_devCfgWord[10] = new Fl_Input(560, 270, 55, 20);
+                { Fl_Input* o = new Fl_Input(560, 270, 55, 20);
                 o->tooltip("The value of the background debugger bits when the debugger is disabled.");
                 o->labeltype(FL_NO_LABEL);
+                tx_devCfgWord[CW_BD_OFF]=o;
                 }
                 o->end();
                 }
@@ -5195,7 +5215,7 @@ ble when programming the device.");
               o->callback((Fl_Callback*)cb_ls_devConfigWords);
               o->align(FL_ALIGN_BOTTOM);
               o->when(FL_WHEN_RELEASE_ALWAYS);
-              o->add("@u w# | cw mask| cw save| cp mask| cp all | cp none| dp mask| dp on  | dp off | bd mask| bd on  | bd off ");
+              o->add("@u w# | cw mask| cw save| cw defv| cp mask| cp all | cp none| dp mask| dp on  | dp off | bd mask| bd on  | bd off ");
             }
             o->end();
           }
@@ -5234,6 +5254,43 @@ ble when programming the device.");
                 o->labelcolor(FL_BACKGROUND2_COLOR);
                 }
                 { Fl_Box* o = new Fl_Box(535, 185, 80, 20, "Mask");
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                o->end();
+                }
+                o->end();
+              }
+              { Fl_Group* o = new Fl_Group(375, 230, 240, 40);
+                { Fl_Group* o = new Fl_Group(375, 250, 240, 20);
+                o->box(FL_BORDER_BOX);
+                o->color(FL_BACKGROUND2_COLOR);
+                { Fl_Input* o = new Fl_Input(455, 250, 80, 20);
+                o->tooltip("Write buffer size");
+                o->labeltype(FL_NO_LABEL);
+                tx_devParam[PAR_WRITE_BUF_SIZE]=o;
+                }
+                { Fl_Input* o = new Fl_Input(535, 250, 80, 20);
+                o->tooltip("Erase buffer size");
+                o->labeltype(FL_NO_LABEL);
+                tx_devParam[PAR_ERASE_BUF_SIZE]=o;
+                }
+                { Fl_Box* o = new Fl_Box(375, 250, 80, 20, "Buffer Size");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+                }
+                o->end();
+                }
+                { Fl_Group* o = new Fl_Group(375, 230, 240, 20);
+                o->box(FL_BORDER_BOX);
+                o->color((Fl_Color)41);
+                { Fl_Box* o = new Fl_Box(455, 230, 80, 20, "Write");
+                o->box(FL_BORDER_FRAME);
+                o->color(FL_FOREGROUND_COLOR);
+                o->labelcolor(FL_BACKGROUND2_COLOR);
+                }
+                { Fl_Box* o = new Fl_Box(535, 230, 80, 20, "Erase");
                 o->color(FL_FOREGROUND_COLOR);
                 o->labelcolor(FL_BACKGROUND2_COLOR);
                 }

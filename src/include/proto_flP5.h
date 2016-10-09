@@ -56,6 +56,8 @@ typedef enum DEV_PARAM {
     PAR_PROG_MULT,
     PAR_PROG_TIME,
     PAR_ERASE_TIME,
+    PAR_WRITE_BUF_SIZE,
+    PAR_ERASE_BUF_SIZE,
     PAR_VPP_MIN,
     PAR_VPP_MAX,
     PAR_VDD_MIN,
@@ -64,6 +66,22 @@ typedef enum DEV_PARAM {
     PAR_VDDP_MAX,
     LAST_PARAM
 } DevParam;
+
+typedef enum CONFIG_WORDS {
+    CW_MASK=0,
+    CW_SAVE,
+    CW_DEFV,
+    CW_CP_MASK,
+    CW_CP_ALL,
+    CW_CP_NONE,
+    CW_DP_MASK,
+    CW_DP_ON,
+    CW_DP_OFF,
+    CW_BD_MASK,
+    CW_BD_ON,
+    CW_BD_OFF,
+    LAST_CONFIG_WORD
+} CfgWords;
 
 #define CFG_OPER_FIRST 0
 typedef enum CFG_OPER {

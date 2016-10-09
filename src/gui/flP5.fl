@@ -74,6 +74,9 @@ decl {Fl_Input *tx_devParam[LAST_PARAM];} {public
 decl {Fl_Input *tx_propDelay[LAST_PROP_DLY];} {public
 } 
 
+decl {Fl_Input *tx_devCfgWord[LAST_CONFIG_WORD];} {public
+} 
+
 decl {\#include <FL/Fl_RaiseButton.H>} {public
 } 
 
@@ -236,7 +239,7 @@ deviceConfigCB(CFG_COPY);}
           private xywh {370 135 250 300} box UP_BOX
         } {
           Fl_Group {} {
-            label General open
+            label General open selected
             private xywh {370 160 250 275}
           } {
             Fl_Group g_devgencfg {open
@@ -450,7 +453,7 @@ deviceConfigCB(CFG_COPY);}
             Fl_Group g_devcfgwords {open
               xywh {375 165 240 265} deactivate
             } {
-              Fl_Group g_devConfigWordsEdit {
+              Fl_Group g_devConfigWordsEdit {open
                 xywh {375 165 240 125}
               } {
                 Fl_Group {} {open
@@ -461,25 +464,35 @@ deviceConfigCB(CFG_COPY);}
                   } {
                     Fl_Box {} {
                       label Mask
-                      private xywh {505 165 55 20} box BORDER_FRAME color 0 labelcolor 7
+                      private xywh {450 165 55 20} box BORDER_FRAME color 0 labelcolor 7
                     }
                     Fl_Box {} {
                       label Save
-                      private xywh {560 165 55 20} color 0 labelcolor 7
-                    }
-                  }
-                  Fl_Group {} {
-                    private xywh {375 185 240 20} box BORDER_BOX color 7
-                  } {
-                    Fl_Input {tx_devCfgWord[0]} {
-                      tooltip {A bitmask of all valid (non-reserved) configuration bits.} xywh {505 185 55 20} labeltype NO_LABEL
-                    }
-                    Fl_Input {tx_devCfgWord[1]} {
-                      tooltip {A bitmask of persistent bits in  the  configuration word.  These bits will be saved before and restored after a chip erase. They will also not  be  modifiable when programming the device.} xywh {560 185 55 20} labeltype NO_LABEL
+                      private xywh {505 165 55 20} color 0 labelcolor 7
                     }
                     Fl_Box {} {
-                      label {Configuration word}
-                      private xywh {375 185 130 20} box BORDER_FRAME color 0 align 20
+                      label Default
+                      private xywh {560 165 55 20} box BORDER_FRAME color 0 labelcolor 7
+                    }
+                  }
+                  Fl_Group {} {open
+                    private xywh {375 185 240 20} box BORDER_BOX color 7
+                  } {
+                    Fl_Box {} {
+                      label {Conf. word}
+                      private xywh {375 185 75 20} box BORDER_FRAME color 0 align 20
+                    }
+                    Fl_Input {} {
+                      tooltip {A bitmask of all valid (non-reserved) configuration bits.} xywh {450 185 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_MASK]=o;}
+                    }
+                    Fl_Input {} {
+                      tooltip {A bitmask of persistent bits in  the  configuration word.  These bits will be saved before and restored after a chip erase. They will also not  be  modifiable when programming the device.} xywh {505 185 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_SAVE]=o;}
+                    }
+                    Fl_Input {} {
+                      tooltip {The default value of the configuration bits after an erase.} xywh {560 185 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_DEFV]=o;}
                     }
                   }
                 }
@@ -509,14 +522,17 @@ deviceConfigCB(CFG_COPY);}
                       label {Code prot.}
                       private tooltip {Code protection bit(s).} xywh {375 230 75 20} color 0 align 20
                     }
-                    Fl_Input {tx_devCfgWord[2]} {
+                    Fl_Input {} {
                       tooltip {A bitmask of all the code protection bits.} xywh {450 230 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_CP_MASK]=o;}
                     }
-                    Fl_Input {tx_devCfgWord[3]} {
+                    Fl_Input {} {
                       tooltip {The value of the code protection bits when all memory is code protected.} xywh {505 230 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_CP_ALL]=o;}
                     }
-                    Fl_Input {tx_devCfgWord[4]} {
+                    Fl_Input {} {
                       tooltip {The value of the code protection bits when no memory is code protected.} xywh {560 230 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_CP_NONE]=o;}
                     }
                   }
                   Fl_Group {} {open
@@ -526,14 +542,17 @@ deviceConfigCB(CFG_COPY);}
                       label {Data prot.}
                       private tooltip {Data memory code protection bit(s).} xywh {375 250 75 20} color 0 align 20
                     }
-                    Fl_Input {tx_devCfgWord[5]} {
+                    Fl_Input {} {
                       tooltip {A bitmask of the bit(s) that enable data memory code protection.} xywh {450 250 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_DP_MASK]=o;}
                     }
-                    Fl_Input {tx_devCfgWord[6]} {
+                    Fl_Input {} {
                       tooltip {The value of the data memory code protection bit(s) when data code protection is enabled.} xywh {505 250 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_DP_ON]=o;}
                     }
-                    Fl_Input {tx_devCfgWord[7]} {
+                    Fl_Input {} {
                       tooltip {The value of the data memory code protection bit(s) when data code protection is disabled.} xywh {560 250 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_DP_OFF]=o;}
                     }
                   }
                   Fl_Group {} {open
@@ -543,14 +562,17 @@ deviceConfigCB(CFG_COPY);}
                       label {Bkg. Debug}
                       private tooltip {On-chip background debugger bit(s).} xywh {375 270 75 20} color 0 align 20
                     }
-                    Fl_Input {tx_devCfgWord[8]} {
+                    Fl_Input {} {
                       tooltip {A bitmask for the bit(s) which enable the on-chip background debugger.} xywh {450 270 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_BD_MASK]=o;}
                     }
-                    Fl_Input {tx_devCfgWord[9]} {
+                    Fl_Input {} {
                       tooltip {The value of the background debugger bits when the debugger is enabled.} xywh {505 270 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_BD_ON]=o;}
                     }
-                    Fl_Input {tx_devCfgWord[10]} {
+                    Fl_Input {} {
                       tooltip {The value of the background debugger bits when the debugger is disabled.} xywh {560 270 55 20} labeltype NO_LABEL
+                      code0 {tx_devCfgWord[CW_BD_OFF]=o;}
                     }
                   }
                 }
@@ -620,7 +642,7 @@ cfgWordsCB(CFG_NEW);}
               callback {cfgWordsCB(CFG_LOAD);}
               xywh {375 295 215 135} type Hold box DOWN_BOX textfont 4 textsize 12
               code0 {\#include <FL/Fl_Hold_Browser.H>}
-              code1 {o->add("@u w\# | cw mask| cw save| cp mask| cp all | cp none| dp mask| dp on  | dp off | bd mask| bd on  | bd off ");}
+              code1 {o->add("@u w\# | cw mask| cw save| cw defv| cp mask| cp all | cp none| dp mask| dp on  | dp off | bd mask| bd on  | bd off ");}
               class Fl_Hold_Browser
             }
           }
@@ -662,6 +684,38 @@ cfgWordsCB(CFG_NEW);}
                   Fl_Box {} {
                     label Mask
                     private xywh {535 185 80 20} color 0 labelcolor 7
+                  }
+                }
+              }
+              Fl_Group {} {open
+                xywh {375 230 240 40}
+              } {
+                Fl_Group {} {open
+                  private xywh {375 250 240 20} box BORDER_BOX color 7
+                } {
+                  Fl_Input {} {
+                    tooltip {Write buffer size} xywh {455 250 80 20} labeltype NO_LABEL
+                    code0 {tx_devParam[PAR_WRITE_BUF_SIZE]=o;}
+                  }
+                  Fl_Input {} {
+                    tooltip {Erase buffer size} xywh {535 250 80 20} labeltype NO_LABEL
+                    code0 {tx_devParam[PAR_ERASE_BUF_SIZE]=o;}
+                  }
+                  Fl_Box {} {
+                    label {Buffer Size}
+                    private xywh {375 250 80 20} box BORDER_FRAME color 0 align 20
+                  }
+                }
+                Fl_Group {} {open
+                  private xywh {375 230 240 20} box BORDER_BOX color 41
+                } {
+                  Fl_Box {} {
+                    label Write
+                    private xywh {455 230 80 20} box BORDER_FRAME color 0 labelcolor 7
+                  }
+                  Fl_Box {} {
+                    label Erase
+                    private xywh {535 230 80 20} color 0 labelcolor 7
                   }
                 }
               }
