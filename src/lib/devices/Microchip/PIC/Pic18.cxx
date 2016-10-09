@@ -18,6 +18,8 @@
  */
 #include <stdexcept>
 
+#include <stdio.h>
+
 using namespace std;
 
 #include "Microchip.h"
@@ -314,7 +316,6 @@ void Pic18::program(DataBuffer& buf)
     /* Progress_total is x2 because we write and verify every location */
     this->progress_total = 2 * (this->codesize + 4 + 7 + this->eesize) - 1;
     this->progress_count = 0;
-
     try {
         set_program_mode();
 
@@ -324,7 +325,7 @@ void Pic18::program(DataBuffer& buf)
             write_data_memory(buf, 0xf00000, true);
         }
         write_config_memory(buf, 0x300000, true);
-
+        
         pic_off();
     } catch (std::exception& e) {
         pic_off();
@@ -580,15 +581,15 @@ void Pic18::read(DataBuffer& buf, bool verify)
 
 void Pic18::read_memory (
     DataBuffer& buf,
-    unsigned long addr,
-    unsigned long len,
+    unsigned long addr,		/* byte address */
+    unsigned long len,		/* word len */
     bool verify
 ) {
 unsigned int data;
 
     try {
+        set_tblptr(addr);
         addr >>= 1;         /* Shift to word addresses */
-        set_tblptr(2*addr);
         while (len > 0) {
             /* Give byte addresses to progress() to match datasheet. */
             progress(addr*2);
@@ -597,7 +598,7 @@ unsigned int data;
             data  = write_command_read_data(COMMAND_TABLE_READ_POSTINC);
             data |= (write_command_read_data(COMMAND_TABLE_READ_POSTINC) << 8);
             if (verify) {
-                if (diff(buf[addr],data,0xffffffff)) { // TODO: verify the mask
+                if (diff(buf[addr],data,0x0000ffff)) {
                     throw runtime_error("");
                 }
             } else {
@@ -655,9 +656,11 @@ unsigned long i;
     } catch (std::exception& e) {
         throw runtime_error (
             (const char *)Preferences::Name (
-                "%s of configuration word #%u failed",
+                "%s of configuration word #%u failed\nwanted 0x%04x, got 0x%04x",
                 verify ? "Verification" : "Read",
-                cword_num
+                cword_num,
+                this->config_deflt[cword_num],
+                data & this->config_masks[cword_num]
             )
         );
     }

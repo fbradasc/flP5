@@ -581,11 +581,12 @@ protected:
 #define ASM_BSF_EECON1_WREN  0x84a6          /* bsf EECON1, WREN  */
 #define ASM_BSF_EECON1_WR    0x82a6          /* bsf EECON1, WR    */
 #define ASM_BSF_EECON1_RD    0x80a6          /* bsf EECON1, RD    */
-#define ASM_MOVLW(addr)      0x0e00 | (addr) /* movlw <addr>      */
-#define ASM_MOVWF(addr)      0x6e00 | (addr) /* movwf <addr>      */
+#define ASM_MOVLW(addr)      0x0e00 | ((addr)&0xff) /* movlw <addr>      */
+#define ASM_MOVWF(addr)      0x6e00 | ((addr)&0xff) /* movwf <addr>      */
 #define ASM_MOVF_EEDATA_W_0  0x50a8          /* movf EEDATA, W, 0 */
 #define ASM_MOVF_EECON1_W_0  0x50a6          /* movf EECON1, W, 0 */
 #define ASM_INCF_TBLPTR      0x2af6          /* incf TBLPTR       */
+#define ASM_MOVWF_EECON2     0x6ea7          /* movwf EECON2      */
 
 /** A class which implements the programming algorithm PIC18* devices. The
  * PIC18* devices are different in many ways:
@@ -838,10 +839,123 @@ protected:
     static const Instruction opcodes[];
 };
 
-class Pic18f2xx0 : public Pic18
+class Pic18fxx20 : public Pic18
 {
 public:
-    const static int COMMAND_TABLE_WRITE_START_POSTINC=0x0e; /**< Table Write, start programming, post-inc by 2 */
+    Pic18fxx20(char *name);
+    virtual ~Pic18fxx20();
+
+    virtual void erase(void);
+protected:	
+    /** Writes data to the program memory. The entire code space is written
+     * to take advantage of multi-panel writes.
+     * \param buf The DataBuffer from which to retrieve the data to write.
+     * \param verify A boolean value indicating if the written data should be
+     *        read back and verified.
+     * \post The \c progress_count is incremented by the number of words
+     *       written to program memory. If \c verify is true then
+     *       \c progress_count will have been incremented by two times the
+     *       number of words written; once for the write and once for the
+     *       verify.
+     * \throws runtime_error Contains a description of the error along with
+     *         the address at which the error occurred.
+     */
+    virtual void write_program_memory(DataBuffer& buf, bool verify);
+
+    /** Writes the ID memory locations.
+     * \param buf The DataBuffer from which data is read.
+     * \param addr The byte address of the ID words in the PIC address space.
+     * \param verify A boolean value indicating if the written data should be
+     *        read back and verified.
+     * \post The \c progress_count is incremented by the number of words
+     *       written to the ID locations. If \c verify is true then
+     *       \c progress_count will have been incremented by two times the
+     *       number of words written; once for the write and once for the
+     *       verify.
+     * \throws runtime_error Contains a description of the error along with
+     *         the address at which the error occurred.
+     */
+    virtual void write_id_memory(DataBuffer& buf, 
+    								unsigned long addr, bool verify);
+
+    /** Writes data to the data eeprom.
+     * \param buf The DataBuffer from which to retrieve the data to write.
+     * \param addr The byte offset into the DataBuffer from which to start
+     *             retrieving data.
+     * \param verify A boolean value indicating if the written data should be
+     *        read back and verified.
+     * \post The \c progress_count is incremented by the number of bytes
+     *       written to the data memory. If \c verify is true then
+     *       \c progress_count will have been incremented by two times the
+     *       number of bytes written; once for the write and once for the
+     *       verify.
+     * \throws runtime_error Contains a description of the error along with
+     *         the data memory location at which the error occured.
+     */
+    virtual void write_data_memory(DataBuffer& buf, 
+    									unsigned long addr, bool verify);
+
+    /** Writes the configuration words
+     * \param buf The DataBuffer from which data is read.
+     * \param addr The byte address of the configuration words in the PIC
+     *        address space.
+     * \param verify A boolean value indicating if the written data should be
+     *        read back and verified.
+     * \post The \c progress_count is incremented by the number of
+     *       configuration words written. If \c verify is true then
+     *       \c progress_count will have been incremented by two times the
+     *       number of words written; once for the write and once for the
+     *       verify.
+     * \throws runtime_error Contains a description of the error along with
+     *         the configuration word number where the error occurred.
+     */
+    virtual void write_config_memory(DataBuffer& buf, 
+    									unsigned long addr, bool verify);
+
+    /** Reads the entire PIC data EEPROM. The bytes are packed into the
+     * DataBuffer as 1 byte per 16-bit word.
+     * \param buf The DataBuffer to store the read data. On a verify, this
+     *        data is compared with the data on the PIC.
+     * \param addr The byte address in the DataBuffer to store the EEPROM
+     *        data. Since the DataBuffer consists of 16-bit words, the
+     *        DataBuffer offset will be 1/2 this.
+     * \param verify Boolean flag which indicates a verify operation against
+     *        \c buf.
+     * \post The \c progress_count is incremented by the number of
+     *       bytes read/verified from the data memory.
+     * \throws runtime_error Contains a description of the error along with
+     *         the data memory location at which the error occured.
+     */
+    virtual void read_data_memory(DataBuffer& buf, 
+    									unsigned long addr, bool verify);
+
+    /** Loads the write buffer for the current write sequence.
+     * \param buf The DataBuffer from which to retrieve data.
+     * \param addr The byte address in the PIC's memory to begin the write.
+     * \param offset The offset into the panel to write the data.
+	 * \returns TRUE if any word in the write buffer was non-blank 
+	 * 				(other than 0xffff), otherwise FALSE.
+     * \post The \c progress_count is incremented by the number of words written
+     *       to the write buffer. On success this is the write buffer size.
+     */
+	virtual bool load_write_buffer (DataBuffer& buf, 
+									unsigned long addr, unsigned long count);
+
+    /** Does a custom NOP/program wait. This will output
+     * COMMAND_CORE_INSTRUCTION, hold clk high for the programming time,
+     * and then finish up by clocking out a nop instruction (16 0's).
+     * Reimplemented here to add 100us high voltage discharge time after
+     * program delay.
+     */
+    virtual void program_wait(void);
+
+};
+
+class Pic18f2xx0 : public Pic18fxx20
+{
+public:
+	/**< Table Write, start programming, post-inc by 2 */
+    const static int COMMAND_TABLE_WRITE_START_POSTINC=0x0e; 
 
     Pic18f2xx0(char *name);
     virtual ~Pic18f2xx0();
@@ -849,20 +963,39 @@ public:
     virtual void erase(void);
 
 protected:
-    virtual void write_program_memory(DataBuffer& buf, bool verify);
+    /** Writes data to the data eeprom.
+     * \param buf The DataBuffer from which to retrieve the data to write.
+     * \param addr The byte offset into the DataBuffer from which to start
+     *             retrieving data.
+     * \param verify A boolean value indicating if the written data should be
+     *        read back and verified.
+     * \post The \c progress_count is incremented by the number of bytes
+     *       written to the data memory. If \c verify is true then
+     *       \c progress_count will have been incremented by two times the
+     *       number of bytes written; once for the write and once for the
+     *       verify.
+     * \throws runtime_error Contains a description of the error along with
+     *         the data memory location at which the error occured.
+     */
+    virtual void write_data_memory(DataBuffer& buf, 
+    									unsigned long addr, bool verify);
 
-    virtual void write_id_memory(DataBuffer& buf, unsigned long addr, bool verify);
-
-    virtual void write_data_memory(DataBuffer& buf, unsigned long addr, bool verify);
-
-    virtual void write_config_memory(DataBuffer& buf, unsigned long addr, bool verify);
-
-    virtual void read_data_memory(DataBuffer& buf, unsigned long addr, bool verify);
-
-    void load_write_buffer(unsigned int word, bool last);
-
-    virtual void program_wait(void);
-
+    /** Reads the entire PIC data EEPROM. The bytes are packed into the
+     * DataBuffer as 1 byte per 16-bit word.
+     * \param buf The DataBuffer to store the read data. On a verify, this
+     *        data is compared with the data on the PIC.
+     * \param addr The byte address in the DataBuffer to store the EEPROM
+     *        data. Since the DataBuffer consists of 16-bit words, the
+     *        DataBuffer offset will be 1/2 this.
+     * \param verify Boolean flag which indicates a verify operation against
+     *        \c buf.
+     * \post The \c progress_count is incremented by the number of
+     *       bytes read/verified from the data memory.
+     * \throws runtime_error Contains a description of the error along with
+     *         the data memory location at which the error occured.
+     */
+    virtual void read_data_memory(DataBuffer& buf, 
+    									unsigned long addr, bool verify);
 };
 
 #endif

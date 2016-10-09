@@ -53,6 +53,10 @@ Device *Pic::load(char *name)
     ) {
         return new Pic16(name);
     } else if (
+    	Util::regexMatch("^PIC18F([124][23]20)", name)
+    ) {
+    	return new Pic18fxx20(name);
+    } else if (
         Util::regexMatch("^PIC18F((2..[05])|(2.21)|(4..[05])|(4.21))", name)
     ) {
         return new Pic18f2xx0(name);
@@ -114,12 +118,20 @@ char memtypebuf[10];
     }
     /* Get the device ID value if this device supports it. */
     if (
-        config->get("deviceID", (int &)this->deviceid,0) &&
-        (this->deviceid>0)
+        (this->deviceid>0) && 
+        config->getHex (
+            Preferences::Name("deviceID"), 
+            (int &)this->deviceid, 
+            0xffff
+        )
     ) {
         if (
-            config->get("deviceIDMask", (int &)this->deviceidmask,0) &&
-            (this->deviceidmask>0)
+            (this->deviceidmask>0) &&
+	        config->getHex (
+    	        Preferences::Name("deviceIDMask"), 
+	            (int &)this->deviceidmask, 
+	            0xffff
+	        )
         ) {
             this->flags |= PIC_HAS_DEVICEID;
         }

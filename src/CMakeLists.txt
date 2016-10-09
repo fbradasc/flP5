@@ -44,6 +44,7 @@ SOURCE_FILES ( FLP5_SOURCES
     lib/devices/Microchip/PIC/Pic16f8xx.cxx
     lib/devices/Microchip/PIC/Pic16f87xA.cxx
     lib/devices/Microchip/PIC/Pic18.cxx
+    lib/devices/Microchip/PIC/Pic18fxx20.cxx
     lib/devices/Microchip/PIC/Pic18f2xx0.cxx
 #
 # Useful widgets

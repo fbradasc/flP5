@@ -1898,6 +1898,7 @@ char *soper[] = {
                 break;
                 case CHIP_BLANCK_CHECK: {
                     DataBuffer lbuf(chip->get_wordsize());
+                    chip->set_config_default(lbuf);
                     try {
                         chip->read(lbuf,true);
                     } catch(std::exception& e) {
