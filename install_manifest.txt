@@ -1,0 +1,5 @@
+/usr/local/share/flP5/data/devices.prefs
+/usr/local/share/flP5/data/programmers.prefs
+/usr/local/share/flP5/doc/LICENSE.txt
+/usr/local/share/flP5/doc/README.txt
+/usr/local/bin/flP5

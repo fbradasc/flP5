@@ -1,0 +1,20 @@
+DriverLINX Port I/O Driver for Win95 and WinNT
+
+(C) Copyright 1996-1999, Scientific Software Tools, Inc.
+All Rights Reserved.
+
+This product contains the following API files necessary to interface your
+application with the Port I/O driver:
+  DLportio.bas  -- Win32 Prototypes for DriverLINX Port I/O - Visual Basic
+  Dlportio.h    -- Win32 Prototypes for DriverLINX Port I/O - C\C++
+  Dlportio.lib  -- Import library - Microsoft C\C++
+  DLportbc.lib  -- Import library - Borland C\C++ 
+
+The Dlportbc.lib file was created using Borland's Implib command line utility.
+If this version is not compatible with your compiler you can make a Borland
+compatible lib file yourself using the Implib utility. For example in NT:
+  c:\implib Dlportbc.lib c:\winnt\system32\dlportio.dll
+ 
+DriverLINX is a registered trademark of Scientific Software Tools, Inc.
+Microsoft, Windows, Win95, and WinNT are registered trademarks of Microsoft
+Corporation.

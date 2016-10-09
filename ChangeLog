@@ -1,0 +1,16 @@
+flP5 1.1.2:
+  * Aligned the PIC programming library to odyssey-0.3
+
+flP5 1.1.1:
+  * Aligned the PIC programming library to odyssey-0.2.3
+
+flP5 1.1.0:
+  * Added two new buttons for the On Circuit Test Mode and to simulate the
+    hardware reset.
+
+flP5 1.0.1:
+  * Upgraded the building system to support CMake up to the current (1.6.7)
+    version.  Thanks to Steffen Damelang.
+
+flP5 1.0.0:
+  * Initial release.

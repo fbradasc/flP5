@@ -1,0 +1,166 @@
+gpasm-0.12.3 beta               led_asm.asm 9-18-2004  18:55:57          PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+ 
+               00001         PROCESSOR       16F84
+               00002         RADIX           DEC
+               00003         INCLUDE         "p16f84.inc"
+               00001         LIST
+               00002 ; P16F84.INC  Standard Header File, Version 2.00    Microchip Technology, Inc.
+               00136         LIST
+               00004 
+002007 3FF9    00005         __CONFIG        _CP_OFF & _PWRTE_OFF & _WDT_OFF & _XT_OSC
+               00006 
+  00000000     00007 LED     EQU     0
+               00008 
+000C           00009         ORG     0CH
+               00010 
+  0000000C     00011 Count   RES     2
+               00012 
+               00013         ; Reset vector
+               00014         ; Program starting point at the CPU reset
+               00015 
+0000           00016         ORG     00H
+               00017 
+0000 1683      00018         bsf     STATUS,RP0
+               00019 
+0001 301F      00020         movlw   00011111B
+Message [302] : Register in operand not in bank 0. Ensure bank bits are correct.
+0002 0085      00021         movwf   TRISA
+               00022 
+0003 30FE      00023         movlw   11111110B
+Message [302] : Register in operand not in bank 0. Ensure bank bits are correct.
+0004 0086      00024         movwf   TRISB
+               00025 
+0005 1283      00026         bcf     STATUS,RP0
+               00027 
+0006 1406      00028         bsf     PORTB,LED
+               00029 
+0007           00030 MainLoop
+0007 200E      00031         call    Delay
+               00032 
+0008 1806      00033         btfsc   PORTB,LED
+0009 280C      00034         goto    SetToZero
+               00035 
+000A 1406      00036         bsf     PORTB,LED
+000B 2807      00037         goto    MainLoop
+               00038 
+000C           00039 SetToZero
+000C 1006      00040         bcf     PORTB,LED
+000D 2807      00041         goto    MainLoop
+               00042 
+               00043         ; Subroutines
+               00044 
+000E           00045 Delay
+000E 018C      00046         clrf    Count
+000F 018D      00047         clrf    Count+1
+               00048 
+0010           00049 DelayLoop
+gpasm-0.12.3 beta               led_asm.asm 9-18-2004  18:55:57          PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+ 
+0010 0B8C      00050         decfsz  Count,1
+0011 2810      00051         goto    DelayLoop
+               00052 
+0012 0B8D      00053         decfsz  Count+1,1
+0013 2810      00054         goto    DelayLoop
+               00055 
+0014 0008      00056         return
+               00057 
+gpasm-0.12.3 beta               led_asm.asm 9-18-2004  18:55:57          PAGE  3
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+C                                 00000000
+Count                             0000000C
+DC                                00000001
+Delay                             0000000E
+DelayLoop                         00000010
+EEADR                             00000009
+EECON1                            00000088
+EECON2                            00000089
+EEDATA                            00000008
+EEIE                              00000006
+EEIF                              00000004
+F                                 00000001
+FSR                               00000004
+GIE                               00000007
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+LED                               00000000
+MainLoop                          00000007
+NOT_PD                            00000003
+NOT_RBPU                          00000007
+NOT_TO                            00000004
+OPTION_REG                        00000081
+PCL                               00000002
+PCLATH                            0000000A
+PORTA                             00000005
+PORTB                             00000006
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+RBIE                              00000003
+RBIF                              00000000
+RD                                00000000
+RP0                               00000005
+RP1                               00000006
+STATUS                            00000003
+SetToZero                         0000000C
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+TMR0                              00000001
+TRISA                             00000085
+TRISB                             00000086
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+gpasm-0.12.3 beta               led_asm.asm 9-18-2004  18:55:57          PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+ 
+_CP_OFF                           00003FFF
+_CP_ON                            0000000F
+_HS_OSC                           00003FFE
+_LP_OSC                           00003FFC
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FFD
+__16F84                           00000001
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+00000000 : XXXXXXXXXXXXXXXX XXXXX----------- ---------------- ----------------
+00002000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used: 22
+
+
+Errors   :       0
+Warnings :       0 reported,       0 suppressed
+Messages :       2 reported,       0 suppressed
+
