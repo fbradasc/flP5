@@ -19,7 +19,7 @@
 #ifndef __IO_h
 #define __IO_h
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW32__)
 typedef unsigned long uint32_t;
 #  else
 #  include <stdint.h>

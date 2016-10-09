@@ -215,7 +215,10 @@ void Pic18fxx20::write_config_memory(DataBuffer& buf, unsigned long addr, bool v
         write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_EEPGD);
         write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_CFGS);
 
-        for (i=0; i<CFG_WORDS_WRDS+1; i++, addr += 2) {
+        for (i=0; i<CFG_WORDS_WRDS; i++, addr += 2) {
+            // i == 5 is config word 6, which has write protect bits for
+            //  config words.  Once that is programmed, config word 7
+            //  can't be written, so skip it for now and write it at the end.
             if (i == 5) {
                 skipd_addr = addr;
                 continue;

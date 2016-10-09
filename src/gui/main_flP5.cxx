@@ -1,4 +1,4 @@
-/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
+/* Copyright (C) 2003-2010  Francesco Bradascio <fbradasc@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,16 @@
 #  include <sys/time.h>
 #  include <signal.h>
 #  include <unistd.h>
+#else
+#  include <windows.h>
 #endif
 #include <exception>
 #include <iterator>
-#include </usr/include/math.h>
-#include <math.h>	// The header /usr/include/FL/math.h was renamed to
-						//	Fl_math.h.  It includes some constants after 
-						//	including <math.h>.  Renaming the FLTK math.h
-						//	prevents its recursive inclusion.
 #include <cmath>
 
 using namespace std;
 
+#include <FL/math.h>
 #include <FL/Fl_Shared_Image.H>
 #include <FL/Fl_File_Chooser.H>
 #include <FL/filename.H>
@@ -56,10 +54,16 @@ Preferences devices(Preferences::USER,"flP5","devices");
 
 char *copyrightText =
 "<HTML><BODY><CENTER>"
-"<B>flP5 1.1.8</B><BR>"
+"<B>flP5 1.1.10</B><BR>"
 "the Fast Light Parallel Port Production PIC Programmer.<BR>"
-"Copyright (C) 2003 by Francesco Bradascio</CENTER><P>"
+"Copyright (C) 2003-2010 by Francesco Bradascio</CENTER><P>"
 "</P>"
+"Contributed by:<BR>"
+"<UL>"
+"<LI>Edward A. Hildum</LI>"
+"<LI>Geoff Horn</LI>"
+"<LI>Steffen Damelang</LI>"
+"</UL>"
 "This program is free software; you can redistribute it and/or modify "
 "it under the terms of the <I>GNU General Public License</I> as published by "
 "the Free Software Foundation; either version 2 of the License, or "
@@ -74,7 +78,7 @@ char *copyrightText =
 "along with this program; if not, write to the Free Software "
 "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA<P>"
 "</P>"
-"<CENTER>Please report bugs to fbradasc@yahoo.it.</CENTER></BODY></HTML>";
+"<CENTER>Please report bugs to fbradasc@google.com.</CENTER></BODY></HTML>";
 
 typedef struct NamedSettings {
     const char *name;

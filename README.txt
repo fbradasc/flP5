@@ -1,6 +1,6 @@
          flP5 - Fast Light Parallel Port Production PIC Programmer
          ---------------------------------------------------------
-               by Francesco Bradascio <fbradasc@yahoo.it>
+               by Francesco Bradascio <fbradasc@gmail.com>
 
 What is flP5 ?
 --------------
@@ -20,8 +20,9 @@ Features
 - can support all the PIC devices supported by Odyssey, here's a summery:
 
   Tested:
-    PIC16F84, PIC16C84, PIC16C76, PIC16F74, PIC16C765, PIC16F877, PIC18F252,
-    PIC18F452, PIC12F629, PIC12F675, PIC16LF628
+    PIC12F629, PIC12F675, PIC16C76, PIC16C765, PIC16C84, PIC16F74, PIC16F84,
+    PIC16F877, PIC16F882, PIC16F883, PIC16F884, PIC16F886, PIC16F887,
+    PIC16LF628, PIC18F252, PIC18F452
 
   Untested but should work:
     PIC16C61, PIC16C62, PIC16C62A, PIC16C62B, PIC16C63, PIC16C63A,
@@ -61,8 +62,8 @@ Copying policy
 --------------
 
 GPL, of course.
-While it is copyright, (C) 2003 by Francesco Bradascio, the program is also
-free software; you can redistribute it and/or modify it under the terms of
+While it is copyright, (C) 2003-2010 by Francesco Bradascio, the program is
+also free software; you can redistribute it and/or modify it under the terms of
 the GNU General Public License as published by  the Free Software Foundation;
 either version 2 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -75,4 +76,4 @@ oundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 Questions and comments
 ----------------------
 
-Sent any questions and comments to Francesco Bradascio <fbradasc@yahoo.it>
+Sent any questions and comments to Francesco Bradascio <fbradasc@gmail.com>

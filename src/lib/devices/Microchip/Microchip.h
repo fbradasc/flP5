@@ -1,4 +1,4 @@
-/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
+/* Copyright (C) 2003-2010  Francesco Bradascio <fbradasc@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #ifndef __Microchip_h
 #define __Microchip_h
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW32__)
 typedef unsigned long uint32_t;
 #else
 #  include <stdint.h>

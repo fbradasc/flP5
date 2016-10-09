@@ -1,4 +1,4 @@
-/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
+/* Copyright (C) 2003-2010  Francesco Bradascio <fbradasc@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #ifndef WIN32
 #  include <unistd.h>
 #  include <sys/io.h>
+#else
+#  include <windows.h>
 #endif
 #include <sys/types.h>
 #include <stdexcept>

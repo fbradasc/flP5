@@ -1,3 +1,8 @@
+flP5 1.1.10:
+  * Fixed  an error at the very end of the programming cycle for the
+    18fxx20 device which attempted to write an extra config word.
+    Thanks to Edward A. Hildum.
+
 flP5 1.1.9:
   * Added support for the following defices:
     - PIC16F882, PIC16F883, PIC16F884, PIC16F886, PIC16F887

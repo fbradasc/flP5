@@ -1,6 +1,6 @@
    INSTALLING flP5 - The fast Light Parallel Port Production PIC Programmer
    ------------------------------------------------------------------------
-              by Francesco Bradascio <fbradasc@yahoo.it>
+              by Francesco Bradascio <fbradasc@gmail.com>
 
 0. Table of contents
 --------------------

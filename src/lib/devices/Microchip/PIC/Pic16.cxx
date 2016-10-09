@@ -68,21 +68,40 @@ const Instruction Pic16::opcodes[] = {
 
 Pic16::Pic16(char *name) : Pic(name)
 {
-int tmp;
+	int tmp;
+	int	i;
 
     this->popcodes = this->opcodes;
 
     /* Read configuration word bits */
-    config->getHex("cw_mask_00",(int &)config_mask[0],this->wordmask);
-    config->getHex("cw_save_00",(int &)persistent_config_mask[0],0);
-    config->getHex("cw_defs_00",(int &)default_config_word[0],0xffff);
-    default_config_word[0] &= config_mask[0];
-    if (this->config_words > 1) {
-    	config->getHex("cw_mask_00",(int &)config_mask[1],this->wordmask);
-    	config->getHex("cw_save_00",(int &)persistent_config_mask[1],0);
-    	config->getHex("cw_defs_00",(int &)default_config_word[1],0xffff);
-    	default_config_word[1] &= config_mask[1];
-    }
+//    config->getHex("cw_mask_00",(int &)config_mask[0],this->wordmask);
+//    config->getHex("cw_save_00",(int &)persistent_config_mask[0],0);
+//    config->getHex("cw_defs_00",(int &)default_config_word[0],0xffff);
+//    default_config_word[0] &= config_mask[0];
+//    if (this->config_words > 1) {
+//    	config->getHex("cw_mask_00",(int &)config_mask[1],this->wordmask);
+//    	config->getHex("cw_save_00",(int &)persistent_config_mask[1],0);
+//    	config->getHex("cw_defs_00",(int &)default_config_word[1],0xffff);
+//    	default_config_word[1] &= config_mask[1];
+//    }
+	for (i=0; i<this->config_words; i++) {
+		config->getHex (
+			Preferences::Name("cw_mask_%02d", i),
+			(int &)config_mask[i],
+			this->wordmask
+		);
+		config->getHex (
+			Preferences::Name("cw_save_%02d", i),
+			(int &)persistent_config_mask[i],
+			0
+		);
+		config->getHex (
+			Preferences::Name("cw_defs_%02d", i),
+			(int &)default_config_word[i],
+			0xffff
+		);
+		default_config_word[i] &= config_mask[i];
+	}
 
     config->getHex("cp_mask_00",(int &)cp_mask, 0);
     config->getHex("cp_all__00",(int &)cp_all,  0);

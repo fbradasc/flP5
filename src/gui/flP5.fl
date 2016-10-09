@@ -2,7 +2,7 @@
 version 1.0106 
 header_name {.h} 
 code_name {.cxx}
-decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
+decl {/* Copyright (C) 2003-2010  Francesco Bradascio <fbradasc@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
  *
  */} {} 
 
-decl {/* Copyright (C) 2003  Francesco Bradascio <fbradasc@yahoo.it>
+decl {/* Copyright (C) 2003-2010  Francesco Bradascio <fbradasc@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
