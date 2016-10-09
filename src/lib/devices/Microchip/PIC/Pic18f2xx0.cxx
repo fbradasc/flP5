@@ -65,9 +65,9 @@ void Pic18f2xx0::erase(void)
 
 void Pic18f2xx0::write_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
 {
-    uint32_t		ins;
-    uint8_t			data;
-    unsigned int	offset = 0;	/* word offset	*/
+    uint32_t        ins;
+    uint8_t            data;
+    unsigned int    offset = 0;    /* word offset    */
 
     try {
         /* Step 1: Direct access to data EEPROM */
@@ -77,42 +77,42 @@ void Pic18f2xx0::write_data_memory(DataBuffer& buf, unsigned long addr, bool ver
         for (offset=0; offset < this->eesize; offset++) {
             progress(addr+(2*offset));
 
-            if ((offset & 1) == 0)
-                data = buf[(addr+offset)/2] & 0xff;
-            else
-                data = (buf[(addr+offset)/2] >> 8) & 0xff;
-
             /* Step 2: Set the data EEPROM address pointer */
             write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(offset));
             write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEADR));
             write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(offset >> 8));
             write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEADRH));
 
-			if (data != 0xff) {
-	            /* Step 3: Load the data to be written */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(data));
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEDATA));
+            if ((offset & 1) == 0) {
+                data = buf[(addr+offset)/2] & 0xff;
+            } else {
+                data = (buf[(addr+offset)/2] >> 8) & 0xff;
+            }
+            if (data != 0xff) {
+                /* Step 3: Load the data to be written */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(data));
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEDATA));
 
-	            /* Step 4: Enable memory writes */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WREN);
-	
-	            /* Step 5: Initiate write */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WR);
-	
-	            /* Step 6: Poll WR bit, repeat until the bit is clear */
-	            do {
-	                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVF_EECON1_W_0);
-	                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_TABLAT));
-	                write_command(COMMAND_CORE_INSTRUCTION, ASM_NOP);
-	                ins = write_command_read_data(COMMAND_SHIFT_OUT_TABLAT);
-	            } while (ins & 0x02);
+                /* Step 4: Enable memory writes */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WREN);
+    
+                /* Step 5: Initiate write */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WR);
+    
+                /* Step 6: Poll WR bit, repeat until the bit is clear */
+                do {
+                    write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVF_EECON1_W_0);
+                    write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_TABLAT));
+                    write_command(COMMAND_CORE_INSTRUCTION, ASM_NOP);
+                    ins = write_command_read_data(COMMAND_SHIFT_OUT_TABLAT);
+                } while (ins & 0x02);
 
-	            /* Step 7: Hold PGC low for time P10 */
-        	    this->io->usleep(100);    /* High-voltage discharge time P10 */
-	            
-    	        /* Step 8: Disable writes */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_BCF_EECON1_WREN);
-			}
+                /* Step 7: Hold PGC low for time P10 */
+                this->io->usleep(100);    /* High-voltage discharge time P10 */
+                
+                /* Step 8: Disable writes */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_BCF_EECON1_WREN);
+            }
 
             this->progress_count++;
 
@@ -145,8 +145,8 @@ void Pic18f2xx0::write_data_memory(DataBuffer& buf, unsigned long addr, bool ver
 
 void Pic18f2xx0::read_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
 {
-    uint32_t ins;
-    unsigned int offset;	/* Byte offset	*/
+    uint32_t     ins;
+    unsigned int offset;    /* Byte offset */
     unsigned int data;
 
     offset = 0;

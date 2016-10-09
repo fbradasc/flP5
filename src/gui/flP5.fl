@@ -663,11 +663,13 @@ cfgWordsCB(CFG_NEW);}
                 Fl_Group {} {open
                   private xywh {375 205 240 20} box BORDER_BOX color 7
                 } {
-                  Fl_Input {tx_devIDWord[0]} {
+                  Fl_Input {} {
                     tooltip {Device ID value} xywh {455 205 80 20} labeltype NO_LABEL
+                    code0 {tx_devParam[PAR_DEVICE_ID]=o;}
                   }
-                  Fl_Input {tx_devIDWord[1]} {
+                  Fl_Input {} {
                     tooltip {Device ID mask} xywh {535 205 80 20} labeltype NO_LABEL
+                    code0 {tx_devParam[PAR_DEVICE_ID_MASK]=o;}
                   }
                   Fl_Box {} {
                     label {Device ID}

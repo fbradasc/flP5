@@ -35,23 +35,23 @@ Pic16f87xA::~Pic16f87xA()
 
 void Pic16f87xA::disable_codeprotect(void)
 {
-	try {
-		this->set_program_mode();
+    try {
+        this->set_program_mode();
 
-		/* Set PC to configuration memory so the test row (ID locations) are
-		 * erased. */
-		this->write_command(COMMAND_LOAD_CONFIG);
-		this->io->shift_bits_out(0x7ffe, 16, 1);
-		this->io->usleep(1);
+        /* Set PC to configuration memory so the test row (ID locations) are
+         * erased. */
+        this->write_command(COMMAND_LOAD_CONFIG);
+        this->io->shift_bits_out(0x7ffe, 16, 1);
+        this->io->usleep(1);
 
-		this->write_command(COMMAND_CHIP_ERASE);
-		this->io->usleep(this->erase_time);
+        this->write_command(COMMAND_CHIP_ERASE);
+        this->io->usleep(this->erase_time);
 
-		this->pic_off();
-	} catch(std::exception& e) {
-		this->pic_off();
-		throw;
-	}
+        this->pic_off();
+    } catch(std::exception& e) {
+        this->pic_off();
+        throw;
+    }
 }
 
 void Pic16f87xA::bulk_erase(void)

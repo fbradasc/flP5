@@ -337,8 +337,8 @@ dp_off__00:0x0100
 bd_mask_00:0x0000
 bd_on___00:0x0000
 bd_off__00:0x0000
-deviceID:0
-deviceIDMask:0
+deviceID:0x0000
+deviceIDMask:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
@@ -1992,8 +1992,8 @@ bd_off__00:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
-deviceID:0
-deviceIDMask:0
+deviceID:0x0000
+deviceIDMask:0x0000
 
 [./Microchip/PIC/PIC16CR84]
 
@@ -2090,8 +2090,8 @@ dp_off__00:0x0000
 bd_mask_00:0x0000
 bd_on___00:0x0000
 bd_off__00:0x0000
-deviceID:0
-deviceIDMask:0
+deviceID:0x0000
+deviceIDMask:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
@@ -2737,8 +2737,8 @@ dp_off__06:0x0000
 bd_mask_06:0x0000
 bd_on___06:0x0000
 bd_off__06:0x0000
-deviceID:0
-deviceIDMask:0
+deviceID:0x0000
+deviceIDMask:0x0000
 writeBufferSize:32
 eraseBufferSize:64
 cw_defs_00:0xffff
@@ -3622,7 +3622,7 @@ cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
 
-./Microchip/PIC/PIC18F2221]
+[./Microchip/PIC/PIC18F2221]
 
 experimental:1
 memType:flashe
@@ -8009,4 +8009,3 @@ cw_defs_03:0x0085
 cw_defs_04:0xffff
 cw_defs_05:0xffff
 cw_defs_06:0xffff
-

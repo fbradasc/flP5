@@ -371,7 +371,7 @@ unsigned int offset;
                 /* Don't verify the OSCAL location. */
                 if (
                     !((this->flags & PIC_HAS_OSCAL) &&
-				     (offset == this->codesize-1))
+                     (offset == this->codesize-1))
                 ) {
                     if (
                         diff (

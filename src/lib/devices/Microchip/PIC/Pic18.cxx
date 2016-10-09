@@ -581,8 +581,8 @@ void Pic18::read(DataBuffer& buf, bool verify)
 
 void Pic18::read_memory (
     DataBuffer& buf,
-    unsigned long addr,		/* byte address */
-    unsigned long len,		/* word len */
+    unsigned long addr,     /* byte address */
+    unsigned long len,      /* word len */
     bool verify
 ) {
 unsigned int data;
@@ -656,7 +656,8 @@ unsigned long i;
     } catch (std::exception& e) {
         throw runtime_error (
             (const char *)Preferences::Name (
-                "%s of configuration word #%u failed\nwanted 0x%04x, got 0x%04x",
+                "%s of configuration word #%u failed\n"
+                "wanted 0x%04x, got 0x%04x",
                 verify ? "Verification" : "Read",
                 cword_num,
                 this->config_deflt[cword_num],

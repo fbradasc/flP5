@@ -64,7 +64,7 @@ void Pic18fxx20::erase(void)
 
 void Pic18fxx20::write_program_memory(DataBuffer& buf, bool verify)
 {
-unsigned int offset;	/* byte offset	*/
+unsigned int offset;    /* byte offset */
 
     offset = 0;
     try {
@@ -73,12 +73,12 @@ unsigned int offset;	/* byte offset	*/
         write_command(COMMAND_CORE_INSTRUCTION, ASM_BCF_EECON1_CFGS);
 
         for (offset=0; offset < (codesize*2); offset+=write_buffer_size) {
-        	/* Step 2: load table pointer with offset of current write block */
-	        set_tblptr(offset);
+            /* Step 2: load table pointer with offset of current write block */
+            set_tblptr(offset);
             /* Step 3,4: Load write buffer w/ wbuf_size bytes and start write */
-            if ( load_write_buffer(buf, offset, write_buffer_size) );
-	            program_wait();
-
+            if (load_write_buffer(buf, offset, write_buffer_size)) {
+                program_wait();
+            }
             if (verify) {
                 /* Verify the memory just written */
                 read_memory(buf, offset, write_buffer_size/2, true);
@@ -106,10 +106,10 @@ void Pic18fxx20::write_id_memory(DataBuffer& buf, unsigned long addr, bool verif
         /* Step 2: Load table pointer with address to program */
         set_tblptr(addr);
 
-		/* Load 8 bytes into write buffer and begin write	*/
-        if ( load_write_buffer(buf, addr, 2 * ID_LOC_WRDS) )
-			program_wait();
-
+        /* Load 8 bytes into write buffer and begin write    */
+        if (load_write_buffer(buf, addr, 2 * ID_LOC_WRDS)) {
+            program_wait();
+        }
         if (verify) {
             /* Verify the memory just written */
             read_memory(buf, addr, ID_LOC_WRDS, true);
@@ -126,9 +126,9 @@ void Pic18fxx20::write_id_memory(DataBuffer& buf, unsigned long addr, bool verif
 
 void Pic18fxx20::write_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
 {
-    uint32_t		ins;
-    uint8_t			data;
-    unsigned int	offset = 0;	/* word offset	*/
+    uint32_t     ins;
+    uint8_t      data;
+    unsigned int offset = 0;    /* word offset */
 
     try {
         /* Step 1: Direct access to data EEPROM */
@@ -138,43 +138,43 @@ void Pic18fxx20::write_data_memory(DataBuffer& buf, unsigned long addr, bool ver
         for (offset=0; offset < this->eesize; offset++) {
             progress(addr+(2*offset));
 
-            if ((offset & 1) == 0)
-                data = buf[(addr+offset)/2] & 0xff;
-            else
-                data = (buf[(addr+offset)/2] >> 8) & 0xff;
-
             /* Step 2: Set the data EEPROM address pointer */
             write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(offset));
             write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEADR));
 
-			if (data != 0xff) {
-	            /* Step 3: Load the data to be written */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(data));
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEDATA));
+            if ((offset & 1) == 0) {
+                data = buf[(addr+offset)/2] & 0xff;
+            } else {
+                data = (buf[(addr+offset)/2] >> 8) & 0xff;
+            }
+            if (data != 0xff) {
+                /* Step 3: Load the data to be written */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(data));
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF(REG_EEDATA));
 
-	            /* Step 4: Enable memory writes */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WREN);
-	            
-	            /* Step 5: Unlock sequence */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(0x55));
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF_EECON2);
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(0xAA));
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF_EECON2);
+                /* Step 4: Enable memory writes */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WREN);
+                
+                /* Step 5: Unlock sequence */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(0x55));
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF_EECON2);
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVLW(0xAA));
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_MOVWF_EECON2);
 
-	            /* Step 6: Initiate write */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WR);
+                /* Step 6: Initiate write */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_WR);
                 write_command(COMMAND_CORE_INSTRUCTION, ASM_NOP);
                 write_command(COMMAND_CORE_INSTRUCTION, ASM_NOP);
                 
-	            /* Step 7: Hold PGC low for time P11 */
+                /* Step 7: Hold PGC low for time P11 */
                 this->io->usleep(this->erase_time);
                 
-	            /* Then hold PGC low for time P10 */
-        	    this->io->usleep(5);    /* High-voltage discharge time P10 */
-	            
-    	        /* Disable writes */
-	            write_command(COMMAND_CORE_INSTRUCTION, ASM_BCF_EECON1_WREN);
-			}
+                /* Then hold PGC low for time P10 */
+                this->io->usleep(5);    /* High-voltage discharge time P10 */
+                
+                /* Disable writes */
+                write_command(COMMAND_CORE_INSTRUCTION, ASM_BCF_EECON1_WREN);
+            }
 
             this->progress_count++;
 
@@ -207,21 +207,24 @@ void Pic18fxx20::write_data_memory(DataBuffer& buf, unsigned long addr, bool ver
 
 void Pic18fxx20::write_config_memory(DataBuffer& buf, unsigned long addr, bool verify)
 {
-    int 			i = 0;
-	unsigned long	skipd_addr;
+    int           i = 0;
+    unsigned long skipd_addr;
 
     try {
         /* Step 1: Direct access to config memory */
         write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_EEPGD);
         write_command(COMMAND_CORE_INSTRUCTION, ASM_BSF_EECON1_CFGS);
 
-        for (i=0; i<CFG_WORDS_WRDS; i++, addr += 2) {
-        	if (i == 5) { skipd_addr = addr; continue; }
+        for (i=0; i<CFG_WORDS_WRDS+1; i++, addr += 2) {
+            if (i == 5) {
+                skipd_addr = addr;
+                continue;
+            }
             /* Give byte addresses to the callback to match datasheet. */
             progress(addr);
 
-            /* Step 2: Set Table Pointer for config byte to be written. Write
-             * even/odd addresses */
+            /* Step 2: Set Table Pointer for config byte to be written. *
+             * Write even/odd addresses                                 */
             set_tblptr(addr);
             write_command(COMMAND_TABLE_WRITE_START, buf[(addr/2)] & 0xff);
             program_wait();
@@ -231,14 +234,14 @@ void Pic18fxx20::write_config_memory(DataBuffer& buf, unsigned long addr, bool v
             program_wait();
 
             this->progress_count++;
+
             if (verify) {
                 /* Verify the config word just written */
                 read_config_memory(buf, addr, 1, true);
             }
         }
-        
-        /* Program word 6 last: if we protect the configuration words,	*/
-        /*	we won't be able to program word 7.							*/
+        /* Program word 6 last: if we protect the configuration words, */
+        /* we won't be able to program word 7.                         */
         set_tblptr(skipd_addr);
         write_command(COMMAND_TABLE_WRITE_START, buf[(skipd_addr/2)] & 0xff);
         program_wait();
@@ -263,8 +266,8 @@ void Pic18fxx20::write_config_memory(DataBuffer& buf, unsigned long addr, bool v
 
 void Pic18fxx20::read_data_memory(DataBuffer& buf, unsigned long addr, bool verify)
 {
-    uint32_t ins;
-    unsigned int offset;	/* Byte offset	*/
+    uint32_t     ins;
+    unsigned int offset; /* Byte offset */
     unsigned int data;
 
     offset = 0;
@@ -294,11 +297,13 @@ void Pic18fxx20::read_data_memory(DataBuffer& buf, unsigned long addr, bool veri
             if (verify) {
                 /* The data is packed 2 bytes per word, little endian */
                 if ((offset & 1) == 0) {
-                    if (data != (buf[(addr + offset)/2] & 0xff))
+                    if (data != (buf[(addr + offset)/2] & 0xff)) {
                         throw runtime_error("");
+                    }
                 } else {
-                    if (data != ((buf[(addr + offset)/2] >> 8) & 0xff))
+                    if (data != ((buf[(addr + offset)/2] >> 8) & 0xff)) {
                         throw runtime_error("");
+                    }
                 }
             } else {
                 /* The data is packed 2 bytes per word, little endian */
@@ -325,25 +330,25 @@ void Pic18fxx20::read_data_memory(DataBuffer& buf, unsigned long addr, bool veri
 }
 
 bool Pic18fxx20::load_write_buffer (
-    DataBuffer& buf,
+    DataBuffer&   buf,
     unsigned long addr,
     unsigned long count
 ) {
-	unsigned int	i;
-	unsigned int	a = 0xffff;
+    unsigned int    i;
+    unsigned int    a = 0xffff;
 
-	for ( i = 0; i < (count / 2); i++ )
-		a &= buf[(addr/2) + i];
-		
-	if ( a != 0xffff ) {
-		/* Fill all but the last word in the write buffer */
-		for (i = 0; i < (count / 2) - 1; i++)
-			write_command(COMMAND_TABLE_WRITE_POSTINC, buf[(addr/2) + i]);
-
-		/* Put the last word in the write buffer and start programming	*/
-		write_command(COMMAND_TABLE_WRITE_START, buf[(addr/2) + i]);
-	}
-    this->progress_count += count / 2;	/* Increment by # words	*/
+    for ( i = 0; i < (count / 2); i++ ) {
+        a &= buf[(addr/2) + i];
+    }
+    if ( a != 0xffff ) {
+        /* Fill all but the last word in the write buffer */
+        for (i = 0; i < (count / 2) - 1; i++) {
+            write_command(COMMAND_TABLE_WRITE_POSTINC, buf[(addr/2) + i]);
+        }
+        /* Put the last word in the write buffer and start programming */
+        write_command(COMMAND_TABLE_WRITE_START, buf[(addr/2) + i]);
+    }
+    this->progress_count += count / 2;    /* Increment by # words */
     
     return (a != 0xffff);
 }
@@ -352,11 +357,11 @@ void Pic18fxx20::program_wait(void)
 {
     this->io->shift_bits_out(0x00, 3);
     this->io->data(false);
-    this->io->clock(true);    /* Hold clk high */
+    this->io->clock(true);                /* Hold clk high                   */
 
-    this->io->usleep(program_time); /* P9 */
+    this->io->usleep(program_time);       /* P9                              */
 
     this->io->clock(false);
-    this->io->usleep(100);    /* High-voltage discharge time P10 */
-    this->io->shift_bits_out(0x0000, 16);/* 16-bit payload (NOP) */
+    this->io->usleep(100);                /* High-voltage discharge time P10 */
+    this->io->shift_bits_out(0x0000, 16); /* 16-bit payload (NOP)            */
 }

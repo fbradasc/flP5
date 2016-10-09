@@ -568,25 +568,25 @@ protected:
 #define REG_TBLPTRH          0xf7
 #define REG_TBLPTRL          0xf6
 
-#define ASM_NOP              0x0000          /* nop               */
-#define ASM_BCF_EECON1_EEPGD 0x9ea6          /* bcf EECON1, EEPGD */
-#define ASM_BCF_EECON1_CFGS  0x9ca6          /* bcf EECON1, CfGS  */
-#define ASM_BCF_EECON1_FREE  0x98a6          /* bcf EECON1, FREE  */
-#define ASM_BCF_EECON1_WRERR 0x96a6          /* bcf EECON1, WRERR */
-#define ASM_BCF_EECON1_WREN  0x94a6          /* bcf EECON1, WREN  */
-#define ASM_BSF_EECON1_EEPGD 0x8ea6          /* bsf EECON1, EEPGD */
-#define ASM_BSF_EECON1_CFGS  0x8ca6          /* bsf EECON1, CFGS  */
-#define ASM_BSF_EECON1_FREE  0x88a6          /* bsf EECON1, FREE  */
-#define ASM_BSF_EECON1_WRERR 0x86a6          /* bsf EECON1, WRERR */
-#define ASM_BSF_EECON1_WREN  0x84a6          /* bsf EECON1, WREN  */
-#define ASM_BSF_EECON1_WR    0x82a6          /* bsf EECON1, WR    */
-#define ASM_BSF_EECON1_RD    0x80a6          /* bsf EECON1, RD    */
+#define ASM_NOP              0x0000                 /* nop               */
+#define ASM_BCF_EECON1_EEPGD 0x9ea6                 /* bcf EECON1, EEPGD */
+#define ASM_BCF_EECON1_CFGS  0x9ca6                 /* bcf EECON1, CfGS  */
+#define ASM_BCF_EECON1_FREE  0x98a6                 /* bcf EECON1, FREE  */
+#define ASM_BCF_EECON1_WRERR 0x96a6                 /* bcf EECON1, WRERR */
+#define ASM_BCF_EECON1_WREN  0x94a6                 /* bcf EECON1, WREN  */
+#define ASM_BSF_EECON1_EEPGD 0x8ea6                 /* bsf EECON1, EEPGD */
+#define ASM_BSF_EECON1_CFGS  0x8ca6                 /* bsf EECON1, CFGS  */
+#define ASM_BSF_EECON1_FREE  0x88a6                 /* bsf EECON1, FREE  */
+#define ASM_BSF_EECON1_WRERR 0x86a6                 /* bsf EECON1, WRERR */
+#define ASM_BSF_EECON1_WREN  0x84a6                 /* bsf EECON1, WREN  */
+#define ASM_BSF_EECON1_WR    0x82a6                 /* bsf EECON1, WR    */
+#define ASM_BSF_EECON1_RD    0x80a6                 /* bsf EECON1, RD    */
 #define ASM_MOVLW(addr)      0x0e00 | ((addr)&0xff) /* movlw <addr>      */
 #define ASM_MOVWF(addr)      0x6e00 | ((addr)&0xff) /* movwf <addr>      */
-#define ASM_MOVF_EEDATA_W_0  0x50a8          /* movf EEDATA, W, 0 */
-#define ASM_MOVF_EECON1_W_0  0x50a6          /* movf EECON1, W, 0 */
-#define ASM_INCF_TBLPTR      0x2af6          /* incf TBLPTR       */
-#define ASM_MOVWF_EECON2     0x6ea7          /* movwf EECON2      */
+#define ASM_MOVF_EEDATA_W_0  0x50a8                 /* movf EEDATA, W, 0 */
+#define ASM_MOVF_EECON1_W_0  0x50a6                 /* movf EECON1, W, 0 */
+#define ASM_INCF_TBLPTR      0x2af6                 /* incf TBLPTR       */
+#define ASM_MOVWF_EECON2     0x6ea7                 /* movwf EECON2      */
 
 /** A class which implements the programming algorithm PIC18* devices. The
  * PIC18* devices are different in many ways:
@@ -846,7 +846,8 @@ public:
     virtual ~Pic18fxx20();
 
     virtual void erase(void);
-protected:	
+
+protected:    
     /** Writes data to the program memory. The entire code space is written
      * to take advantage of multi-panel writes.
      * \param buf The DataBuffer from which to retrieve the data to write.
@@ -875,8 +876,11 @@ protected:
      * \throws runtime_error Contains a description of the error along with
      *         the address at which the error occurred.
      */
-    virtual void write_id_memory(DataBuffer& buf, 
-    								unsigned long addr, bool verify);
+    virtual void write_id_memory (
+        DataBuffer& buf, 
+        unsigned long addr,
+        bool verify
+    );
 
     /** Writes data to the data eeprom.
      * \param buf The DataBuffer from which to retrieve the data to write.
@@ -892,8 +896,11 @@ protected:
      * \throws runtime_error Contains a description of the error along with
      *         the data memory location at which the error occured.
      */
-    virtual void write_data_memory(DataBuffer& buf, 
-    									unsigned long addr, bool verify);
+    virtual void write_data_memory (
+        DataBuffer& buf, 
+        unsigned long addr,
+        bool verify
+    );
 
     /** Writes the configuration words
      * \param buf The DataBuffer from which data is read.
@@ -909,8 +916,11 @@ protected:
      * \throws runtime_error Contains a description of the error along with
      *         the configuration word number where the error occurred.
      */
-    virtual void write_config_memory(DataBuffer& buf, 
-    									unsigned long addr, bool verify);
+    virtual void write_config_memory (
+        DataBuffer& buf, 
+        unsigned long addr,
+        bool verify
+    );
 
     /** Reads the entire PIC data EEPROM. The bytes are packed into the
      * DataBuffer as 1 byte per 16-bit word.
@@ -926,20 +936,26 @@ protected:
      * \throws runtime_error Contains a description of the error along with
      *         the data memory location at which the error occured.
      */
-    virtual void read_data_memory(DataBuffer& buf, 
-    									unsigned long addr, bool verify);
+    virtual void read_data_memory (
+        DataBuffer& buf, 
+        unsigned long addr,
+        bool verify
+    );
 
     /** Loads the write buffer for the current write sequence.
      * \param buf The DataBuffer from which to retrieve data.
      * \param addr The byte address in the PIC's memory to begin the write.
      * \param offset The offset into the panel to write the data.
-	 * \returns TRUE if any word in the write buffer was non-blank 
-	 * 				(other than 0xffff), otherwise FALSE.
+     * \returns TRUE if any word in the write buffer was non-blank 
+     *                 (other than 0xffff), otherwise FALSE.
      * \post The \c progress_count is incremented by the number of words written
      *       to the write buffer. On success this is the write buffer size.
      */
-	virtual bool load_write_buffer (DataBuffer& buf, 
-									unsigned long addr, unsigned long count);
+    virtual bool load_write_buffer (
+        DataBuffer& buf, 
+        unsigned long addr, 
+        unsigned long count
+    );
 
     /** Does a custom NOP/program wait. This will output
      * COMMAND_CORE_INSTRUCTION, hold clk high for the programming time,
@@ -954,7 +970,7 @@ protected:
 class Pic18f2xx0 : public Pic18fxx20
 {
 public:
-	/**< Table Write, start programming, post-inc by 2 */
+    /**< Table Write, start programming, post-inc by 2 */
     const static int COMMAND_TABLE_WRITE_START_POSTINC=0x0e; 
 
     Pic18f2xx0(char *name);
@@ -977,8 +993,11 @@ protected:
      * \throws runtime_error Contains a description of the error along with
      *         the data memory location at which the error occured.
      */
-    virtual void write_data_memory(DataBuffer& buf, 
-    									unsigned long addr, bool verify);
+    virtual void write_data_memory (
+        DataBuffer& buf, 
+        unsigned long addr,
+        bool verify
+    );
 
     /** Reads the entire PIC data EEPROM. The bytes are packed into the
      * DataBuffer as 1 byte per 16-bit word.
@@ -994,8 +1013,10 @@ protected:
      * \throws runtime_error Contains a description of the error along with
      *         the data memory location at which the error occured.
      */
-    virtual void read_data_memory(DataBuffer& buf, 
-    									unsigned long addr, bool verify);
+    virtual void read_data_memory (
+        DataBuffer& buf, 
+        unsigned long addr, bool verify
+    );
 };
 
 #endif

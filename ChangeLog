@@ -1,3 +1,12 @@
+flP5 1.1.8:
+  * Fixed reading of the deviceID and deviceIDMask from the defices.prefs
+    configuraton file.
+
+flP5 1.1.7:
+  * Added support for devices following the  DS39592D programming specification:
+    - PIC18F1220, 1320, 2220, 2320, 4220, 4320
+    Thanks to Ted Hildum who contributed for this code changes.
+  
 flP5 1.1.6:
   * Added the autoupdate of the devices.prefs config file
     - the user's devices.prefs will be automatically updated with the 

@@ -57,7 +57,6 @@ extern Fl_Hold_Browser *ls_devConfigWords;
 extern Fl_Group *g_devmiscellanea;
 #include <FL/Fl_Check_Button.H>
 extern Fl_Check_Button *tb_devExperimental;
-extern Fl_Input *tx_devIDWord[2];
 extern Fl_Group *t_progcfg;
 extern Fl_Group *g_progCfgNewEditCopy;
 extern Fl_Group *g_pogStoreMGR;

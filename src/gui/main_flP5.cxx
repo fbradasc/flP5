@@ -125,6 +125,8 @@ static t_NamedSettings sparams[] = {
     "eraseTime"      , (void *)0,
     "writeBufferSize", (void *)32,
     "eraseBufferSize", (void *)64,
+    "deviceID"       , (void *)"0x0000",
+    "deviceIDMask"   , (void *)"0x0000",
     "vppMin"         , (void *)0,
     "vppMax"         , (void *)0,
     "vddMin"         , (void *)0,
@@ -202,7 +204,7 @@ const char *voltageNames[] = {
             }
         }
     }
-    for (i=0;verbose && i<LAST_PARAM-6;i++) {
+    for (i=0;verbose && i<LAST_PARAM-8;i++) {
         tx_devParam[i]->color(FL_WHITE);
         if (sscanf(tx_devParam[i]->value(),"%d",&v)!=1 || v<0) {
             ok = false;
@@ -236,11 +238,19 @@ char buf[FL_PATH_MAX];
                 dev.get("memType",buf,"rom",sizeof(buf)-1);
                 dev.set("memType",buf);
 
-                for (i=0;i<LAST_PARAM-6;i++) {
+                for (i=0;i<LAST_PARAM-8;i++) {
                     dev.get(sparams[i].name,v,(int)sparams[i].defv);
                     dev.set(sparams[i].name,v);
                 }
-
+                for (;i<LAST_PARAM-6;i++) { /* device id & mask */
+                    dev.get (
+                        sparams[i].name,
+                        buf,
+                        (char *)sparams[i].defv,
+                        sizeof(buf)-1
+                    );
+                    dev.set(sparams[i].name,buf);
+                }
                 for (;i<LAST_PARAM;i++) {
                     dev.get(sparams[i].name,d,(double)((int)sparams[i].defv));
                     dev.set(sparams[i].name,d);
@@ -327,8 +337,16 @@ bool store = false;
                     settings += from.get (
                         "memType",buf,"rom",sizeof(buf)-1
                     ) ? 1 : 0;
-                    for (i=0;i<LAST_PARAM-6;i++) {
+                    for (i=0;i<LAST_PARAM-8;i++) {
                         settings += from.get(sparams[i].name,v[0],(int)sparams[i].defv) ? 1 : 0;
+                    }
+                    for (;i<LAST_PARAM-6;i++) { /* device id & mask */
+                        settings += from.get (
+                            sparams[i].name,
+                            buf,
+                            (char*)sparams[i].defv,
+                            sizeof(buf)-1
+                        ) ? 1 : 0;
                     }
                     for (;i<LAST_PARAM;i++) {
                         settings += from.get(sparams[i].name,d,(double)((int)sparams[i].defv)) ? 1 : 0;
@@ -400,7 +418,7 @@ bool store = false;
                                 ls_report->add(report);
                                 different = true;
                             }
-                            for (i=0;i<LAST_PARAM-6;i++) {
+                            for (i=0;i<LAST_PARAM-8;i++) {
                                 from.get(sparams[i].name,v[0],(int)sparams[i].defv);
                                   to.get(sparams[i].name,v1[0],(int)sparams[i].defv);
 
@@ -410,6 +428,29 @@ bool store = false;
                                     sprintf(report,"  cur=%d",v1[0]);
                                     ls_report->add(report);
                                     sprintf(report,"@_  new=%d",v[0]);
+                                    ls_report->add(report);
+                                    different = true;
+                                }
+                            }
+                            for (;i<LAST_PARAM-6;i++) { /* device id & mask */
+                                from.get (
+                                    sparams[i].name,
+                                    buf,
+                                    (char*)sparams[i].defv,
+                                    sizeof(buf)-1
+                                );
+                                to.get (
+                                    sparams[i].name,
+                                    buf1,
+                                    (char*)sparams[i].defv,
+                                    sizeof(buf1)-1
+                                );
+                                if (strcmp(buf,buf1)) {
+                                    sprintf(report,"@b%s:",sparams[i].name);
+                                    ls_report->add(report);
+                                    sprintf(report,"  cur=%s",buf1);
+                                    ls_report->add(report);
+                                    sprintf(report,"@_  new=%s",buf);
                                     ls_report->add(report);
                                     different = true;
                                 }
@@ -484,9 +525,18 @@ bool store = false;
                                 to.set("experimental",v[0]);
                             from.get("memType",buf,"rom",sizeof(buf)-1);
                                 to.set("memType",buf);
-                            for (i=0;i<LAST_PARAM-6;i++) {
+                            for (i=0;i<LAST_PARAM-8;i++) {
                                 from.get(sparams[i].name,v[0],(int)sparams[i].defv);
                                     to.set(sparams[i].name,v[0]);
+                            }
+                            for (;i<LAST_PARAM-6;i++) { /* device id & mask */
+                                from.get (
+                                    sparams[i].name,
+                                    buf,
+                                    (char*)sparams[i].defv,
+                                    sizeof(buf)-1
+                                );
+                                    to.set(sparams[i].name,buf);
                             }
                             for (;i<LAST_PARAM;i++) {
                                 from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
@@ -578,7 +628,13 @@ char path[FL_PATH_MAX];
     if (oper==CFG_LOAD || oper==CFG_NEW || oper==CFG_DELETE) {
         tx_devName->value("");
         ch_devMemType->value(0);
-        for (i=0;i<LAST_PARAM;i++) {
+        for (i=0;i<LAST_PARAM-8;i++) {
+            tx_devParam[i]->value("0");
+        }
+        for (;i<LAST_PARAM-6;i++) {
+            tx_devParam[i]->value("0x0000");
+        }
+        for (;i<LAST_PARAM;i++) {
             tx_devParam[i]->value("0");
         }
         if (
@@ -616,9 +672,6 @@ char path[FL_PATH_MAX];
         }
         ls_devConfigWords->do_callback();
         tb_devExperimental->value(1);
-
-        tx_devIDWord[0]->value("");
-        tx_devIDWord[1]->value("");
     }
     if (oper==CFG_LOAD || oper==CFG_DELETE) {
         if (
@@ -629,10 +682,19 @@ char path[FL_PATH_MAX];
         ) {
             Preferences device(devices,(const char *)mdata);
             tx_devName->value(ch_devices->text());
-            for (i=0;i<LAST_PARAM-6;i++) {
+            for (i=0;i<LAST_PARAM-8;i++) {
                 device.get(sparams[i].name,v[0],(int)sparams[i].defv);
                     sprintf(buf,"%d",v[0]);
                     tx_devParam[i]->value(buf);
+            }
+            for (;i<LAST_PARAM-6;i++) {
+                device.get (
+                    sparams[i].name,
+                    buf,
+                    (char*)sparams[i].defv,
+                    sizeof(buf)-1
+                );
+                tx_devParam[i]->value(buf);
             }
             for (;i<LAST_PARAM;i++) {
                 device.get(sparams[i].name,d,(double)((int)sparams[i].defv));
@@ -661,14 +723,6 @@ char path[FL_PATH_MAX];
 
             device.get("experimental",v[0],1);
             tb_devExperimental->value(v[0] ? 1 : 0);
-
-            device.get("deviceID",v[0],0);
-            sprintf(buf,"0x%04x",v[0]);
-            tx_devIDWord[0]->value(buf);
-
-            device.get("deviceIDMask",v[0],0);
-            sprintf(buf,"0x%04x",v[0]);
-            tx_devIDWord[1]->value(buf);
 
             strcpy(path,mdata);
             pfname = fl_filename_name((const char *)mdata);
@@ -773,36 +827,21 @@ char path[FL_PATH_MAX];
 
         device.set("experimental",tb_devExperimental->value() ? 1 : 0);
 
-        for (i=0; i<2; i++) {
-            //
-            // elimino i caratteri non alfanumerici
-            //
-            strncpy(buf,tx_devIDWord[i]->value(),sizeof(buf)-1);
-            buf[sizeof(buf)-1]='\0';
-            for (j=0;j<strlen(buf);j++) {
-                if (!isxdigit(buf[j]) && buf[j]!='x' && buf[j]!='X') {
-                    buf[0]='\0';
-                    break;
-                }
-            }
-            if (sscanf(buf,"%x",&v[0])!=1 || v[0]>0xffff) {
-                fl_alert (
-                    "Please insert a valid 4 digit hexadecimal number"
-                    " for the Device ID %s.",
-                    (i==0) ? "value" : "mask"
-                );
-            } else {
-                device.set((i==0) ? "deviceID" : "deviceIDMask",v[0]);
-            }
-        }
-
         device.set (
             "memType",
             (const char*)ch_devMemType->mvalue()->user_data()
         );
-        for (i=0;i<LAST_PARAM-6;i++) {
+        for (i=0;i<LAST_PARAM-8;i++) {
             if (sscanf(tx_devParam[i]->value(),"%d",&v[0])) {
                 device.set(sparams[i].name,v[0]);
+            }
+        }
+        for (;i<LAST_PARAM-6;i++) { /* device id & mask  */
+            if (sscanf(tx_devParam[i]->value(),"%x",&v[0])) {
+                device.set (
+                    sparams[i].name,
+                    Preferences::Name("0x%04x",v[0])
+                );
             }
         }
         for (;i<LAST_PARAM;i++) {

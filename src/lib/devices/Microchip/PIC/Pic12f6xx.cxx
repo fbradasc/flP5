@@ -27,7 +27,7 @@ using namespace std;
 
 Pic12f6xx::Pic12f6xx(char *name) : Pic16(name)
 {
-	this->flags |= PIC_HAS_OSCAL;
+    this->flags |= PIC_HAS_OSCAL;
 }
 
 Pic12f6xx::~Pic12f6xx()
@@ -36,5 +36,5 @@ Pic12f6xx::~Pic12f6xx()
 
 void Pic12f6xx::disable_codeprotect(void)
 {
-	this->bulk_erase();
+    this->bulk_erase();
 }

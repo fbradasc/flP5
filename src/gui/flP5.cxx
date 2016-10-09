@@ -1666,8 +1666,6 @@ Fl_Group *g_devmiscellanea=(Fl_Group *)0;
 
 Fl_Check_Button *tb_devExperimental=(Fl_Check_Button *)0;
 
-Fl_Input *tx_devIDWord[2]={(Fl_Input *)0};
-
 Fl_Group *t_progcfg=(Fl_Group *)0;
 
 static void cb_b(Fl_RaiseButton*, void*) {
@@ -5230,13 +5228,15 @@ ble when programming the device.");
                 { Fl_Group* o = new Fl_Group(375, 205, 240, 20);
                 o->box(FL_BORDER_BOX);
                 o->color(FL_BACKGROUND2_COLOR);
-                { Fl_Input* o = tx_devIDWord[0] = new Fl_Input(455, 205, 80, 20);
+                { Fl_Input* o = new Fl_Input(455, 205, 80, 20);
                 o->tooltip("Device ID value");
                 o->labeltype(FL_NO_LABEL);
+                tx_devParam[PAR_DEVICE_ID]=o;
                 }
-                { Fl_Input* o = tx_devIDWord[1] = new Fl_Input(535, 205, 80, 20);
+                { Fl_Input* o = new Fl_Input(535, 205, 80, 20);
                 o->tooltip("Device ID mask");
                 o->labeltype(FL_NO_LABEL);
+                tx_devParam[PAR_DEVICE_ID_MASK]=o;
                 }
                 { Fl_Box* o = new Fl_Box(375, 205, 80, 20, "Device ID");
                 o->box(FL_BORDER_FRAME);

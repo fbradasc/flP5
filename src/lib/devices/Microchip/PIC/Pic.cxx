@@ -53,9 +53,9 @@ Device *Pic::load(char *name)
     ) {
         return new Pic16(name);
     } else if (
-    	Util::regexMatch("^PIC18F([124][23]20)", name)
+        Util::regexMatch("^PIC18F([124][23]20)", name)
     ) {
-    	return new Pic18fxx20(name);
+        return new Pic18fxx20(name);
     } else if (
         Util::regexMatch("^PIC18F((2..[05])|(2.21)|(4..[05])|(4.21))", name)
     ) {
@@ -118,20 +118,20 @@ char memtypebuf[10];
     }
     /* Get the device ID value if this device supports it. */
     if (
-        (this->deviceid>0) && 
         config->getHex (
             Preferences::Name("deviceID"), 
             (int &)this->deviceid, 
             0xffff
-        )
+        ) &&
+        (this->deviceid>0)
     ) {
         if (
-            (this->deviceidmask>0) &&
-	        config->getHex (
-    	        Preferences::Name("deviceIDMask"), 
-	            (int &)this->deviceidmask, 
-	            0xffff
-	        )
+            config->getHex (
+                Preferences::Name("deviceIDMask"), 
+                (int &)this->deviceidmask, 
+                0xffff
+            ) &&
+            (this->deviceidmask>0)
         ) {
             this->flags |= PIC_HAS_DEVICEID;
         }
@@ -454,10 +454,10 @@ long opcode;
                 num_words = 2;
                 dest = (buf[addr+1] & 0xfff) << 8;
                 dest |= opcode & 0xff;      
-	            snprintf(buffer, sizeof_buffer, "%s\t%#lx, %#lx",
+                snprintf(buffer, sizeof_buffer, "%s\t%#lx, %#lx",
                          this->popcodes[instruction].name,
                          dest * 2,
-		                 (opcode >> 8) & 1);
+                         (opcode >> 8) & 1);
             }
             break;
         case INSN_CLASS_FLIT12:
@@ -468,7 +468,7 @@ long opcode;
                 num_words = 2;
                 k = buf[addr+1] & 0xff;
                 k |= ((opcode & 0xf) << 8);
-	            file = (opcode >> 4) & 0x3;
+                file = (opcode >> 4) & 0x3;
                 DECODE_ARG2(file, k);
             }
             break;
@@ -554,23 +554,23 @@ long opcode;
             {
             char stroperator[5]; 
 
-	            switch (opcode & 0x3) {
-	                case 0:
-	                    strncpy(stroperator, "*", sizeof(stroperator));
-	                    break;
-	                case 1:
-	                    strncpy(stroperator, "*+", sizeof(stroperator));
-	                    break;
-	                case 2:
-	                    strncpy(stroperator, "*-", sizeof(stroperator));
-	                    break;
-	                case 3:
-	                    strncpy(stroperator, "+*", sizeof(stroperator));
-	                    break;
-	                default:
-	                    num_words = 0;
-	                    break;
-	            }
+                switch (opcode & 0x3) {
+                    case 0:
+                        strncpy(stroperator, "*", sizeof(stroperator));
+                        break;
+                    case 1:
+                        strncpy(stroperator, "*+", sizeof(stroperator));
+                        break;
+                    case 2:
+                        strncpy(stroperator, "*-", sizeof(stroperator));
+                        break;
+                    case 3:
+                        strncpy(stroperator, "+*", sizeof(stroperator));
+                        break;
+                    default:
+                        num_words = 0;
+                        break;
+                }
                 if (num_words) {
                     snprintf(buffer,
                              sizeof_buffer,
@@ -586,7 +586,7 @@ long opcode;
         case INSN_CLASS_TBL3:
             DECODE_ARG3(((opcode >> 9) & 1), 
                         ((opcode >> 8) & 1), 
-		                (opcode & 0xff));
+                        (opcode & 0xff));
             break;
         default:
             num_words = 0;
