@@ -113,7 +113,7 @@ public:
      *          regular expression.
      * \throws logic_error If the regex compilation fails.
      */
-    static bool regexMatch(char *regex, char *string);
+    static bool regexMatch(const char *regex, const char *string);
 
     /** Tests if the filename exists.
      * \param filename The file name to test

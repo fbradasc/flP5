@@ -16,6 +16,8 @@
  *
  * $Id: DirectPPIO.cxx,v 1.4 2002/10/11 16:26:56 marka Exp $
  */
+#if !defined(ENABLE_LINUX_GPIO)
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -67,8 +69,8 @@ static char str[20];
     }
 #endif
     /* Turn port access on */
-    this->ioport  = ports.address[port];
-    this->regs = ports.regs[port];
+    this->ioport = ports.address[port];
+    this->regs   = ports.regs[port];
 #ifndef WIN32
     /* Set UID to root if running setuid */
     Util::setUser(0);
@@ -127,7 +129,7 @@ DirectPPIO::~DirectPPIO()
 }
 
 void DirectPPIO::set_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert,
@@ -149,7 +151,7 @@ unsigned int val;
 }
 
 bool DirectPPIO::get_pin_state (
-    char *name, 
+    const char *name, 
     short reg,
     short bit,
     short invert
@@ -162,3 +164,5 @@ unsigned int val;
     }
     return val;
 }
+
+#endif // !ENABLE_LINUX_GPIO

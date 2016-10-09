@@ -32,10 +32,10 @@ typedef unsigned long uint32_t;
 #define BITS_AND_CLK(numbits,hold_clock) ((numbits) * ((hold_clock) ? -1 : 1))
 
 /** A time value represented in microseconds */
-typedef unsigned long microtime_t;
+typedef uint32_t microtime_t;
 
 /** A time value represented in nanoseconds */
-typedef unsigned long nanotime_t;
+typedef uint32_t nanotime_t;
 
 
 /** This contains the various signal propagation delays added by the
@@ -80,7 +80,7 @@ public:
      *          hardware interface specified by \c name.
      * \throws runtime_error Contains a textual description of the error.
      */
-    static IO *acquire(Preferences *config, char *name, int port = 0);
+    static IO *acquire(Preferences *config, const char *name, int port = 0);
 
     /** Sets the type of the programmer: for production or for developement
      * \param state True if the programmer is for production
@@ -199,7 +199,7 @@ public:
     );
 
     virtual void set_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
@@ -207,7 +207,7 @@ public:
     ) = 0;
 
     virtual bool get_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert

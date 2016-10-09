@@ -20,12 +20,13 @@
 
 #include "Util.h"
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
 string Util::programPath="";
 
-bool Util::regexMatch(char *regex, char *string)
+bool Util::regexMatch(const char *regex, const char *string)
 {
 RegularExpression re(regex);
 

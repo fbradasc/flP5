@@ -31,28 +31,44 @@ using namespace std;
 #include "IO.h"
 #include "Util.h"
 
-#if defined(linux) && defined(ENABLE_LINUX_PPDEV)
+#if defined(linux)
+# if defined(ENABLE_LINUX_PPDEV)
 #  include "LinuxPPDevIO.h"
+# endif
+# if defined(ENABLE_LINUX_GPIO)
+#  include "LinuxGPIO.h"
+# endif
 #endif
-
-#include "DirectPPIO.h"
+#if !defined(ENABLE_LINUX_GPIO)
+# include "DirectPPIO.h"
+#endif
 
 Preferences *IO::config = NULL;
 
-IO *IO::acquire(Preferences *cfg, char *name, int port)
+IO *IO::acquire(Preferences *cfg, const char *name, int port)
 {
 IO *io;
 
     IO::config = cfg;
 
-#if defined(linux) && defined(ENABLE_LINUX_PPDEV)
+#if defined(linux)
+# if defined(ENABLE_LINUX_PPDEV)
     if (strcasecmp(name, "LinuxPPDev") == 0) {
         io = new LinuxPPDevIO(port);
     } else
+# endif
+# if defined(ENABLE_LINUX_GPIO)
+    if (strcasecmp(name, "LinuxGPIO") == 0) {
+        io = new LinuxGPIO(port);
+    } else
+# endif
 #endif
+#if !defined(ENABLE_LINUX_GPIO)
     if (strcasecmp(name, "DirectPP") == 0) {
         io = new DirectPPIO(port);
-    } else {
+    } else
+#endif
+    {
         throw runtime_error("Unknown IO driver selected");
     }
     io->off();

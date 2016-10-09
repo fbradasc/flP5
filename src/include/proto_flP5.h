@@ -22,7 +22,7 @@
 #include "HexFile.h"
 #include "DataBuffer.h"
 #include "Device.h"
-#include "IO.h"
+#include "ParallelPort.h"
 
 typedef enum PROPAGATION_DELAYS {
     PD_DEFAULT=0,
@@ -128,20 +128,6 @@ typedef enum CHIP_OPER {
     CHIP_NONE
 } ChipOper;
 
-#define PP_PINS_FIRST 0
-typedef enum PP_PINS {
-    ICSP_CLOCK=PP_PINS_FIRST,
-    ICSP_DATA_IN,
-    ICSP_DATA_OUT,
-    ICSP_VDD_ON,
-    ICSP_VPP_ON,
-    SEL_MIN_VDD,
-    SEL_PRG_VDD,
-    SEL_MAX_VDD,
-    SEL_VIHH_VPP,
-    LAST_PIN
-} PpPins;
-
 extern bool verifyDeviceConfig(bool verbose);
 extern bool loadDevicesSettings(const char *fname);
 extern bool deviceConfigCB(CfgOper oper);
@@ -172,6 +158,6 @@ extern Preferences app;
 extern Preferences programmers;
 extern Preferences devices;
 
-extern char *copyrightText;
+extern const char *copyrightText;
 
 #endif

@@ -17,7 +17,7 @@
  */
 // DlPortDriver.c - Dynamic install/start/stop/remove DLPortIO driver 
 
-#ifdef  WIN32
+#if defined(WIN32) && !defined(ENABLE_LINUX_GPIO)
 
 #include <windows.h>
 #include <stdio.h>
@@ -352,4 +352,4 @@ DlPortDriver::~DlPortDriver()
    fActiveHW=false; // Success
 }
 
-#endif // WIN32
+#endif // WIN32 && !ENABLE_LINUX_GPIO

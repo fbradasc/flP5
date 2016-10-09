@@ -31,6 +31,7 @@ SET ( FLP5_SOURCES
     lib/DlPortDriver.cxx
     lib/DirectPPIO.cxx
     lib/LinuxPPDevIO.cxx
+    lib/LinuxGPIO.cxx
 #
 # Device definition & programming algorithms
 #

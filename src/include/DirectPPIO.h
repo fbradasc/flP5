@@ -48,7 +48,7 @@ public:
     ~DirectPPIO();
 
     void set_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
@@ -56,7 +56,7 @@ public:
     );
 
     bool get_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert

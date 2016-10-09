@@ -16,7 +16,7 @@
  *
  * $Id: LinuxPPDevIO.cxx,v 1.6 2002/10/11 16:26:56 marka Exp $
  */
-#ifdef linux
+#if defined(linux) && !defined(ENABLE_LINUX_GPIO)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,11 +66,8 @@ int arg;
         if (ioctl(this->fd, PPSETMODE, &arg) < 0) {
             throw errno;
         }
-        vpp   (VPP_TO_VDD);
-        clock (false);
-        data  (false);
-        vdd   (VDD_TO_OFF);
-        vdd   (VDD_TO_PRG);
+        this->off();
+        vdd(VDD_TO_PRG);
     } catch (int err) {
         close(this->fd);
         throw runtime_error(strerror(err));
@@ -86,11 +83,8 @@ LinuxPPDevIO::~LinuxPPDevIO()
 int arg;
 
     /* Turn things off */
-    vpp   (VPP_TO_VDD);
-    clock (false);
-    data  (false);
-    vdd   (VDD_TO_OFF);
-    vdd   (VDD_TO_PRG);
+    this->off();
+    vdd(VDD_TO_PRG);
 
     arg = IEEE1284_MODE_COMPAT;
     ioctl(this->fd, PPSETMODE, &arg);
@@ -104,7 +98,7 @@ int arg;
 }
 
 void LinuxPPDevIO::set_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert,
@@ -159,7 +153,7 @@ int parm1, parm2, arg;
 }
 
 bool LinuxPPDevIO::get_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert
@@ -191,4 +185,4 @@ unsigned int parm, arg;
     return parm;
 }
 
-#endif // linux
+#endif // linux && !ENABLE_LINUX_GPIO

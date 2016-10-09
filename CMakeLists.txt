@@ -19,7 +19,7 @@ SET(CPACK_PACKAGE_VENDOR "Francesco Bradascio")
 SET(CPACK_PACKAGE_NAME "flP5")
 SET(CPACK_PACKAGE_VERSION_MAJOR "1")
 SET(CPACK_PACKAGE_VERSION_MINOR "1")
-SET(CPACK_PACKAGE_VERSION_PATCH "10")
+SET(CPACK_PACKAGE_VERSION_PATCH "11")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
 
@@ -37,6 +37,7 @@ ENDIF (WIN32)
     MESSAGE ("*******************************************")
 
 IF ( NOT WIN32 )
+    INCLUDE ( ${CMAKE_ROOT}/Modules/CMakeDependentOption.cmake   )
     INCLUDE ( ${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityC.cmake   )
     INCLUDE ( ${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityCXX.cmake )
     INCLUDE ( ${CMAKE_ROOT}/Modules/FindPNG.cmake                       )
@@ -76,6 +77,9 @@ IF ( WIN32 )
 ELSE ( WIN32 )
     SET ( INSTALL_PREFIX "" )
 
+    OPTION ( LINUX_GPIO "Enable linux GPIO support" OFF )
+    CMAKE_DEPENDENT_OPTION( RPI_EXT_GPIO "Enable Raspberry Pi extended GPIOs" OFF "LINUX_GPIO" OFF )
+
     IF ( ${UX_REL} MATCHES "1" ) 
          SET ( CMAKE_CXX_FLAGS "-DOPTIMIZE -O2" )
     ELSE ( ${UX_REL} MATCHES "1" ) 
@@ -106,9 +110,21 @@ ELSE ( WIN32 )
         )
     ENDIF(${CMAKE_INSTALL_PREFIX})
 
-    ADD_DEFINITIONS     (
-        -DENABLE_LINUX_PPDEV
-    )
+    IF (LINUX_GPIO)
+        ADD_DEFINITIONS(
+            -DENABLE_LINUX_GPIO
+        )
+    ELSE (LINUX_GPIO)
+        ADD_DEFINITIONS(
+            -DENABLE_LINUX_PPDEV
+        )
+    ENDIF (LINUX_GPIO)
+
+    IF (RPI_EXT_GPIO)
+        ADD_DEFINITIONS(
+            -DRPI_MODEL_PLUS
+        )
+    ENDIF (RPI_EXT_GPIO)
 ENDIF ( WIN32 )
 
 FIND_FILE (

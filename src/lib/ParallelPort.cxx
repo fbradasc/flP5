@@ -26,96 +26,112 @@ using namespace std;
 
 LptPorts ParallelPort::ports;
 
-#define SETPINDATA(name, prefix, pin)                                         \
-{                                                                             \
-int svalue=0;                                                                 \
-                                                                              \
-    svalue = pin;                                                             \
-    this->prefix##Invert = 0;                                                 \
-    if (svalue < 0) {                                                         \
-        this->prefix##Invert = 1;                                             \
-        svalue *= -1;                                                         \
-    }                                                                         \
-    if (svalue == 0) { /* signal not used by the programmer */                \
-        this->prefix##Reg = -1;                                               \
-        this->prefix##Bit = -1;                                               \
-    } else if ((svalue > 25) || (pin2reg[svalue-1] == -1)) {                  \
-        throw runtime_error (                                                 \
-            "Invalid value for configuration parameter "                      \
-            name "Pin"                                                        \
-        );                                                                    \
-    } else {                                                                  \
-        if (hw_invert[svalue-1]) {                                            \
-            this->prefix##Invert ^= 1;                                        \
-        }                                                                     \
-        this->prefix##Reg = pin2reg[svalue-1];                                \
-        this->prefix##Bit = pin2bit[svalue-1];                                \
-    }                                                                         \
-}
-
-#define READPINDATA(name,prefix)                                              \
-{                                                                             \
-int value=0;                                                                  \
-                                                                              \
-    config->get(name,value,0);                                                \
-    SETPINDATA(name,prefix,value);                                            \
-}
-
 #define SET_PIN_STATE(function,name,prefix) this->set_pin_state (             \
         name,                                                                 \
-        this->prefix##Reg,                                                    \
-        this->prefix##Bit,                                                    \
-        this->prefix##Invert,                                                 \
+        ParallelPort::controls[name].getReg(),                                \
+        ParallelPort::controls[name].getBit(),                                \
+        ( ParallelPort::controls[name].getMode() & PIN_NEG ) ? 1 : 0,         \
         state,                                                                \
         &this->function##_delays_                                             \
     );                                                                        \
 
 #define GET_PIN_STATE(function,name,prefix) this->get_pin_state (             \
         name,                                                                 \
-        this->prefix##Reg,                                                    \
-        this->prefix##Bit,                                                    \
-        this->prefix##Invert,                                                 \
+        ParallelPort::controls[name].getReg(),                                \
+        ParallelPort::controls[name].getBit(),                                \
+        ( ParallelPort::controls[name].getMode() & PIN_NEG ) ? 1 : 0,         \
         &this->function##_delays_                                             \
     )
 
-/* Mapping of parallel port pin #'s to I/O register offset. */
-static char pin2reg[25] = {
-    2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 1, 2, 2,
-    -1, -1, -1, -1, -1, -1, -1, -1
+const IOPin ParallelPort::pins[] =
+{
+#if defined(ENABLE_LINUX_GPIO)
+    { 0, -1, -1, PIN_3V3                     },
+    { 0, -1, -1, PIN_5V0                     },
+    { 0,  0,  2,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_5V0                     },
+    { 0,  0,  3,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0,  4,           PIN_INP | PIN_OUT },
+    { 0,  0, 14,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0, 15,           PIN_INP | PIN_OUT },
+    { 0,  0, 17,           PIN_INP | PIN_OUT },
+    { 0,  0, 18,           PIN_INP | PIN_OUT },
+    { 0,  0, 27,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0, 22,           PIN_INP | PIN_OUT },
+    { 0,  0, 23,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_3V3                     },
+    { 0,  0, 24,           PIN_INP | PIN_OUT },
+    { 0,  0, 10,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0,  9,           PIN_INP | PIN_OUT },
+    { 0,  0, 25,           PIN_INP | PIN_OUT },
+    { 0,  0, 11,           PIN_INP | PIN_OUT },
+    { 0,  0,  8,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0,  7,           PIN_INP | PIN_OUT }
+#if defined(RPI_MODEL_PLUS)
+    ,
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0,  5,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0,  6,           PIN_INP | PIN_OUT },
+    { 0,  0, 12,           PIN_INP | PIN_OUT },
+    { 0,  0, 13,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0, 19,           PIN_INP | PIN_OUT },
+    { 0,  0, 16,           PIN_INP | PIN_OUT },
+    { 0,  0, 26,           PIN_INP | PIN_OUT },
+    { 0,  0, 20,           PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0,  0, 21,           PIN_INP | PIN_OUT }
+#endif
+#else
+    { 0,  2,  0, PIN_NEG | PIN_INP | PIN_OUT },
+    { 0,  0,  0,                     PIN_OUT },
+    { 0,  0,  1,                     PIN_OUT },
+    { 0,  0,  2,                     PIN_OUT },
+    { 0,  0,  3,                     PIN_OUT },
+    { 0,  0,  4,                     PIN_OUT },
+    { 0,  0,  5,                     PIN_OUT },
+    { 0,  0,  6,                     PIN_OUT },
+    { 0,  0,  7,                     PIN_OUT },
+    { 0,  1,  6,           PIN_INP           },
+    { 0,  1,  7, PIN_NEG | PIN_INP           },
+    { 0,  1,  5,           PIN_INP           },
+    { 0,  1,  4,           PIN_INP           },
+    { 0,  2,  1, PIN_NEG | PIN_INP | PIN_OUT },
+    { 0,  1,  3,           PIN_INP           },
+    { 0,  2,  2,           PIN_INP | PIN_OUT },
+    { 0,  2,  3, PIN_NEG | PIN_INP | PIN_OUT },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     },
+    { 0, -1, -1, PIN_GND                     }
+#endif
 };
 
-/* Mapping of parallel port pin #'s to I/O register bit positions. */
-static char pin2bit[25] = {
-    0, 0, 1, 2, 3, 4, 5, 6, 7, 6, 7, 5, 4, 1, 3, 2, 3,
-    -1, -1, -1, -1, -1, -1, -1, -1
-};
-
-/* Flags for each pin, indicating if the parallel port hardware inverts the
- * value. (BSY, STB, ALF, DSL) */
-static char hw_invert[25] = {
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-    0, 0, 0, 0, 0, 0, 0, 0
-};
+IOControls ParallelPort::controls = ParallelPort::init_controls();
 
 ParallelPort::ParallelPort(int port) : IO(port)
 {
 char programmer[20];
 int vregs, val;
-char *message = "Either none or at least two of:\n\n" \
-                "\t%s.vminpin\n" \
-                "\t%s.vprgpin\n" \
-                "\t%s.vmaxpin\n\n" \
-                "need to be set.";
+int index = 0;
+const char *message = "Either none or at least two of:\n\n" \
+                      "\t%s.vminpin\n" \
+                      "\t%s.vprgpin\n" \
+                      "\t%s.vmaxpin\n\n" \
+                      "need to be set.";
 
-    READPINDATA( "icspClock"  , icspClock   );
-    READPINDATA( "icspDataIn" , icspDataIn  );
-    READPINDATA( "icspDataOut", icspDataOut );
-    READPINDATA( "icspVddOn"  , icspVddOn   );
-    READPINDATA( "icspVppOn"  , icspVppOn   );
-    READPINDATA( "selMinVdd"  , selMinVdd   );
-    READPINDATA( "selProgVdd" , selProgVdd  );
-    READPINDATA( "selMaxVdd"  , selMaxVdd   );
-    READPINDATA( "selVihhVpp" , selVihhVpp  );
+    controls = init_controls(); // reload controls
 
     config->get("vddMinCond"        ,vddMinCond ,0);
     config->get("vddProgCond"       ,vddProgCond,0);
@@ -126,15 +142,83 @@ char *message = "Either none or at least two of:\n\n" \
     hasSAVddVppControl((val!=0));
  
     vregs = 0;
-    vregs += (selMaxVddBit >=0) ? 1 : 0;
-    vregs += (selProgVddBit>=0) ? 1 : 0;
-    vregs += (selMinVddBit >=0) ? 1 : 0;
+    vregs += (GET_PIN_BIT("selMaxVdd" )>=0) ? 1 : 0;
+    vregs += (GET_PIN_BIT("selProgVdd")>=0) ? 1 : 0;
+    vregs += (GET_PIN_BIT("selMinVdd" )>=0) ? 1 : 0;
 
     this->production( (vregs>0) ? true : false );
 }
 
 ParallelPort::~ParallelPort()
 {
+}
+
+IOControls ParallelPort::init_controls()
+{
+IOControls controls;
+
+    add_control(controls);                         /** initialize */
+    add_control(controls, "icspClock"  , PIN_OUT); /** Par. port pin data for the read data signal    */
+    add_control(controls, "icspDataIn" , PIN_INP); /** Par. port pin data for the write data signal   */
+    add_control(controls, "icspDataOut", PIN_OUT); /** Par. port pin data for the clock signal        */
+    add_control(controls, "icspVddOn"  , PIN_OUT); /** Par. port pin data for the Vpp enable signal   */
+    add_control(controls, "icspVppOn"  , PIN_OUT); /** Par. port pin data for the Vdd enable signal   */
+    add_control(controls, "selMinVdd"  , PIN_OUT); /** Par. port pin data for the Vdd Min sel. signal */
+    add_control(controls, "selProgVdd" , PIN_OUT); /** Par. port pin data for the Vdd Prg sel. signal */
+    add_control(controls, "selMaxVdd"  , PIN_OUT); /** Par. port pin data for the Vdd Max sel. signal */
+    add_control(controls, "selVihhVpp" , PIN_OUT); /** Par. port pin data for the Vpp VIH sel. signal */
+
+    return controls;
+}
+
+void ParallelPort::add_control(IOControls &cl, const char *name, unsigned short dir)
+{
+int pin=0;
+IOPin iopin;
+static int index=0;
+
+    if (NULL == name) {
+        index=0;
+    } else {
+        if (NULL != config) {
+            config->get(name,pin,0);
+        }
+
+        iopin.mode = ( dir == PIN_INP ) ? PIN_INP : PIN_OUT;
+
+        if (pin < 0) {
+            iopin.mode |= PIN_NEG;
+            pin *= -1;
+        }
+        if (pin == 0) { /* signal not used by the programmer */
+            iopin.reg = -1;
+            iopin.bit = -1;
+        } else if ((pin-1 > NIOP) || (ParallelPort::pins[pin-1].getReg() == -1)) {
+            throw runtime_error (
+                (const char *)Preferences::Name (
+                    "Invalid value for configuration parameter %s Pin",
+                    name
+                )
+            );
+        } else if ((ParallelPort::pins[pin-1].getMode() & dir) == 0) {
+            throw runtime_error (
+                (const char *)Preferences::Name (
+                    "Mismatch direction for configuration parameter %s Pin",
+                    name
+                )
+            );
+        } else {
+            if ((ParallelPort::pins[pin-1].getMode() & PIN_NEG)) {
+                iopin.mode ^= PIN_NEG;
+            }
+            iopin.reg = ParallelPort::pins[pin-1].getReg();
+            iopin.bit = ParallelPort::pins[pin-1].getBit();
+        }
+
+        iopin.idx = index++;
+
+        cl[name] = iopin;
+    }
 }
 
 void ParallelPort::clock(bool state)
@@ -161,7 +245,7 @@ bool state;
             if (this->vppOffCond) {
                 state = true; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
             }
-            if (this->selVihhVppBit>=0) {
+            if (GET_PIN_BIT("selVihhVpp")>=0) {
                 state = true; SET_PIN_STATE(vpp, "selVihhVpp", selVihhVpp);
             }
             if (!this->vppOffCond) {
@@ -169,13 +253,13 @@ bool state;
             }
         break;
         case VPP_TO_GND:
-            if (this->vppOffCond && this->selVihhVppBit>=0) {
+            if (this->vppOffCond && GET_PIN_BIT("selVihhVpp")>=0) {
                 state = false; SET_PIN_STATE(vpp, "selVihhVpp", selVihhVpp);
             }
             state = false; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
         break;
         case VPP_TO_VDD:
-            if (this->selVihhVppBit>=0) {
+            if (GET_PIN_BIT("selVihhVpp")>=0) {
                 state = false; SET_PIN_STATE(vpp, "selVihhVpp", selVihhVpp);
             }
             state = true; SET_PIN_STATE(vpp, "icspVppOn", icspVppOn);
@@ -198,43 +282,43 @@ bool state;
                 /* hadled in the above if ... */
             break;
             case VDD_TO_MIN:
-                if (this->selMaxVddBit>=0) {
+                if (GET_PIN_BIT("selMaxVdd")>=0) {
                     state = (vddMinCond & 4);
                     SET_PIN_STATE(vdd, "selMaxVdd", selMaxVdd);
                 }
-                if (this->selProgVddBit>=0) {
+                if (GET_PIN_BIT("selProgVdd")>=0) {
                     state = (vddMinCond & 2);
                     SET_PIN_STATE(vdd, "selProgVdd", selProgVdd);
                 }
-                if (this->selMinVddBit>=0) {
+                if (GET_PIN_BIT("selMinVdd")>=0) {
                     state = (vddMinCond & 1);
                     SET_PIN_STATE(vdd, "selMinVdd", selMinVdd);
                 }
             break;
             case VDD_TO_PRG:
-                if (this->selMaxVddBit>=0) {
+                if (GET_PIN_BIT("selMaxVdd")>=0) {
                     state = (vddProgCond & 4);
                     SET_PIN_STATE(vdd, "selMaxVdd", selMaxVdd);
                 }
-                if (this->selMinVddBit>=0) {
+                if (GET_PIN_BIT("selMinVdd")>=0) {
                     state = (vddProgCond & 1);
                     SET_PIN_STATE(vdd, "selMinVdd", selMinVdd);
                 }
-                if (this->selProgVddBit>=0) {
+                if (GET_PIN_BIT("selProgVdd")>=0) {
                     state = (vddProgCond & 2);
                     SET_PIN_STATE(vdd, "selProgVdd", selProgVdd);
                 }
             break;
             case VDD_TO_MAX:
-                if (this->selMinVddBit>=0) {
+                if (GET_PIN_BIT("selMinVdd")>=0) {
                     state = (vddMaxCond & 1);
                     SET_PIN_STATE(vdd, "selMinVdd", selMinVdd);
                 }
-                if (this->selProgVddBit>=0) {
+                if (GET_PIN_BIT("selProgVdd")>=0) {
                     state = (vddMaxCond & 2);
                     SET_PIN_STATE(vdd, "selProgVdd", selProgVdd);
                 }
-                if (this->selMaxVddBit>=0) {
+                if (GET_PIN_BIT("selMaxVdd")>=0) {
                     state = (vddMaxCond & 4);
                     SET_PIN_STATE(vdd, "selMaxVdd", selMaxVdd);
                 }
@@ -244,7 +328,7 @@ bool state;
 }
 
 void ParallelPort::set_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert,
@@ -253,6 +337,9 @@ void ParallelPort::set_pin_state (
 ) {
 bool old_state;
 
+    if (reg <0 || bit<0) {
+        return;
+    }
     if (delays) {
         old_state = this->get_pin_state(name, reg, bit, invert);
     }
@@ -264,12 +351,15 @@ bool old_state;
 }
 
 bool ParallelPort::get_pin_state (
-    char *name,
+    const char *name,
     short reg,
     short bit,
     short invert,
     struct signal_delays *delays
 ) {
+    if (reg <0 || bit<0) {
+        return false;
+    }
     if (delays) {
         this->pre_read_delay(*delays);
     }

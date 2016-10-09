@@ -19,13 +19,51 @@
 #ifndef __ParallelPort_h
 #define __ParallelPort_h
 
+#include <map>
+
 #include "IO.h"
 #include "LptPorts.h"
 
-
 /** \file */
 
-#define PINDECL(prefix) short prefix##Reg, prefix##Bit, prefix##Invert
+#if defined(ENABLE_LINUX_GPIO)
+#  if defined(RPI_MODEL_PLUS)
+#    define NIOP 40
+#  else
+#    define NIOP 26
+#  endif
+#else
+#  define NIOP 25
+#endif
+
+#define PIN_INP ( 1 << 0 )
+#define PIN_OUT ( 1 << 1 )
+#define PIN_5V0 ( 1 << 2 )
+#define PIN_3V3 ( 1 << 3 )
+#define PIN_GND ( 1 << 4 )
+#define PIN_NEG ( 1 << 5 )
+
+class IOPin {
+    public:
+        char           getIdx () const { return idx ; }
+        char           getReg () const { return reg ; }
+        char           getBit () const { return bit ; }
+        unsigned short getMode() const { return mode; }
+
+        char           idx;
+        char           reg;
+        char           bit;
+        unsigned short mode;
+};
+
+typedef std::map<std::string, IOPin> IOControls;
+
+#define GET_PIN_IDX(name) ParallelPort::controls[name].getIdx()
+#define GET_PIN_REG(name) ParallelPort::controls[name].getReg()
+#define GET_PIN_BIT(name) ParallelPort::controls[name].getBit()
+#define GET_PIN_NEG(name) ((ParallelPort::controls[name].getMode() & PIN_NEG) ? true : false)
+#define GET_PIN_DIR(name) ((ParallelPort::controls[name].getMode() & PIN_INP) ? true : false)
+#define LAST_PIN          ParallelPort::controls.size()
 
 /** This class contains methods and data elements that are common to all IO
  * implementation attached to a parallel port.
@@ -51,19 +89,13 @@ public:
 
     static LptPorts ports;
 
+    static const IOPin pins[NIOP];
+
+    static IOControls controls;
+
 protected:
     /** The parallel port number this object is using */
     int port;
-
-    PINDECL(icspDataIn);  /** Par. port pin data for the read data signal    */
-    PINDECL(icspDataOut); /** Par. port pin data for the write data signal   */
-    PINDECL(icspClock);   /** Par. port pin data for the clock signal        */
-    PINDECL(icspVppOn);   /** Par. port pin data for the Vpp enable signal   */
-    PINDECL(icspVddOn);   /** Par. port pin data for the Vdd enable signal   */
-    PINDECL(selMinVdd);   /** Par. port pin data for the Vdd Min sel. signal */
-    PINDECL(selProgVdd);  /** Par. port pin data for the Vdd Prg sel. signal */
-    PINDECL(selMaxVdd);   /** Par. port pin data for the Vdd Max sel. signal */
-    PINDECL(selVihhVpp);  /** Par. port pin data for the Vpp VIH sel. signal */
 
     int vddMinCond;       /** Pins to activate to select Vdd Min value  */
     int vddProgCond;      /** Pins to activate to select Vdd Prog value */
@@ -72,7 +104,7 @@ protected:
                            *  setting off the icspVppOn pin */
 
     virtual void set_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
@@ -80,14 +112,14 @@ protected:
     ) = 0;
 
     virtual bool get_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert
     ) = 0;
 
     void set_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
@@ -96,13 +128,16 @@ protected:
     );
 
     bool get_pin_state (
-        char *name,
+        const char *name,
         short reg,
         short bit,
         short invert,
         struct signal_delays *delays
     );
 
+private:
+    static IOControls init_controls();
+    static void       add_control  (IOControls &cl, const char *name=NULL, unsigned short dir=PIN_INP);
 };
 
 #endif

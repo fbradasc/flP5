@@ -52,7 +52,7 @@ Preferences app(Preferences::USER,"flP5","flP5");
 Preferences programmers(Preferences::USER,"flP5","programmers");
 Preferences devices(Preferences::USER,"flP5","devices");
 
-char *copyrightText =
+const char *copyrightText =
 "<HTML><BODY><CENTER>"
 "<B>flP5 1.1.10</B><BR>"
 "the Fast Light Parallel Port Production PIC Programmer.<BR>"
@@ -156,7 +156,7 @@ static t_NamedSettings spins[] = {
     "selVihhVpp" , (void *)0
 };
 
-static char *portAccess[] = { "DirectPP", "LinuxPPDev" };
+static const char *portAccess[] = { "DirectPP", "LinuxPPDev", "LinuxGPIO" };
 
 bool verifyDeviceConfig(bool verbose)
 {
@@ -248,7 +248,7 @@ char buf[FL_PATH_MAX];
                 dev.set("memType",buf);
 
                 for (i=0;i<LAST_PARAM-8;i++) {
-                    dev.get(sparams[i].name,v,(int)sparams[i].defv);
+                    dev.get(sparams[i].name,v,(intptr_t)sparams[i].defv);
                     dev.set(sparams[i].name,v);
                 }
                 for (;i<LAST_PARAM-6;i++) { /* device id & mask */
@@ -261,7 +261,7 @@ char buf[FL_PATH_MAX];
                     dev.set(sparams[i].name,buf);
                 }
                 for (;i<LAST_PARAM;i++) {
-                    dev.get(sparams[i].name,d,(double)((int)sparams[i].defv));
+                    dev.get(sparams[i].name,d,(double)((intptr_t)sparams[i].defv));
                     dev.set(sparams[i].name,d);
                 }
 
@@ -347,7 +347,7 @@ bool store = false;
                         "memType",buf,"rom",sizeof(buf)-1
                     ) ? 1 : 0;
                     for (i=0;i<LAST_PARAM-8;i++) {
-                        settings += from.get(sparams[i].name,v[0],(int)sparams[i].defv) ? 1 : 0;
+                        settings += from.get(sparams[i].name,v[0],(intptr_t)sparams[i].defv) ? 1 : 0;
                     }
                     for (;i<LAST_PARAM-6;i++) { /* device id & mask */
                         settings += from.get (
@@ -358,7 +358,7 @@ bool store = false;
                         ) ? 1 : 0;
                     }
                     for (;i<LAST_PARAM;i++) {
-                        settings += from.get(sparams[i].name,d,(double)((int)sparams[i].defv)) ? 1 : 0;
+                        settings += from.get(sparams[i].name,d,(double)((intptr_t)sparams[i].defv)) ? 1 : 0;
                     }
                     settings += from.get("configWords",v[0],0) ? 1 : 0;
                     for (i=0;i<v[0];i++) {
@@ -428,8 +428,8 @@ bool store = false;
                                 different = true;
                             }
                             for (i=0;i<LAST_PARAM-8;i++) {
-                                from.get(sparams[i].name,v[0],(int)sparams[i].defv);
-                                  to.get(sparams[i].name,v1[0],(int)sparams[i].defv);
+                                from.get(sparams[i].name,v[0],(intptr_t)sparams[i].defv);
+                                  to.get(sparams[i].name,v1[0],(intptr_t)sparams[i].defv);
 
                                 if (v[0] != v1[0]) {
                                     sprintf(report,"@b%s:",sparams[i].name);
@@ -465,8 +465,8 @@ bool store = false;
                                 }
                             }
                             for (;i<LAST_PARAM;i++) {
-                                from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
-                                  to.get(sparams[i].name,d1,(double)((int)sparams[i].defv));
+                                from.get(sparams[i].name,d,(double)((intptr_t)sparams[i].defv));
+                                  to.get(sparams[i].name,d1,(double)((intptr_t)sparams[i].defv));
 
                                 if (d != d1) {
                                     sprintf(report,"@b%s:",sparams[i].name);
@@ -535,7 +535,7 @@ bool store = false;
                             from.get("memType",buf,"rom",sizeof(buf)-1);
                                 to.set("memType",buf);
                             for (i=0;i<LAST_PARAM-8;i++) {
-                                from.get(sparams[i].name,v[0],(int)sparams[i].defv);
+                                from.get(sparams[i].name,v[0],(intptr_t)sparams[i].defv);
                                     to.set(sparams[i].name,v[0]);
                             }
                             for (;i<LAST_PARAM-6;i++) { /* device id & mask */
@@ -548,7 +548,7 @@ bool store = false;
                                     to.set(sparams[i].name,buf);
                             }
                             for (;i<LAST_PARAM;i++) {
-                                from.get(sparams[i].name,d,(double)((int)sparams[i].defv));
+                                from.get(sparams[i].name,d,(double)((intptr_t)sparams[i].defv));
                                     to.set(sparams[i].name,d);
                             }
                             from.get("configWords",v[0],0);
@@ -692,7 +692,7 @@ char path[FL_PATH_MAX];
             Preferences device(devices,(const char *)mdata);
             tx_devName->value(ch_devices->text());
             for (i=0;i<LAST_PARAM-8;i++) {
-                device.get(sparams[i].name,v[0],(int)sparams[i].defv);
+                device.get(sparams[i].name,v[0],(intptr_t)sparams[i].defv);
                     sprintf(buf,"%d",v[0]);
                     tx_devParam[i]->value(buf);
             }
@@ -706,7 +706,7 @@ char path[FL_PATH_MAX];
                 tx_devParam[i]->value(buf);
             }
             for (;i<LAST_PARAM;i++) {
-                device.get(sparams[i].name,d,(double)((int)sparams[i].defv));
+                device.get(sparams[i].name,d,(double)((intptr_t)sparams[i].defv));
                     sprintf(buf,"%.2lf",d);
                     tx_devParam[i]->value(buf);
             }
@@ -904,8 +904,10 @@ bool verifyProgrammerConfig(bool verbose)
 {
 const char *name;
 int i;
-char pins[26];
+char pins[NIOP];
 bool ok = true;
+const Fl_Menu_Item *mitem;
+intptr_t mvalue;
 
     name = tx_programmerName->value();
     if (!name || strlen(name)==0) {
@@ -925,35 +927,35 @@ bool ok = true;
         }
         tx_programmerName->value(&name[i]);
     }
-    for (i=0;i<26;i++) {
+    for (i=0;i<NIOP;i++) {
         pins[i] = -1;
     }
     for (i=0;i<LAST_PIN;i++) {
         bx_pinName[i]->color(FL_WHITE);
-        if (
-            ch_pinNumber[i]->value() &&
-            pins[ch_pinNumber[i]->value()] >= 0
-        ) {
-            if (verbose) {
-                fl_alert (
-                    "The pin #%d connected to %s\nis already connected to %s",
-                    ch_pinNumber[i]->value(),
-                    bx_pinName[i]->label(),
-                    bx_pinName[pins[ch_pinNumber[i]->value()]]->label()
-                );
+        if ((mitem  = ch_pinNumber[i]->mvalue()) &&
+            ((mvalue = (intptr_t)mitem->user_data()) >= 0)) {
+            if (pins[mvalue] >= 0) {
+                if (verbose) {
+                    fl_alert (
+                        "The pin #%d connected to %s\nis already connected to %s",
+                        mvalue,
+                        bx_pinName[i]->label(),
+                        bx_pinName[pins[mvalue]]->label()
+                    );
+                }
+                bx_pinName[i]->color(FL_YELLOW);
+            } else {
+                pins[mvalue] = i;
             }
-            bx_pinName[i]->color(FL_YELLOW);
-        } else {
-            pins[ch_pinNumber[i]->value()] = i;
+            bx_pinName[i]->redraw();
         }
-        bx_pinName[i]->redraw();
     }
     if (verbose) {
         i=0;
-        i += (ch_pinNumber[ICSP_CLOCK]->value()) ? 1 : 0;
-        i += (ch_pinNumber[ICSP_DATA_IN]->value()) ? 1 : 0;
-        i += (ch_pinNumber[ICSP_DATA_OUT]->value()) ? 1 : 0;
-        i += (ch_pinNumber[ICSP_VPP_ON]->value()) ? 1 : 0;
+        i += (ch_pinNumber[GET_PIN_IDX("icspClock"  )]->value()) ? 1 : 0;
+        i += (ch_pinNumber[GET_PIN_IDX("icspDataIn" )]->value()) ? 1 : 0;
+        i += (ch_pinNumber[GET_PIN_IDX("icspDataOut")]->value()) ? 1 : 0;
+        i += (ch_pinNumber[GET_PIN_IDX("icspVppOn"  )]->value()) ? 1 : 0;
 
         if (i<4) {
             fl_alert (
@@ -1002,7 +1004,7 @@ bool store = false;
             //
             settings = 0;
             for (j=0;j<LAST_PIN;j++) {
-                settings += from.get(spins[j].name,v[0],(int)spins[j].defv)? 1 : 0;
+                settings += from.get(spins[j].name,v[0],(intptr_t)spins[j].defv)? 1 : 0;
             }
             settings += from.get("vddMinCond"              ,v[0],0)? 1 : 0;
             settings += from.get("vddProgCond"             ,v[0],0)? 1 : 0;
@@ -1031,8 +1033,8 @@ bool store = false;
                     ls_report->clear();
 
                     for (j=0;j<LAST_PIN;j++) {
-                        from.get(spins[j].name,v[0] ,(int)spins[j].defv);
-                          to.get(spins[j].name,v1[0],(int)spins[j].defv);
+                        from.get(spins[j].name,v[0] ,(intptr_t)spins[j].defv);
+                          to.get(spins[j].name,v1[0],(intptr_t)spins[j].defv);
                         if (v[0] != v1[0]) {
                             sprintf (
                                 report,
@@ -1109,7 +1111,7 @@ bool store = false;
                 }
                 if (store || !compare) {
                     for (j=0;j<LAST_PIN;j++) {
-                        from.get(spins[j].name   ,v[0],(int)spins[j].defv);
+                        from.get(spins[j].name   ,v[0],(intptr_t)spins[j].defv);
                           to.set(spins[j].name   ,v[0]  );
                     }
                     from.get("vddMinCond"              ,v[0],0);
@@ -1132,9 +1134,10 @@ bool store = false;
 bool programmerConfigCB(CfgOper oper)
 {
 static int lastOper=-1;
-int i,j;
+int i,j,p;
 int v[3];
-char pins[26];
+const Fl_Menu_Item *mitem;
+intptr_t mdata;
 
     if (oper==CFG_DELETE) {
         if (lastOper==CFG_NEW || lastOper==CFG_EDIT || lastOper==CFG_COPY) {
@@ -1208,10 +1211,25 @@ char pins[26];
             // to format the name of the programmer:
             verifyProgrammerConfig(false);
             for (i=0;i<LAST_PIN;i++) {
-                programmer.get(spins[i].name,v[0],(int)spins[i].defv);
+                programmer.get(spins[i].name,v[0],(intptr_t)spins[i].defv);
                     tb_pinInvert[i]->value(v[0]<0);
-                    ch_pinNumber[i]->value(abs(v[0]));
-                    ch_pinNumber[i]->set_changed();
+                    if (0==v[0]) {
+                        ch_pinNumber[i]->value(0);
+                        ch_pinNumber[i]->set_changed();
+                    } else {
+                        mitem = ch_pinNumber[i]->menu();
+                        p=0;
+                        while (NULL != mitem && (p<ch_pinNumber[i]->size())) {
+                            mdata = (intptr_t)mitem->user_data();
+                            if (mdata == (abs(v[0])-1)) {
+                                ch_pinNumber[i]->value(p);
+                                ch_pinNumber[i]->set_changed();
+                                break;
+                            }
+                            mitem = mitem->next();
+                            p++;
+                        }
+                    }
             }
             programmer.get("vddMinCond" ,v[0],0);
             programmer.get("vddProgCond",v[1],0);
@@ -1227,7 +1245,7 @@ char pins[26];
             programmer.get("independentVddVppControl",v[0],0);
                 tb_saVddVppControl->value(v[0]>0);
 
-            if (ch_pinNumber[SEL_MIN_VDD]->value()) {
+            if (ch_pinNumber[GET_PIN_IDX("selMinVdd")]->value()) {
                 tb_vddMinCond [0]->deactivate();
                 tb_vddProgCond[0]->activate();
                 tb_vddMaxCond [0]->activate();
@@ -1236,7 +1254,7 @@ char pins[26];
                 tb_vddProgCond[0]->deactivate();
                 tb_vddMaxCond [0]->deactivate();
             }
-            if (ch_pinNumber[SEL_PRG_VDD]->value()) {
+            if (ch_pinNumber[GET_PIN_IDX("selProgVdd")]->value()) {
                 tb_vddMinCond [1]->activate();
                 tb_vddProgCond[1]->deactivate();
                 tb_vddMaxCond [1]->activate();
@@ -1245,7 +1263,7 @@ char pins[26];
                 tb_vddProgCond[1]->deactivate();
                 tb_vddMaxCond [1]->deactivate();
             }
-            if (ch_pinNumber[SEL_MAX_VDD]->value()) {
+            if (ch_pinNumber[GET_PIN_IDX("selMaxVdd")]->value()) {
                 tb_vddMinCond [2]->activate();
                 tb_vddProgCond[2]->activate();
                 tb_vddMaxCond [2]->deactivate();
@@ -1254,7 +1272,7 @@ char pins[26];
                 tb_vddProgCond[2]->deactivate();
                 tb_vddMaxCond [2]->deactivate();
             }
-            if (ch_pinNumber[SEL_VIHH_VPP]->value()) {
+            if (ch_pinNumber[GET_PIN_IDX("selVihhVpp")]->value()) {
                 tb_vppOffCond->activate();
             } else {
                 tb_vppOffCond->deactivate();
@@ -1311,9 +1329,14 @@ char pins[26];
             ch_programmers->text(ch_programmers->value())
         );
         for (i=0;i<LAST_PIN;i++) {
-            v[0] = abs(ch_pinNumber[i]->value()) *
-                   ((tb_pinInvert[i]->value())?-1:1);
-            programmer.set(spins[i].name,v[0]);
+            if ((ch_pinNumber[i]->value() != 0) &&
+                (mitem = ch_pinNumber[i]->mvalue()) &&
+                ((mdata = (intptr_t)mitem->user_data()) >= 0)) {
+                v[0] = (mdata+1) * ((tb_pinInvert[i]->value())?-1:1);
+                programmer.set(spins[i].name,v[0]);
+            } else {
+                programmer.set(spins[i].name,0);
+            }
         }
         v[0] = v[1] = v[2] = 0;
         for (i=0;i<3;i++) {
@@ -1373,8 +1396,8 @@ bool different = false;
         ls_report->clear();
 
         for (i=0;i<LAST_PROP_DLY;i++) {
-            imports.get(spropDly[i].name,v[0] ,(int)spropDly[i].defv);
-                app.get(spropDly[i].name,v1[0],(int)spropDly[i].defv);
+            imports.get(spropDly[i].name,v[0] ,(intptr_t)spropDly[i].defv);
+                app.get(spropDly[i].name,v1[0],(intptr_t)spropDly[i].defv);
             if (v[0] != v1[0]) {
                 sprintf (
                     report,
@@ -1391,7 +1414,7 @@ bool different = false;
         }
         if (different && show_report_window("General Settings")) {
             for (i=0;i<LAST_PROP_DLY;i++) {
-                imports.get(spropDly[i].name,v[0],(int)spropDly[i].defv);
+                imports.get(spropDly[i].name,v[0],(intptr_t)spropDly[i].defv);
                     app.set(spropDly[i].name,v[0]);
             }
         }
@@ -1433,13 +1456,13 @@ char buf[FL_PATH_MAX];
             (lastOper!=CFG_NEW && lastOper!=CFG_EDIT && lastOper!=CFG_COPY)
         ) {
             for (i=0;i<LAST_PROP_DLY;i++) {
-                app.set(spropDly[i].name,(int)spropDly[i].defv);
+                app.set(spropDly[i].name,(int)((intptr_t)spropDly[i].defv));
             }
         }
     }
     if (oper==CFG_LOAD || oper==CFG_DELETE) {
         for (i=0;i<LAST_PROP_DLY;i++) {
-            app.get(spropDly[i].name,j,(int)spropDly[i].defv);
+            app.get(spropDly[i].name,j,(intptr_t)spropDly[i].defv);
                 sprintf(buf,"%d",j);
                 tx_propDelay[i]->value(buf);
         }
@@ -1500,20 +1523,57 @@ const char *mdata, *cfgFile;
     app.get("portNumber",i,0);
     sm_ppNumber[((i<0 || i>=ParallelPort::ports.count)?1:(i+1))].setonly();
 
-#if defined(linux) && defined(ENABLE_LINUX_PPDEV)
-    sm_ppAccessMethod->show();
-    linux_pp_dev->show();
-    app.get("portAccessMethod",i,0);
-#else
+#if defined(linux)
+# if defined(ENABLE_LINUX_GPIO)
     linux_pp_dev->hide();
+    direct_pp->hide();
+    sm_ppAccessMethod->hide();
+    sm_settings->hide();
+    i=2;
+    app.set("portAccessMethod",i);
+# else
+    linux_gpio->hide();
+    sm_ppAccessMethod->show();
+    direct_pp->show();
+#  if defined(ENABLE_LINUX_PPDEV)
+    linux_pp_dev->show();
+#  endif
+    app.get("portAccessMethod",i,0);
+# endif
+#else
+    linux_gpio->hide();
+    direct_pp->hide();
     sm_ppAccessMethod->hide();
     i=0;
+    app.set("portAccessMethod",i);
 #endif
 
     sm_ppAccessMethod[i+1].setonly();
 
+    for (i=0;i<LAST_PIN;i++) {
+        ch_pinNumber[i]->clear();
+        ch_pinNumber[i]->add (
+            "X",
+            (const char *)0,
+            (Fl_Callback *)0,
+            (void *)-1,
+            0
+        );
+        for (intptr_t p=0;p<NIOP;p++) {
+            if (ParallelPort::pins[p].getReg() != -1) {
+                ch_pinNumber[i]->add (
+                    Preferences::Name("%d",p),
+                    (const char *)0,
+                    (Fl_Callback *)0,
+                    (void *)p,
+                    0
+                );
+            }
+        }
+    }
+
     for (i=0;i<LAST_PROP_DLY;i++) {
-        app.get(spropDly[i].name,j,(int)spropDly[i].defv);
+        app.get(spropDly[i].name,j,(intptr_t)spropDly[i].defv);
             sprintf(buf,"%d",j);
             tx_propDelay[i]->value(buf);
     }
@@ -1845,7 +1905,7 @@ double vppMin, vppMax;
 double vddMin, vddMax;
 double vddpMin, vddpMax;
 bool proceed = true, forceCalibration = true;
-char *soper[] = {
+const char *soper[] = {
     /* CHIP_READ           */ "Read",
     /* CHIP_ERASE          */ "Erase",
     /* CHIP_BLANCK_CHECK   */ "Blank Chk",
