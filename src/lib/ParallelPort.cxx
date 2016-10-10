@@ -337,7 +337,7 @@ void ParallelPort::set_pin_state (
 ) {
 bool old_state;
 
-    if (reg <0 || bit<0) {
+    if ((reg < 0) || (bit < 0)) {
         return;
     }
     if (delays) {
@@ -357,7 +357,7 @@ bool ParallelPort::get_pin_state (
     short invert,
     struct signal_delays *delays
 ) {
-    if (reg <0 || bit<0) {
+    if ((reg < 0) || (bit < 0)) {
         return false;
     }
     if (delays) {
