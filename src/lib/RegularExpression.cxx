@@ -58,6 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "RegularExpression.h"  // Include class specification 
+#include <string.h>
 #include <stdio.h>
 
 // RegularExpression -- Copies the given regular expression.

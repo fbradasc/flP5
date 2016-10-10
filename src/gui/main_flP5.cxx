@@ -1478,10 +1478,10 @@ const char *mdata, *cfgFile;
 
     for (i=0; i<ParallelPort::ports.count; i++) {
          ch_parports->add (
-             ParallelPort::ports.ports[i].device,
+             ParallelPort::ports.device[i],
              (const char *)0,
              (Fl_Callback *)0,
-             (void *)strdup(ParallelPort::ports.ports[i].device),
+             (void *)strdup(ParallelPort::ports.device[i]),
              0
          );
     }
