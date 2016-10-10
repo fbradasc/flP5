@@ -22,6 +22,9 @@
 
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 string Util::programPath="";
 

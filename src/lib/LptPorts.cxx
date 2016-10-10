@@ -26,6 +26,7 @@
 #  include <windows.h>
 #endif
 #include <sys/types.h>
+#include <stdlib.h>
 #include <stdexcept>
 #include "LptPorts.h"
 #include "Util.h"
